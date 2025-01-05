@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <Define.h>
 
-const uint16_t COORD_BUFFER_SIZE = 755;
+const uint16_t COORD_BUFFER_SIZE = 512;
 
 typedef struct {
     float x;  // x coord with respect to x home
@@ -24,9 +24,16 @@ class Coords {
 
    public:
     static bool begin();
-    static coord_planar_t nextCoordinate();
+    static coord_planar_t getNextCoordinate();
     static bool hasNextCoordinate();
-    static uint16_t coordBufferIndex;
+    static bool addBuffCoordinate(coord_planar_t coordPlanar);
+    /**
+     * get the size of available buffer space
+     */
+    static uint16_t getBuffCoordSpace();
+
+    static uint32_t nextCoordinateIndex;  // the index at which the next coordinate would be read
+    static uint32_t buffCoordinateIndex;  // the index at which the maximum buffered coordinate is (must never be large enough to overwrite coordinates not having been handled yet)
 
     /**
      * implemented according to https://corexy.com/theory.html

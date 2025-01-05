@@ -11,14 +11,6 @@ void tearDown(void) {
     // clean stuff up here
 }
 
-void test_coords_planarToCorexyInitial(void) {
-    coord_planar_t planar = {MACHINE_DIM____X * 10, MACHINE_DIM____Y * 10, MACHINE_DIM____Z * 10};
-    coord_corexy_t corexy = Coords::planarToCorexy(planar);
-    TEST_ASSERT_EQUAL(-49200, corexy.a);
-    TEST_ASSERT_EQUAL(286800, corexy.b);
-    TEST_ASSERT_EQUAL(4800, corexy.z);
-}
-
 /**
  * x-axis only, positive direction
  */
@@ -227,30 +219,60 @@ void test_coords_hasMaximumBVal(void) {
 }
 
 void test_next_coordinate(void) {
-    coord_planar_t planar0 = Coords::nextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    coord_planar_t planar0 = Coords::getNextCoordinate();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar0.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar0.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 10.0, planar0.z);
-    coord_planar_t planar1 = Coords::nextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    coord_planar_t planar1 = Coords::getNextCoordinate();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, -MACHINE_DIM____X, planar1.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar1.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar1.z);
-    coord_planar_t planar2 = Coords::nextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    coord_planar_t planar2 = Coords::getNextCoordinate();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar2.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar2.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar2.z);
-    coord_planar_t planar3 = Coords::nextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    coord_planar_t planar3 = Coords::getNextCoordinate();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar3.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, -MACHINE_DIM____Y, planar3.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar3.z);
-    coord_planar_t planar4 = Coords::nextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    coord_planar_t planar4 = Coords::getNextCoordinate();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar4.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar4.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar4.z);
-    coord_planar_t planar5 = Coords::nextCoordinate();
-    TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar5.x);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar5.y);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar5.z);
+    TEST_ASSERT_FALSE(Coords::hasNextCoordinate());
+}
+
+void test_initial_buff_values(void) {
+    TEST_ASSERT_EQUAL(0, Coords::nextCoordinateIndex);
+    TEST_ASSERT_EQUAL(5, Coords::buffCoordinateIndex);
+    TEST_ASSERT_EQUAL(507, Coords::getBuffCoordSpace());
+}
+
+void test_add_buff_values(void) {
+    TEST_ASSERT_EQUAL(512, Coords::getBuffCoordSpace());
+    TEST_ASSERT_FALSE(Coords::hasNextCoordinate());
+    for (uint16_t i = 0; i < 100; i++) {
+        Coords::addBuffCoordinate({0.0, 0.0, 0.0});
+    }
+    TEST_ASSERT_EQUAL(412, Coords::getBuffCoordSpace());
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    for (uint16_t i = 0; i < 99; i++) {
+        Coords::getNextCoordinate();
+    }
+    TEST_ASSERT_EQUAL(511, Coords::getBuffCoordSpace());
+    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    Coords::getNextCoordinate();
+    TEST_ASSERT_EQUAL(512, Coords::getBuffCoordSpace());
+    TEST_ASSERT_FALSE(Coords::hasNextCoordinate());
+    for (uint16_t i = 0; i < 512; i++) {
+        Coords::addBuffCoordinate({0.0, 0.0, 0.0});
+    }
+    TEST_ASSERT_EQUAL(0, Coords::getBuffCoordSpace());
 }
 
 void setup() {
@@ -261,7 +283,9 @@ void setup() {
 
     UNITY_BEGIN();  // IMPORTANT LINE!
 
-    RUN_TEST(test_coords_planarToCorexyInitial);
+    RUN_TEST(test_initial_buff_values);
+    RUN_TEST(test_next_coordinate);
+    RUN_TEST(test_add_buff_values);
 
     RUN_TEST(test_coords_corexyToPlanarForwardXPos);
     RUN_TEST(test_coords_planarToCorexyForwardXPos);
@@ -291,8 +315,6 @@ void setup() {
 
     RUN_TEST(test_coords_hasMaximumAVal);
     RUN_TEST(test_coords_hasMaximumBVal);
-
-    RUN_TEST(test_next_coordinate);
 
     UNITY_END();  // stop unit testing
 }

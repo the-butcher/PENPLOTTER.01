@@ -131,8 +131,8 @@ void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
         }
 
     } else {
-        // coord_planar_t nextCoordinate = Coords::nextCoordinate();
-        // Machine::accept(nextCoordinate, 20);
+        // coord_planar_t getNextCoordinate = Coords::getNextCoordinate();
+        // Machine::accept(getNextCoordinate, 20);
     }
 }
 
