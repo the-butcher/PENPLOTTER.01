@@ -14,14 +14,13 @@ class Machine {
 
    public:
     static uint64_t pulseCount;
-    static float frequency;
 
     /**
      * setup and start a timer
      */
     static bool begin();
 
-    static bool accept(coord_planar_t dstPlanar, float mmsSecond);  // accept a new destination coordinate and immediately start moving to, or drawing to the new coordinate
+    static bool accept(coord_planar_t dstPlanar, float vi, float vo);  // accept a new destination coordinate and immediately start moving to, or drawing to the new coordinate
 
     /**
      * adjust the pulse timer to run at a the given frequency
@@ -47,6 +46,27 @@ class Machine {
     static Motor* motorPrim;  // primary motor
     static Motor* motorSec1;  // secondary motor 1
     static Motor* motorSec2;  // secondary motor 2
+
+    /**
+     * microseconds needed to complete the current block
+     */
+    static uint64_t microsTotal;
+
+    /**
+     * microseconds when the machine entered the current block
+     */
+    static uint64_t microsEntry;
+
+    /**
+     * entry-frequency of the current block
+     */
+    static float frequencyI;
+
+    /**
+     * exit-frequency of the current block
+     */
+    static float frequencyO;
+
     /**
      * primary counter
      */

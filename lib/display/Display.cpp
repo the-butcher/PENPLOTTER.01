@@ -13,8 +13,8 @@ void Display::printSwitches() {
     Display::baseDisplay.print(String(switchesBuf));
 }
 
-void Display::printFrequency() {
-    char frequencyBuf[4];
-    sprintf(frequencyBuf, "%4d", (int)round(Machine::frequency));
-    Display::baseDisplay.print(String(frequencyBuf));
-}
+// void Display::printFrequency() {
+//     char frequencyBuf[4];
+//     sprintf(frequencyBuf, "%4d", (int)round(Machine::frequency));
+//     Display::baseDisplay.print(String(frequencyBuf));
+// }

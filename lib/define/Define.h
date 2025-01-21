@@ -10,7 +10,7 @@
 #define MOTOR_Z_DRCT_PIN 7
 
 #define MOTOR___STEPS_MM 40
-#define MOTOR_Z_STEPS_MM 60  // TODO :: measure radius of lever, then define an appropriate value
+#define MOTOR_Z_STEPS_MM 60
 
 // #define MOTOR_A_CNTR_CUR 286800
 // #define MOTOR_B_CNTR_CUR -49200
@@ -23,9 +23,12 @@
 #define MACHINE_DIM____X 297
 #define MACHINE_DIM____Y 420
 #define MACHINE_DIM____Z -8
+#define MACHINE_HOME_MMS 20
 
 #define COMMAND_SERVICE___UUID "791320d5-7f0a-4b58-89f6-cc2031479da4"
 #define COMMAND_BUFF_SIZE_UUID "067c3c93-eb63-4905-b292-478642f8ae99"
 #define COMMAND_BUFF_VALS_UUID "d3116fb9-adc1-4fc4-9cb4-ceb48925fa1b"
-#define COMMAND_BUFF_VALS_SIZE 32
+#define COMMAND_BUFF_VALS_SIZE 16
 #define BTLE_DEVICE_NAME "PEN_PLOTTER_01"
+
+#define MICROSECONDS_PER_SECOND 1000000

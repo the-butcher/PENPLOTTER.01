@@ -219,58 +219,58 @@ void test_coords_hasMaximumBVal(void) {
 }
 
 void test_next_coordinate(void) {
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
-    coord_planar_t planar0 = Coords::getNextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
+    coord_planar_t planar0 = Coords::getNextBlock();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar0.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar0.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 10.0, planar0.z);
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
-    coord_planar_t planar1 = Coords::getNextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
+    coord_planar_t planar1 = Coords::getNextBlock();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, -MACHINE_DIM____X, planar1.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar1.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar1.z);
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
-    coord_planar_t planar2 = Coords::getNextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
+    coord_planar_t planar2 = Coords::getNextBlock();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar2.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar2.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar2.z);
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
-    coord_planar_t planar3 = Coords::getNextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
+    coord_planar_t planar3 = Coords::getNextBlock();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar3.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, -MACHINE_DIM____Y, planar3.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar3.z);
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
-    coord_planar_t planar4 = Coords::getNextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
+    coord_planar_t planar4 = Coords::getNextBlock();
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar4.x);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar4.y);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, 0.0, planar4.z);
-    TEST_ASSERT_FALSE(Coords::hasNextCoordinate());
+    TEST_ASSERT_FALSE(Coords::hasNextBlock());
 }
 
 void test_initial_buff_values(void) {
-    TEST_ASSERT_EQUAL(0, Coords::nextCoordinateIndex);
-    TEST_ASSERT_EQUAL(5, Coords::buffCoordinateIndex);
+    TEST_ASSERT_EQUAL(0, Coords::nextBlockIndex);
+    TEST_ASSERT_EQUAL(5, Coords::blockIndex);
     TEST_ASSERT_EQUAL(507, Coords::getBuffCoordSpace());
 }
 
 void test_add_buff_values(void) {
     TEST_ASSERT_EQUAL(512, Coords::getBuffCoordSpace());
-    TEST_ASSERT_FALSE(Coords::hasNextCoordinate());
+    TEST_ASSERT_FALSE(Coords::hasNextBlock());
     for (uint16_t i = 0; i < 100; i++) {
-        Coords::addBuffCoordinate({0.0, 0.0, 0.0});
+        Coords::addBlock({0.0, 0.0, 0.0});
     }
     TEST_ASSERT_EQUAL(412, Coords::getBuffCoordSpace());
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
     for (uint16_t i = 0; i < 99; i++) {
-        Coords::getNextCoordinate();
+        Coords::getNextBlock();
     }
     TEST_ASSERT_EQUAL(511, Coords::getBuffCoordSpace());
-    TEST_ASSERT_TRUE(Coords::hasNextCoordinate());
-    Coords::getNextCoordinate();
+    TEST_ASSERT_TRUE(Coords::hasNextBlock());
+    Coords::getNextBlock();
     TEST_ASSERT_EQUAL(512, Coords::getBuffCoordSpace());
-    TEST_ASSERT_FALSE(Coords::hasNextCoordinate());
+    TEST_ASSERT_FALSE(Coords::hasNextBlock());
     for (uint16_t i = 0; i < 512; i++) {
-        Coords::addBuffCoordinate({0.0, 0.0, 0.0});
+        Coords::addBlock({0.0, 0.0, 0.0});
     }
     TEST_ASSERT_EQUAL(0, Coords::getBuffCoordSpace());
 }

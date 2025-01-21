@@ -4,36 +4,44 @@
 #include <Arduino.h>
 #include <Define.h>
 
-const uint16_t COORD_BUFFER_SIZE = 512;
+const uint16_t BLOCK_BUFFER_SIZE = 512;
 
 typedef struct {
-    float x;  // x coord with respect to x home
-    float y;  // y coord with respect to y home
-    float z;  // z coord with respect to z home
-} coord_planar_t;
+    float x;       // x coord with respect to x home (mm)
+    float y;       // y coord with respect to y home (mm)
+    float z;       // z coord with respect to z home (mm)
+} coord_planar_t;  // 12 bytes
 
 typedef struct {
-    int32_t a;  // left motor coord (microstep settings as of motor-A constants)
-    int32_t b;  // right motor coord (microstep settings as of motor-B constants)
-    int32_t z;  // pen motor coord (microstep settings as of motor-Z constants)
-} coord_corexy_t;
+    float x;       // x coord with respect to x home (mm)
+    float y;       // y coord with respect to y home (mm)
+    float z;       // z coord with respect to z home (mm)
+    float vi;      // entry speed (mm/s)
+    float vo;      // exit speed (mm/s)
+} block_planar_t;  // 20 bytes
+
+typedef struct {
+    int32_t a;     // left motor coord (microstep settings as of motor-A constants)
+    int32_t b;     // right motor coord (microstep settings as of motor-B constants)
+    int32_t z;     // pen motor coord (microstep settings as of motor-Z constants)
+} coord_corexy_t;  // 12 bytes
 
 class Coords {
    private:
-    static coord_planar_t coordBuffer[COORD_BUFFER_SIZE];
+    static block_planar_t blockBuffer[BLOCK_BUFFER_SIZE];
 
    public:
     static bool begin();
-    static coord_planar_t getNextCoordinate();
-    static bool hasNextCoordinate();
-    static bool addBuffCoordinate(coord_planar_t coordPlanar);
+    static block_planar_t getNextBlock();
+    static bool hasNextBlock();
+    static bool addBlock(block_planar_t blockPlanar);
     /**
      * get the size of available buffer space
      */
     static uint16_t getBuffCoordSpace();
 
-    static uint32_t nextCoordinateIndex;  // the index at which the next coordinate would be read
-    static uint32_t buffCoordinateIndex;  // the index at which the maximum buffered coordinate is (must never be large enough to overwrite coordinates not having been handled yet)
+    static uint32_t nextBlockIndex;  // the index at which the next coordinate would be read
+    static uint32_t blockIndex;      // the index at which the maximum buffered coordinate is (must never be large enough to overwrite coordinates not having been handled yet)
 
     /**
      * implemented according to https://corexy.com/theory.html

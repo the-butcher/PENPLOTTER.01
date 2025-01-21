@@ -7,7 +7,7 @@ Motor::Motor(char id, uint32_t stepsMm, uint8_t stepPin, uint8_t drctPin, PinSta
     this->drctPin = drctPin;
     this->drctFwd = {pinStatusFwd, 1};
     this->drctBwd = {pinStatusBwd, -1};
-    this->cntrCur = cntrCur;  // TODO :: start with HIGH values, so Machine::accept will not allow movement away from the limit-switches
+    this->cntrCur = cntrCur;
     this->setDirection(MOTOR___DRCT_FWD);
 }
 

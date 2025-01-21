@@ -3,7 +3,7 @@
 BLEDevice Btle::bleCentral;
 BLEService Btle::bleService(COMMAND_SERVICE___UUID);
 BLEUnsignedIntCharacteristic Btle::bleBuffSizeCharacteristic(COMMAND_BUFF_SIZE_UUID, BLERead);
-BLECharacteristic Btle::bleBuffValsCharacteristic(COMMAND_BUFF_VALS_UUID, BLEWrite, sizeof(coord_planar_t) * COMMAND_BUFF_VALS_SIZE, true);
+BLECharacteristic Btle::bleBuffValsCharacteristic(COMMAND_BUFF_VALS_UUID, BLEWrite, sizeof(block_planar_t) * COMMAND_BUFF_VALS_SIZE, true);
 
 // Function to convert a struct to a byte array
 // https://wokwi.com/projects/384215584338530305
@@ -62,10 +62,7 @@ void Btle::getBuffVals() {
 
         if (Btle::bleBuffValsCharacteristic.written()) {
 
-            // increment the count of commands that has been processed
-            // TODO :: write current buffer size
-            // Btle::bleBuffSizeCharacteristic.writeValue(cmdSize);
-
+            // read byte array from characteristic
             uint8_t* newValue = (uint8_t*)Btle::bleBuffValsCharacteristic.value();
 
             // Serial.println(String(inputBytes[0]));
@@ -75,22 +72,26 @@ void Btle::getBuffVals() {
             // Serial.println(String(inputBytes[16]));
             // Serial.println(String(inputBytes[20]));
 
-            coord_planar_t coordPlanar;
-            for (uint16_t newValueIndex = 0; newValueIndex < COMMAND_BUFF_VALS_SIZE * sizeof(coord_planar_t); newValueIndex += sizeof(coord_planar_t)) {
+            block_planar_t blockPlanar;
+            for (uint16_t newValueIndex = 0; newValueIndex < COMMAND_BUFF_VALS_SIZE * sizeof(block_planar_t); newValueIndex += sizeof(block_planar_t)) {
 
                 // Serial.print("newValueIndex: ");
                 // Serial.println(String(newValueIndex));
 
-                deserializeData(newValue, newValueIndex, coordPlanar);
+                deserializeData(newValue, newValueIndex, blockPlanar);
 
-                Serial.print("BT: ");
-                Serial.print(String(coordPlanar.x, 1));
-                Serial.print(", ");
-                Serial.print(String(coordPlanar.y, 1));
-                Serial.print(", ");
-                Serial.println(String(coordPlanar.z, 1));
+                // Serial.print("BT: ");
+                // Serial.print(String(blockPlanar.x, 1));
+                // Serial.print(", ");
+                // Serial.print(String(blockPlanar.y, 1));
+                // Serial.print(", ");
+                // Serial.print(String(blockPlanar.z, 1));
+                // Serial.print(", ");
+                // Serial.print(String(blockPlanar.vi, 1));
+                // Serial.print(", ");
+                // Serial.println(String(blockPlanar.vo, 1));
 
-                Coords::addBuffCoordinate(coordPlanar);
+                Coords::addBlock(blockPlanar);
             }
             Btle::setBuffSize();
         }
