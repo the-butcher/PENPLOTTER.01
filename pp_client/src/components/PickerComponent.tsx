@@ -2,10 +2,12 @@
 import SettingsBluetoothIcon from '@mui/icons-material/SettingsBluetooth';
 import { Button } from '@mui/material';
 import { useEffect } from 'react';
-import { IPickerProps } from './IPickerProps';
 
 export const UNO_R4_SERVICE_UUID = '791320d5-7f0a-4b58-89f6-cc2031479da4'
 
+export interface IPickerProps {
+    handleDevicePicked: (device: BluetoothDevice) => void;
+}
 
 function PickerComponent(props: IPickerProps) {
 

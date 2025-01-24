@@ -19,7 +19,7 @@ class Btle {
     static bool begin();
     static bool connect();
     static void setBuffSize();
-    static void getBuffVals();
+    static bool getBuffVals();
 };
 
 #endif

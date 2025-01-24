@@ -2,17 +2,22 @@
 import { Grid, Slider, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { CoordUtil } from '../util/CoordUtil';
-import { CoordPlanarUtil } from './CoordPlanarUtil';
-import { IBuffValsProps } from './IBuffValsProps';
-import { IBlockPlanar } from './ICoordPlanar';
+import { BlockUtil } from '../util/BlockUtil';
 import { UNO_R4_SERVICE_UUID } from './PickerComponent';
+import { IBlockPlanar } from './IBlockPlanar';
 
 export const CHARACTERISTIC_BUFF_SIZE = '067c3c93-eb63-4905-b292-478642f8ae99';
 export const CHARACTERISTIC_BUFF_VALS = 'd3116fb9-adc1-4fc4-9cb4-ceb48925fa1b';
 
-function BuffCoordsComponent(props: IBuffValsProps) {
+export interface IBluetoothSenderProps {
+    monoCoords: IBlockPlanar[];
+    device: BluetoothDevice;
+    handleDeviceRemove: (device: BluetoothDevice) => void;
+}
 
-    const { monoCoords, device, handleDeviceRemove } = props;
+function BluetoothSenderComponent(props: IBluetoothSenderProps) {
+
+    const { monoCoords, device } = props; /* handleDeviceRemove */
 
     const [connectionState, setConnectionState] = useState<string>('connecting');
     const [gatt, setGatt] = useState<BluetoothRemoteGATTServer>();
@@ -20,12 +25,13 @@ function BuffCoordsComponent(props: IBuffValsProps) {
     const [buffSizeCharacteristic, setBuffSizeCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
     const [buffValsCharacteristic, setBuffValsCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
 
-    const [buffSize, setBuffSize] = useState<number>(0);
+    const [buffSize, setBuffSize] = useState<number>(-1);
     const [buffCoords, setBuffCoords] = useState<IBlockPlanar[]>([]);
-    const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(0);
+    const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(-1);
 
-    const blockCoordsSpliceRef = useRef<IBlockPlanar[]>([]);
-    const buffSkipRef = useRef<number>(0);
+    const blockSendPendingRef = useRef<boolean>(false);
+    // const blockCoordsSpliceRef = useRef<IBlockPlanar[]>([]);
+    // const buffSkipRef = useRef<number>(0);
 
     const writeAndReadTo = useRef<number>(-1);
 
@@ -64,10 +70,10 @@ function BuffCoordsComponent(props: IBuffValsProps) {
         console.debug('⚙ updating CmdDestComponent (gatt)', gatt);
         gatt?.getPrimaryService(UNO_R4_SERVICE_UUID).then(service => {
 
-            console.debug('service', service);
+            console.log('got service, fetching capabilities now ...', service);
             service.getCharacteristics().then(charateristics => {
 
-                console.debug('charateristics', charateristics);
+                console.log('got charateristics', charateristics);
 
                 const cmdSizeCharacteristic = charateristics.filter(charateristic => charateristic.uuid === CHARACTERISTIC_BUFF_SIZE)[0];
                 setBuffSizeCharacteristic(cmdSizeCharacteristic);
@@ -103,7 +109,7 @@ function BuffCoordsComponent(props: IBuffValsProps) {
                 window.clearTimeout(writeAndReadTo.current);
                 writeAndReadTo.current = window.setTimeout(() => {
                     readBuffSize();
-                }, 1);
+                }, 250);
 
             }).catch((e: any) => {
                 setConnectionState('failed retrieving buffer size');
@@ -119,11 +125,14 @@ function BuffCoordsComponent(props: IBuffValsProps) {
         console.debug('⚙ updating CmdDestComponent (buffSize)', buffSize);
 
         // if there is enough space to send a new set of coordinates, if there was at least one skip (debounce), if there are more values to be sent
-        if (buffSize > CoordUtil.BUFF_LN * 2 && buffSkipRef.current > 0 && blockCoordsSpliceRef.current.length === 0 && buffCoords.length > 0) {
+        // if (buffSize > CoordUtil.BUFF_LN * 2 && buffSkipRef.current > 0 && blockCoordsSpliceRef.current.length === 0 && buffCoords.length > 0) {
+        if (buffCoords.length > 0 && buffSize > CoordUtil.BUFF_LN * 4 && !blockSendPendingRef.current) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
+
+            blockSendPendingRef.current = true;
 
             const _blockCoordsSplice = buffCoords.splice(0, CoordUtil.BUFF_LN);
-            // fill to 16 entries in case the splice command provided less than 16 (happens at the end of file)
-            while (_blockCoordsSplice.length < 16) {
+            // fill to CoordUtil.BUFF_LN entries in case the splice command provided less than CoordUtil.BUFF_LN (happens at the end of file)
+            while (_blockCoordsSplice.length < CoordUtil.BUFF_LN) {
                 _blockCoordsSplice.push({
                     x0: 0,
                     y0: 0,
@@ -137,17 +146,20 @@ function BuffCoordsComponent(props: IBuffValsProps) {
                     bb: false
                 });
             };
-            blockCoordsSpliceRef.current = _blockCoordsSplice;
+            // blockCoordsSpliceRef.current = _blockCoordsSplice;
 
             if (buffValsCharacteristic) {
 
-                console.log('buffValsRef.current', blockCoordsSpliceRef.current);
-                const cmdDestBytes = CoordPlanarUtil.createBuffValsBytes(blockCoordsSpliceRef.current);
-                buffValsCharacteristic?.writeValue(cmdDestBytes).then(() => {
+                // console.log('buffValsRef.current', blockCoordsSpliceRef.current);
+                const blockBytes = BlockUtil.createBlockBytes(_blockCoordsSplice);
 
-                    // console.log('done sending buff vals');
-                    blockCoordsSpliceRef.current = [];
-                    buffSkipRef.current = 0;
+                console.log('before sending blockBytes, ...');
+                buffValsCharacteristic?.writeValue(blockBytes).then(() => {
+
+                    console.log('..., done sending blockBytes');
+                    blockSendPendingRef.current = false;
+                    // blockCoordsSpliceRef.current = [];
+                    // buffSkipRef.current = 0;
 
                 }).catch((e: any) => {
                     setConnectionState('failed writing commands');
@@ -157,7 +169,7 @@ function BuffCoordsComponent(props: IBuffValsProps) {
             }
 
         } else {
-            buffSkipRef.current++;
+            // buffSkipRef.current++;
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,29 +196,39 @@ function BuffCoordsComponent(props: IBuffValsProps) {
         <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Grid item xs={11}>
                 <Slider
-                    value={buffSize}
+                    disabled={buffSize < 0}
+                    value={CoordUtil.BUFF_MAX - buffSize}
                     aria-labelledby="input-slider"
-                    max={512}
+                    max={CoordUtil.BUFF_MAX}
                     min={0}
                     marks={
                         [
                             {
-                                value: CoordUtil.BUFF_LN,
+                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN,
                                 label: `${CoordUtil.BUFF_LN}`
                             },
                             {
-                                value: CoordUtil.BUFF_LN * 2,
+                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN * 2,
                                 label: `${CoordUtil.BUFF_LN * 2}`
+                            },
+                            {
+                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN * 3,
+                                label: `${CoordUtil.BUFF_LN * 3}`
+                            },
+                            {
+                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN * 4,
+                                label: `${CoordUtil.BUFF_LN * 4}`
                             }
                         ]
                     }
                 />
             </Grid>
             <Grid item xs={1}>
-                <Typography >{buffSize}</Typography>
+                <Typography >{CoordUtil.BUFF_MAX - buffSize}/{CoordUtil.BUFF_MAX}</Typography>
             </Grid>
             <Grid item xs={11}>
                 <Slider
+                    disabled={buffCoordsTotal < 0}
                     value={buffCoords.length}
                     aria-labelledby="input-slider"
                     max={buffCoordsTotal}
@@ -214,11 +236,11 @@ function BuffCoordsComponent(props: IBuffValsProps) {
                 />
             </Grid>
             <Grid item xs={1}>
-                <Typography >{buffCoords.length}</Typography>
+                <Typography >{buffCoords.length}/{buffCoordsTotal}</Typography>
             </Grid>
         </Grid>
 
     );
 }
 
-export default BuffCoordsComponent;
+export default BluetoothSenderComponent;

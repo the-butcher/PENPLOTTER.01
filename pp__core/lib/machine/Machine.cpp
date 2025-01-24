@@ -1,11 +1,14 @@
+// #include <Display.h>
 #include <Machine.h>
 
 FspTimer Machine::pulseTimer;
 uint64_t Machine::pulseCount = 0;
 uint64_t Machine::microsTotal = 0;
 uint64_t Machine::microsEntry = 0;
-float Machine::frequencyI = 1.0;
-float Machine::frequencyO = 1.0;
+float Machine::frqI = 1.0;
+float Machine::frqO = 1.0;
+float Machine::frqA2 = 0.0;
+float Machine::frqII = 1.0;
 
 Motor *Machine::motorPrim = nullptr;
 Motor *Machine::motorSec1 = nullptr;
@@ -132,10 +135,13 @@ void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
             // TODO :: segment complete, find new destination coordinate
             Machine::yield();
         } else {
-            uint64_t microsDelta = micros() - Machine::microsEntry;  // microseconds since entry
-            double fraction = microsDelta * 1.0 / Machine::microsTotal;
-            float frequencyC = Machine::frequencyI + (Machine::frequencyO - Machine::frequencyI) * fraction;
-            Machine::updateFrequency(frequencyC);
+            // uint64_t microsDelta = micros() - Machine::microsEntry;  // microseconds since entry
+            // double fraction = microsDelta * 1.0 / Machine::microsTotal;
+            // float frequencyC = Machine::frqI + (Machine::frqO - Machine::frqI) * fraction;
+            if (Machine::frqI != Machine::frqO) {
+                float frequencyC = sqrt(Machine::frqA2 * Machine::cPrim + Machine::frqII);
+                Machine::updateFrequency(frequencyC);
+            }
         }
 
     } else {
@@ -145,9 +151,8 @@ void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
 }
 
 void Machine::updateFrequency(float frequency) {
-    // Machine::frequency = frequency;
-    // TODO :: have some sort of segment manager update this appropriately (speed change aka acceleration within segment, change of segment)
     Machine::pulseTimer.set_frequency(frequency);
+    // Display::printFrequency(frequency);
 }
 
 /**
@@ -189,7 +194,7 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
     float dY = dstPlanar.y - srcPlanar.y;
     float dZ = dstPlanar.z - srcPlanar.z;
 
-    if (dX != 0.0 || dY != 0.0 || dZ != 0.0) {
+    if (vecCorexy.a != 0.0 || vecCorexy.b != 0.0 || vecCorexy.z != 0.0) {
 
         // planar distance to reach destination
         float lenPlanar = sqrt(dX * dX + dY * dY + dZ * dZ);
@@ -207,8 +212,6 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
 
         // set up primary and secondary axes and axis specific values for bresenham algorithm
         if (Coords::hasMaximumAVal(vecCorexy)) {
-            Machine::frequencyI = abs(vecCorexy.a) * vi / lenPlanar;
-            Machine::frequencyO = abs(vecCorexy.a) * vo / lenPlanar;
             Machine::motorPrim = &Motors::motorA;
             Machine::motorSec1 = &Motors::motorB;
             Machine::motorSec2 = &Motors::motorZ;
@@ -216,8 +219,6 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
             Machine::dSec1 = abs(vecCorexy.b);
             Machine::dSec2 = abs(vecCorexy.z);
         } else if (Coords::hasMaximumBVal(vecCorexy)) {
-            Machine::frequencyI = abs(vecCorexy.b) * vi / lenPlanar;
-            Machine::frequencyO = abs(vecCorexy.b) * vo / lenPlanar;
             Machine::motorPrim = &Motors::motorB;
             Machine::motorSec1 = &Motors::motorA;
             Machine::motorSec2 = &Motors::motorZ;
@@ -225,8 +226,6 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
             Machine::dSec1 = abs(vecCorexy.a);
             Machine::dSec2 = abs(vecCorexy.z);
         } else {
-            Machine::frequencyI = abs(vecCorexy.z) * vi / lenPlanar;
-            Machine::frequencyO = abs(vecCorexy.z) * vo / lenPlanar;
             Machine::motorPrim = &Motors::motorZ;
             Machine::motorSec1 = &Motors::motorA;
             Machine::motorSec2 = &Motors::motorB;
@@ -235,12 +234,30 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
             Machine::dSec2 = abs(vecCorexy.b);
         }
 
+        Machine::frqI = abs(Machine::dPrim) * vi / lenPlanar;
+        Machine::frqO = abs(Machine::dPrim) * vo / lenPlanar;
+        Machine::frqA2 = (Machine::frqO - Machine::frqI) * 2000000.0 / Machine::microsTotal;
+        Machine::frqII = Machine::frqI * Machine::frqI;
+
         // Serial.print("mPrim: ");
         // Serial.print(Machine::motorPrim->id);
-        // Serial.print(", Machine::microsTotal: ");
-        // Serial.print(String((long)(Machine::microsTotal)));
-        // Serial.print(", Machine::frequencyI: ");
-        // Serial.println(String(Machine::frequencyI, 4));
+
+        // Serial.print("Machine::dPrim: ");
+        // Serial.print(String(Machine::dPrim));
+        // Serial.print(", Machine::dSec1: ");
+        // Serial.print(String(Machine::dSec1));
+        // Serial.print(", vi: ");
+        // Serial.print(String(vi, 4));
+        // Serial.print(", vo: ");
+        // Serial.print(String(vo, 4));
+        // Serial.print(", frqI: ");
+        // Serial.print(String(Machine::frqI, 4));
+        // Serial.print(", frqO: ");
+        // Serial.println(String(Machine::frqO, 4));
+        // Serial.print(", frqA2: ");
+        // Serial.print(String(Machine::frqA2, 4));
+        // Serial.print(", frqII: ");
+        // Serial.println(String(Machine::frqII, 4));
 
         // more bresenham algorithm values
         Machine::cPrim = 0;
@@ -253,7 +270,7 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         Motors::motorZ.setDirection(vecCorexy.z >= 0 ? MOTOR___DRCT_FWD : MOTOR___DRCT_BWD);
 
         Machine::microsEntry = micros();
-        Machine::updateFrequency(Machine::frequencyI);  // start with entry-frequency
+        Machine::updateFrequency(Machine::frqI);  // start with entry-frequency
 
         return true;
     } else {

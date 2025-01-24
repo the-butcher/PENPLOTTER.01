@@ -60,12 +60,22 @@ class Machine {
     /**
      * entry-frequency of the current block
      */
-    static float frequencyI;
+    static float frqI;
 
     /**
      * exit-frequency of the current block
      */
-    static float frequencyO;
+    static float frqO;
+
+    /**
+     * frequency-acceleration of the current block doubled
+     */
+    static float frqA2;
+
+    /**
+     * entry-frequency of the current block squared
+     */
+    static float frqII;
 
     /**
      * primary counter

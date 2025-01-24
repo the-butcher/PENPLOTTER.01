@@ -1,14 +1,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { CoordUtil } from '../util/CoordUtil';
-import { IBlockCoordsProps } from './IBlockCoordsProps';
+import { IBlockPlanar } from './IBlockPlanar';
 
+export interface IAccelerationChartProps {
+    blocks: IBlockPlanar[];
+}
 
-function BlockCoordsComponent(props: IBlockCoordsProps) {
+function AccelerationChartComponent(props: IAccelerationChartProps) {
 
-    const { monoCoords } = props;
+    const { blocks } = props;
 
-    const [dY, setDY] = useState<number>(400);
+    const [dY] = useState<number>(400); // setDY
     const [dX, setDX] = useState<number>(600);
     const [d0, setD0] = useState<string>("");
     const [d1, setD1] = useState<string>("");
@@ -26,12 +29,12 @@ function BlockCoordsComponent(props: IBlockCoordsProps) {
 
     useEffect(() => {
 
-        console.debug('⚙ updating BlockCoordsComponent (monoCoords)', monoCoords);
+        console.debug('⚙ updating BlockCoordsComponent (blocks)', blocks);
 
-        if (monoCoords?.length > 1) {
+        if (blocks?.length > 1) {
 
             let _dX = 0;
-            const sX = 20;
+            const sX = 100;
             const sY = 8;
             let _d0 = `M 0 ${dY}`;
             let _d1 = `M 0 ${dY}`;
@@ -40,27 +43,30 @@ function BlockCoordsComponent(props: IBlockCoordsProps) {
 
             _dX = 0;
             let _maxSecond = 0;
-            for (let index = 0; index < monoCoords.length; index++) {
+            for (let index = 0; index < blocks.length; index++) {
 
-                _d1 += `M${_dX} ${dY - monoCoords[index].vi * sY}`;
+                _d1 += `M${_dX} ${dY - blocks[index].vi * sY}`;
 
-                const vBlock = (monoCoords[index].vo + monoCoords[index].vi) / 2;
-                const tBlock = monoCoords[index].l / vBlock;
+                const vBlock = (blocks[index].vo + blocks[index].vi) / 2;
+                const tBlock = blocks[index].l / vBlock;
                 _maxSecond += tBlock;
 
                 _dX += tBlock * sX;
 
-                _d1 += `L${_dX} ${dY - monoCoords[index].vo * sY}`;
-                _d3 += `L${_dX} ${dY - monoCoords[index].z1 * 3 - (dY - 20)}`; // z-indicator
+                _d1 += `L${_dX} ${dY - blocks[index].vo * sY}`;
+                _d3 += `L${_dX} ${dY - blocks[index].z1 * 3 - (dY - 20)}`; // z-indicator
 
-                if (monoCoords[index].bb) {
-                    _d0 += `M${_dX} 0`;
+                _d0 += `M${_dX} 0`;
+                if (blocks[index].bb) {
+
                     _d0 += `L${_dX} ${dY}`;
+                } else {
+                    _d0 += `L${_dX} ${dY / 2}`;
                 }
 
                 // doublecheck on acceleration
-                const aA = (monoCoords[index].vo * monoCoords[index].vo - monoCoords[index].vi * monoCoords[index].vi) * 0.5 / monoCoords[index].l;
-                console.log(`aA (${index})`, aA.toFixed(3).padStart(7, ' '), monoCoords[index].vi.toFixed(3).padStart(7, ' '), monoCoords[index].vo.toFixed(3).padStart(7, ' '));
+                // const aA = (blocks[index].vo * blocks[index].vo - blocks[index].vi * blocks[index].vi) * 0.5 / blocks[index].l;
+                // console.log(`aA (${index})`, aA.toFixed(3).padStart(7, ' '), blocks[index].vi.toFixed(3).padStart(7, ' '), blocks[index].vo.toFixed(3).padStart(7, ' '));
 
                 // console.log(`vv (${index})`, monoCoords[index].vi.toFixed(3).padStart(7, ' '), monoCoords[index].vo.toFixed(3).padStart(7, ' '));
 
@@ -94,7 +100,7 @@ function BlockCoordsComponent(props: IBlockCoordsProps) {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [monoCoords]);
+    }, [blocks]);
 
     return (
         <>
@@ -109,9 +115,10 @@ function BlockCoordsComponent(props: IBlockCoordsProps) {
                     viewBox={`0, 0, ${dX},  ${dY}`}
                 >
                     <path fill="none" stroke="gray" strokeWidth={0.2} d={d2} />
-                    <path fill="none" stroke="black" strokeWidth={2} strokeLinejoin={'round'} strokeLinecap={'round'} d={d1} />
+
                     <path fill="none" stroke="red" strokeWidth={0.5} d={d0} />
                     <path fill="none" stroke="black" strokeWidth={1} d={d3} />
+                    <path fill="none" stroke="black" strokeWidth={0.5} strokeLinejoin={'round'} strokeLinecap={'round'} d={d1} />
                 </svg>
             </div>
             <div>{maxSecond}</div>
@@ -119,4 +126,4 @@ function BlockCoordsComponent(props: IBlockCoordsProps) {
     );
 }
 
-export default BlockCoordsComponent;
+export default AccelerationChartComponent;

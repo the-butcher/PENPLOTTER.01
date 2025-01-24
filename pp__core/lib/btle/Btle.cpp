@@ -35,7 +35,6 @@ bool Btle::begin() {
 }
 
 bool Btle::connect() {
-
     Btle::bleCentral = BLE.central();
     Serial.println("BT: waiting for central device...");
     delay(500);
@@ -56,7 +55,7 @@ void Btle::setBuffSize() {
     }
 }
 
-void Btle::getBuffVals() {
+bool Btle::getBuffVals() {
 
     if (Btle::bleCentral.connected()) {
 
@@ -65,37 +64,22 @@ void Btle::getBuffVals() {
             // read byte array from characteristic
             uint8_t* newValue = (uint8_t*)Btle::bleBuffValsCharacteristic.value();
 
-            // Serial.println(String(inputBytes[0]));
-            // Serial.println(String(inputBytes[4]));
-            // Serial.println(String(inputBytes[8]));
-            // Serial.println(String(inputBytes[12]));
-            // Serial.println(String(inputBytes[16]));
-            // Serial.println(String(inputBytes[20]));
-
             block_planar_t blockPlanar;
             for (uint16_t newValueIndex = 0; newValueIndex < COMMAND_BUFF_VALS_SIZE * sizeof(block_planar_t); newValueIndex += sizeof(block_planar_t)) {
-
-                // Serial.print("newValueIndex: ");
-                // Serial.println(String(newValueIndex));
-
                 deserializeData(newValue, newValueIndex, blockPlanar);
-
-                // Serial.print("BT: ");
-                // Serial.print(String(blockPlanar.x, 1));
-                // Serial.print(", ");
-                // Serial.print(String(blockPlanar.y, 1));
-                // Serial.print(", ");
-                // Serial.print(String(blockPlanar.z, 1));
-                // Serial.print(", ");
-                // Serial.print(String(blockPlanar.vi, 1));
-                // Serial.print(", ");
-                // Serial.println(String(blockPlanar.vo, 1));
-
                 Coords::addBlock(blockPlanar);
             }
-            Btle::setBuffSize();
+
+            Btle::setBuffSize();  // update buffer size after reading
+
+            return true;
+
+        } else {
+            return false;  // no values to be read
         }
+
     } else {
         Serial.println("BT: disconnected from central device!");
+        return false;  // not connected
     }
 }

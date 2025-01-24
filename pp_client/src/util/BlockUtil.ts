@@ -1,8 +1,13 @@
-import { IBlockPlanar } from "./ICoordPlanar";
+import { IBlockPlanar } from "../components/IBlockPlanar";
 
-export class CoordPlanarUtil {
+export class BlockUtil {
 
-    static createBuffValsBytes(blocks: IBlockPlanar[]): Uint8Array {
+    /**
+     * creates the bytes for the given array of blocks
+     * @param blocks
+     * @returns
+     */
+    static createBlockBytes(blocks: IBlockPlanar[]): Uint8Array {
         const sizeOfC = 20; // 5 x float
         const paramsB = new ArrayBuffer(sizeOfC * blocks.length);
         const paramsV = new DataView(paramsB);
@@ -15,9 +20,7 @@ export class CoordPlanarUtil {
             paramsV.setFloat32(offset + 12, blocks[i].vi, true);
             paramsV.setFloat32(offset + 16, blocks[i].vo, true);
         }
-        const result = new Uint8Array(paramsB);
-        console.log('result', result);
-        return result;
+        return new Uint8Array(paramsB);
     }
 
 }

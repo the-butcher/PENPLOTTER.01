@@ -14,7 +14,7 @@ class Display {
    public:
     static void begin();
     static void printSwitches();
-    // static void printFrequency();
+    static void printFrequency(float frequency);
 };
 
 #endif

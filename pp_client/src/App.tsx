@@ -1,11 +1,10 @@
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
-import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import './App.css';
-import BlockCoordsComponent from './components/BlockCoordsComponent';
-import BuffCoordsComponent from './components/BuffCoordsComponent';
-import { IBuffValsProps } from './components/IBuffValsProps';
-import { IBlockPlanar, ICoordPlanar } from './components/ICoordPlanar';
+import AccelerationChartComponent from './components/AccelerationChartComponent';
+import BluetoothSenderComponent, { IBluetoothSenderProps } from './components/BluetoothSenderComponent';
+import { IBlockPlanar } from './components/IBlockPlanar';
+import { ICoordPlanar } from './components/ICoordPlanar';
 import PickerComponent from './components/PickerComponent';
 import { CoordUtil } from './util/CoordUtil';
 
@@ -52,7 +51,7 @@ function App() {
 
   const [monoCoords, setMonoCoords] = useState<IBlockPlanar[]>([]);
 
-  const [cmdDestProps, setCmdDestProps] = useState<IBuffValsProps[]>([]);
+  const [cmdDestProps, setCmdDestProps] = useState<IBluetoothSenderProps[]>([]);
   const handleDeviceRemove = (device: BluetoothDevice) => {
     setCmdDestProps([
       ...cmdDestProps.filter(props => props.device.id !== device.id)
@@ -75,16 +74,11 @@ function App() {
     }
   };
 
-
-
   useEffect(() => {
 
     console.debug('✨ building App');
 
-    fetch("hirschkaefer.gcode").then((res) => res.text()).then((text) => {
-
-      // const penZU = 0.0;
-      // const penZD = -8.0;
+    fetch("kusuduma.gcode").then((res) => res.text()).then((text) => {
 
       const _fileCoords: ICoordPlanar[] = [];
 
@@ -97,7 +91,7 @@ function App() {
       for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 
         line = lines[lineIndex];
-        if (line.indexOf('X') >= 0 && line.indexOf('Y') >= 0) {
+        if (line.indexOf('X') >= 0 && line.indexOf('Y') >= 0) { // has both X and Y
           // console.log(line);
           const isMove = line.startsWith('G00 F');
           const isDraw = line.startsWith('G01 F');
@@ -107,13 +101,23 @@ function App() {
             const yCurr = parseFloat(line.substring(line.indexOf('Y') + 1, line.indexOf(';')).trim());
             const zCurr = isMove ? CoordUtil.PEN_Z_U : CoordUtil.PEN_Z_D;
 
-            if (zLast !== zCurr) { // up or down, if not in the correct position
+            if (zLast !== zCurr) { // up or down, if not in the correct position, add Z-coordinate
               _fileCoords.push({
                 x1: xLast,
                 y1: yLast,
                 z1: zCurr
               });
             }
+
+            // const fileCoord = {
+            //   x1: xCurr,
+            //   y1: yCurr,
+            //   z1: zCurr
+            // }
+
+            // // TODO :: if pointing in the same direction than the last coord -> join, append otherwise
+
+
             _fileCoords.push({
               x1: xCurr,
               y1: yCurr,
@@ -165,12 +169,26 @@ function App() {
         _blockCoords[index].l = CoordUtil.blockLen(_blockCoords[index]);
       }
 
+      // // const _blockCoords2: IBlockPlanar[] = [];
+      // for (let index = 1; index < _blockCoords.length - 1; index++) {
+      //   if (CoordUtil.sameDir(_blockCoords[index - 1], _blockCoords[index])) {
+      //     console.log("found joinable block", index - 1, ' --> ', index);
+      //   }
+      // }
+
       // max-junction speed calculation
       for (let index = 0; index < _fileCoords.length - 1; index++) {
-        dotAB = 1 - Math.min(CoordUtil.SEMI_PI, Math.acos(CoordUtil.blockDot(CoordUtil.toUnitBlock(_blockCoords[index]), CoordUtil.toUnitBlock(_blockCoords[index + 1])))) / CoordUtil.SEMI_PI;
+        // dotAB = CoordUtil.blockDot(CoordUtil.toUnitCoord(_blockCoords[index]), CoordUtil.toUnitCoord(_blockCoords[index + 1]));
+        // dotAB = Math.max(0, dotAB);
+        dotAB = Math.acos(CoordUtil.blockDot(CoordUtil.toUnitCoord(_blockCoords[index]), CoordUtil.toUnitCoord(_blockCoords[index + 1])));
+        dotAB = 1 - Math.min(CoordUtil.SEMI_PI, dotAB) / CoordUtil.SEMI_PI;
+        console.log('dotAB', dotAB, Math.max(CoordUtil.MIN_MMS, dotAB * CoordUtil.MAX_MMS));
+        // dotAB = Math.min(1, dotAB + 0.1);
         _blockCoords[index].vo = Math.max(CoordUtil.MIN_MMS, dotAB * CoordUtil.MAX_MMS);
         _blockCoords[index + 1].vi = Math.max(CoordUtil.MIN_MMS, dotAB * CoordUtil.MAX_MMS);
       }
+
+      // setMonoCoords(_blockCoords);
 
       // iterate backwards and reduce exit speed on blocks where entry speed is too high for deceleration within the block
       for (let index = _blockCoords.length - 1; index > 0; index--) {
@@ -221,7 +239,6 @@ function App() {
             lViToVo = (_blockCoords[index].vo * _blockCoords[index].vo - _blockCoords[index].vi * _blockCoords[index].vi) / (2 * CoordUtil.MAX_ACC);
             // console.log('trim vo (2)', index, 'lViToVo', lViToVo.toFixed(3).padStart(7, ' '), 'l', _blockCoords[index].l.toFixed(3).padStart(7, ' '));
 
-
           }
 
         }
@@ -229,6 +246,8 @@ function App() {
       }
 
       const _monoCoords: IBlockPlanar[] = [];
+
+      const minVRatio = 1.2; // 1.2
 
       if (_blockCoords?.length > 1) {
 
@@ -257,9 +276,17 @@ function App() {
             const lDiff = (_blockCoords[index].l - lViToVmToVo);
             // console.log('full speed is reachable'.padEnd(35, ' '), index, 'lDiff', lDiff.toFixed(3).padStart(7, ' '), 'l', blockCoords[index].l.toFixed(3).padStart(7, ' '));
 
-            _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], 0, lViToVm, _blockCoords[index].vi, CoordUtil.MAX_MMS)); // accelerate
-            _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], lViToVm, lViToVm + lDiff, CoordUtil.MAX_MMS, CoordUtil.MAX_MMS)); // full speed
-            _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], lViToVm + lDiff, _blockCoords[index].l, CoordUtil.MAX_MMS, _blockCoords[index].vo)); // decelerate
+            if (CoordUtil.MAX_MMS / _blockCoords[index].vi > minVRatio && CoordUtil.MAX_MMS / _blockCoords[index].vo > minVRatio) {
+              if (lViToVm > 0.0) {
+                _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], 0, lViToVm, _blockCoords[index].vi, CoordUtil.MAX_MMS)); // accelerate
+              }
+              _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], lViToVm, lViToVm + lDiff, CoordUtil.MAX_MMS, CoordUtil.MAX_MMS)); // full speed
+              if (lVmToVo > 0.0) {
+                _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], lViToVm + lDiff, _blockCoords[index].l, CoordUtil.MAX_MMS, _blockCoords[index].vo)); // decelerate
+              }
+            } else {
+              _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], 0, _blockCoords[index].l, _blockCoords[index].vi, _blockCoords[index].vo)); // full speed
+            }
             _monoCoords[_monoCoords.length - 1].bb = true;
 
           } else { // can not reach full speed, in and out must be shortened
@@ -270,13 +297,18 @@ function App() {
 
             const vS = Math.sqrt((lViToVm - lDiff) * 2 * acc + _blockCoords[index].vi * _blockCoords[index].vi);
 
-            const blockA = CoordUtil.toMultBlock(_blockCoords[index], 0, lViToVm - lDiff, _blockCoords[index].vi, vS);
-            if (blockA.l > 0.001) {
-              _monoCoords.push(blockA); // accelerate
-            }
-            const blockB = CoordUtil.toMultBlock(_blockCoords[index], lViToVm - lDiff, _blockCoords[index].l, vS, _blockCoords[index].vo);
-            if (blockB.l > 0.001) {
-              _monoCoords.push(blockB); // decelerate
+            if (vS / _blockCoords[index].vi > minVRatio && vS / _blockCoords[index].vo > minVRatio) {
+              const blockA = CoordUtil.toMultBlock(_blockCoords[index], 0, lViToVm - lDiff, _blockCoords[index].vi, vS);
+              if (blockA.l > 0.0) {
+                _monoCoords.push(blockA); // accelerate
+              }
+              const blockB = CoordUtil.toMultBlock(_blockCoords[index], lViToVm - lDiff, _blockCoords[index].l, vS, _blockCoords[index].vo);
+              if (blockB.l > 0.0) {
+                _monoCoords.push(blockB); // decelerate
+              }
+            } else {
+              _monoCoords.push(CoordUtil.toMultBlock(_blockCoords[index], 0, _blockCoords[index].l, _blockCoords[index].vi, _blockCoords[index].vo)); // full speed
+
             }
             _monoCoords[_monoCoords.length - 1].bb = true;
 
@@ -284,65 +316,10 @@ function App() {
 
         }
 
-        // console.log('-----------------------------------------------------------------');
-
-        // _dX = 0;
-        // let _maxSecond = 0;
-        // for (let index = 0; index < _monoCoords.length; index++) {
-
-        //     _d1 += `L${_dX} ${dY - _monoCoords[index].vi * sY}`;
-        //     // _d3 += `M${_dX} ${dY - _monoCoords[index].z1 * 3 - 200}`; // z-indicator
-
-
-        //     const vBlock = (_monoCoords[index].vo + _monoCoords[index].vi) / 2;
-        //     const tBlock = _monoCoords[index].l / vBlock;
-        //     _maxSecond += tBlock;
-
-        //     _dX += tBlock * sX;
-
-        //     _d1 += `L${_dX} ${dY - _monoCoords[index].vo * sY}`;
-        //     _d3 += `L${_dX} ${dY - _monoCoords[index].z1 * 3 - 250}`; // z-indicator
-
-        //     if (_monoCoords[index].bb) {
-        //         _d0 += `M${_dX} 0`;
-        //         _d0 += `L${_dX} ${dY}`;
-        //     }
-
-        //     // doublecheck on acceleration
-        //     const aA = (_monoCoords[index].vo * _monoCoords[index].vo - _monoCoords[index].vi * _monoCoords[index].vi) * 0.5 / _monoCoords[index].l;
-        //     console.log(`aA (${index})`, aA.toFixed(3).padStart(7, ' '));
-
-        // }
-
-        // for (let second = 0; second < _maxSecond; second += 1) {
-        //     _dX = second * sX;
-        //     _d2 += `M${_dX} 0`;
-        //     _d2 += `L${_dX} ${dY}`;
-        // }
-        // _dX = _maxSecond * sX;
-
-
-
-
-        // // horizontal line at max speed
-        // _d2 += `M${0} ${dY - CoordUtil.MAX_MMS * sY}`;;
-        // _d2 += `L${_dX} ${dY - CoordUtil.MAX_MMS * sY}`;
-
-        // console.log('_d', _d1);
-        // console.log('-----------------------------------------------------------------');
         console.log('_monoCoords', _monoCoords);
         setMonoCoords(_monoCoords);
-        // setDX(_dX);
-        // setD0(_d0);
-        // setD1(_d1);
-        // setD2(_d2);
-        // setD3(_d3);
-        // setMaxSecond(`${_maxSecond}s`);
 
       }
-
-      // console.log('_blockVals', _blockVals);
-      // setFileVals(_blockCoords);
 
     }).catch((e) => console.error(e));
 
@@ -352,26 +329,15 @@ function App() {
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Typography variant="h5" component="h5" sx={{ paddingLeft: '10px' }}>
-          <PickerComponent {...{ handleDevicePicked }} />
-        </Typography>
-        <BlockCoordsComponent {...{
-          monoCoords: monoCoords
-        }}></BlockCoordsComponent>
+        <AccelerationChartComponent {...{
+          blocks: monoCoords
+        }}></AccelerationChartComponent>
+        <PickerComponent {...{ handleDevicePicked }} />
         {
-          cmdDestProps.map(device => <BuffCoordsComponent key={device.device.id} {...device} />)
+          cmdDestProps.map(device => <BluetoothSenderComponent key={device.device.id} {...device} />)
         }
 
-        {/* <Grid container spacing={2} >
-          <Grid item xs={6}>
-            <TextInputComponent {...textInputProps} />
-          </Grid>
-          <Grid item xs={6}>
-            <TextOutputComponent {...textInputProps} />
-          </Grid>
-        </Grid> */}
       </div>
-
     </ThemeProvider>
   );
 
