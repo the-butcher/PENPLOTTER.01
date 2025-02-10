@@ -53,7 +53,7 @@ function App() {
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <CanvasComponent nY={100} />
+      <CanvasComponent nY={10} />
     </ThemeProvider>
   );
 

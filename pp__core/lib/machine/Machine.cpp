@@ -133,7 +133,14 @@ void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
         Machine::cPrim++;
         if (Machine::cPrim >= Machine::dPrim) {  // counter has reached the segment delta
             // TODO :: segment complete, find new destination coordinate
-            Machine::yield();
+            if (Coords::hasNextBlock()) {                           // check if there is more blocks to be handled at the moment
+                block_planar_t currBlock = Coords::getNextBlock();  // TODO :: revisit bluetooth implementation to verify that indices for picking a block never get corrupted by appending blocks
+                Machine::accept({currBlock.x, currBlock.y, currBlock.z}, currBlock.vi, currBlock.vo);
+                // Btle::setBuffSize();
+            } else {
+                Machine::yield();
+            }
+
         } else {
             // uint64_t microsDelta = micros() - Machine::microsEntry;  // microseconds since entry
             // double fraction = microsDelta * 1.0 / Machine::microsTotal;
@@ -162,20 +169,23 @@ void Machine::updateFrequency(float frequency) {
  */
 bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
 
-    // TODO :: better strategy for trimming coordinates, i.e. find the intersection between target and machine bounds
-    if (Machine::homedX) {
-        dstPlanar.x = max(0, dstPlanar.x);
-        dstPlanar.x = min(MACHINE_DIM____X, dstPlanar.x);
-    }
-    if (Machine::homedY) {
-        dstPlanar.y = max(0, dstPlanar.y);
-        dstPlanar.y = min(MACHINE_DIM____Y, dstPlanar.y);
-    }
-    if (Machine::homedZ) {
-        dstPlanar.z = min(0, dstPlanar.z);
-        dstPlanar.z = max(MACHINE_DIM____Z, dstPlanar.z);
-    }
+    // long microsA = micros();
 
+    // TODO :: better strategy for trimming coordinates, i.e. find the intersection between target and machine bounds
+    // if (Machine::homedX) {
+    //     dstPlanar.x = max(0, dstPlanar.x);
+    //     dstPlanar.x = min(MACHINE_DIM____X, dstPlanar.x);
+    // }
+    // if (Machine::homedY) {
+    //     dstPlanar.y = max(0, dstPlanar.y);
+    //     dstPlanar.y = min(MACHINE_DIM____Y, dstPlanar.y);
+    // }
+    // if (Machine::homedZ) {
+    //     dstPlanar.z = min(0, dstPlanar.z);
+    //     dstPlanar.z = max(MACHINE_DIM____Z, dstPlanar.z);
+    // }
+
+    // TODO :: check if this case still occurs and handle in another way
     if (vi == 0 && vo == 0) {
         vi = MACHINE_HOME_MMS;
         vo = MACHINE_HOME_MMS;
@@ -188,19 +198,25 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
     // corexy vector to reach destination
     coord_corexy_t vecCorexy = Coords::toCorexyVector(srcCorexy, dstCorexy);
 
+    // ---> 5 micros to here
+
     // planar source coordinate
     coord_planar_t srcPlanar = Coords::corexyToPlanar(srcCorexy);
+    // ---> 30 to to 60micros to here
+
     float dX = dstPlanar.x - srcPlanar.x;
     float dY = dstPlanar.y - srcPlanar.y;
     float dZ = dstPlanar.z - srcPlanar.z;
+    // ---> 30 to 60micros to here
 
+    // skip zero length commands
     if (vecCorexy.a != 0.0 || vecCorexy.b != 0.0 || vecCorexy.z != 0.0) {
 
         // planar distance to reach destination
         float lenPlanar = sqrt(dX * dX + dY * dY + dZ * dZ);
 
         // duration to reach destination (each block needs to have linear acceleration or constant speed)
-        Machine::microsTotal = lenPlanar * 2 * MICROSECONDS_PER_SECOND / (vi + vo);  // total microseconds, TODO :: store in Machine::tSecs;
+        Machine::microsTotal = lenPlanar * 2 * MICROSECONDS_PER_SECOND / (vi + vo);  // total microseconds
 
         // TODO :: from vi and vo calculate fi (entry-frequency) and fo (exit-frequency)
 
@@ -234,26 +250,30 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
             Machine::dSec2 = abs(vecCorexy.b);
         }
 
+        // ---> up to 60 micros here
+
+        // long microsB = micros();
+
+        // // accepting a segment takes ~120 microseconds
+        // // for comparison: one cycle at 4000hertz take 250 microseconds
+        // Serial.print("accept(): ");
+        // Serial.println(String(microsB - microsA));
+
         Machine::frqI = abs(Machine::dPrim) * vi / lenPlanar;
         Machine::frqO = abs(Machine::dPrim) * vo / lenPlanar;
         Machine::frqA2 = (Machine::frqO - Machine::frqI) * 2000000.0 / Machine::microsTotal;
         Machine::frqII = Machine::frqI * Machine::frqI;
 
-        // Serial.print("mPrim: ");
         // Serial.print(Machine::motorPrim->id);
-
-        // Serial.print("Machine::dPrim: ");
+        // Serial.print(", dPrim: ");
         // Serial.print(String(Machine::dPrim));
-        // Serial.print(", Machine::dSec1: ");
-        // Serial.print(String(Machine::dSec1));
-        // Serial.print(", vi: ");
-        // Serial.print(String(vi, 4));
-        // Serial.print(", vo: ");
-        // Serial.print(String(vo, 4));
+        // Serial.print(", microsTotal: ");
+        // Serial.print(String((long)Machine::microsTotal));
         // Serial.print(", frqI: ");
         // Serial.print(String(Machine::frqI, 4));
         // Serial.print(", frqO: ");
         // Serial.println(String(Machine::frqO, 4));
+
         // Serial.print(", frqA2: ");
         // Serial.print(String(Machine::frqA2, 4));
         // Serial.print(", frqII: ");
@@ -270,9 +290,12 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         Motors::motorZ.setDirection(vecCorexy.z >= 0 ? MOTOR___DRCT_FWD : MOTOR___DRCT_BWD);
 
         Machine::microsEntry = micros();
+
+        // Machine::pulse(nullptr);
         Machine::updateFrequency(Machine::frqI);  // start with entry-frequency
 
         return true;
+
     } else {
         return false;  // zero distance
     }

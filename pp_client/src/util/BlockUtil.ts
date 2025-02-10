@@ -1,4 +1,5 @@
-import { IBlockPlanar } from "../components/IBlockPlanar";
+import { IBlockPlanar } from "./Interfaces";
+
 
 export class BlockUtil {
 
@@ -14,9 +15,9 @@ export class BlockUtil {
         let offset = 0;
         for (let i = 0; i < blocks.length; i++) {
             offset = i * sizeOfC;
-            paramsV.setFloat32(offset + 0, blocks[i].x1, true);
-            paramsV.setFloat32(offset + 4, blocks[i].y1, true);
-            paramsV.setFloat32(offset + 8, blocks[i].z1, true);
+            paramsV.setFloat32(offset + 0, blocks[i].x, true);
+            paramsV.setFloat32(offset + 4, blocks[i].y, true);
+            paramsV.setFloat32(offset + 8, blocks[i].z, true);
             paramsV.setFloat32(offset + 12, blocks[i].vi, true);
             paramsV.setFloat32(offset + 16, blocks[i].vo, true);
         }

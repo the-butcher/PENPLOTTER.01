@@ -36,12 +36,11 @@ bool Btle::begin() {
 
 bool Btle::connect() {
     Btle::bleCentral = BLE.central();
-    Serial.println("BT: waiting for central device...");
+    Serial.println("BT: waiting");
     delay(500);
 
     if (Btle::bleCentral) {
-        Serial.println("BT: connected to central device!");
-        Serial.print("BT: device MAC address: ");
+        Serial.print("BT: connected - ");
         Serial.println(Btle::bleCentral.address());
         return true;
     } else {
@@ -61,6 +60,8 @@ bool Btle::getBuffVals() {
 
         if (Btle::bleBuffValsCharacteristic.written()) {
 
+            // long millisA = millis();
+
             // read byte array from characteristic
             uint8_t* newValue = (uint8_t*)Btle::bleBuffValsCharacteristic.value();
 
@@ -72,6 +73,11 @@ bool Btle::getBuffVals() {
 
             Btle::setBuffSize();  // update buffer size after reading
 
+            // readin buffer values takes around 5ms (not including the call to written())
+            // long millisB = millis();
+            // Serial.print("getBuffVals(): ");
+            // Serial.println(String(millisB - millisA));
+
             return true;
 
         } else {
@@ -79,7 +85,7 @@ bool Btle::getBuffVals() {
         }
 
     } else {
-        Serial.println("BT: disconnected from central device!");
+        Serial.println("BT: disconnected");
         return false;  // not connected
     }
 }

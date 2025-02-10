@@ -27,7 +27,7 @@ function CanvasComponent(props: ICanvasProps) {
         //     x: dX * 0.5,
         //     y: dY * 0.5,
         // })
-        for (let k = 0; k < 20; k++) {
+        for (let k = 0; k < 5; k++) {
             coordinates.push({
                 x: Math.round(dX * Math.random()),
                 y: Math.round(dY * Math.random()),
@@ -42,7 +42,7 @@ function CanvasComponent(props: ICanvasProps) {
         coordinates.forEach(coordinate => {
             _d2 += `M${coordinate.x} ${coordinate.y - 10}L${coordinate.x} ${coordinate.y + 10}M${coordinate.x - 10} ${coordinate.y}L${coordinate.x + 10} ${coordinate.y}`
         });
-        setD2(_d2);
+        // setD2(_d2);
         console.log('coordinates', coordinates);
 
         console.log('nY', nY);

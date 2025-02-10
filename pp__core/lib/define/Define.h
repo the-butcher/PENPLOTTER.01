@@ -9,12 +9,8 @@
 #define MOTOR_Z_STEP_PIN 4
 #define MOTOR_Z_DRCT_PIN 7
 
-#define MOTOR___STEPS_MM 40
+#define MOTOR___STEPS_MM 80
 #define MOTOR_Z_STEPS_MM 60
-
-// #define MOTOR_A_CNTR_CUR 286800
-// #define MOTOR_B_CNTR_CUR -49200
-// #define MOTOR_Z_CNTR_CUR 4800
 
 #define LIMIT_X_STOP_PIN 9
 #define LIMIT_Y_STOP_PIN 10

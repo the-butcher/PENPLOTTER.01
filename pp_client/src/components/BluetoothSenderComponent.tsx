@@ -1,25 +1,23 @@
 
-import { Grid, Slider, Typography } from '@mui/material';
+import { Slider, Stack, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
-import { CoordUtil } from '../util/CoordUtil';
 import { BlockUtil } from '../util/BlockUtil';
-import { UNO_R4_SERVICE_UUID } from './PickerComponent';
-import { IBlockPlanar } from './IBlockPlanar';
+import { GeometryUtil } from '../util/GeometryUtil';
+import { IBlockPlanar, IConnBleProperties, ISendBleProperties } from '../util/Interfaces';
+import { UNO_R4_SERVICE_UUID } from './PickDeviceComponent';
+
 
 export const CHARACTERISTIC_BUFF_SIZE = '067c3c93-eb63-4905-b292-478642f8ae99';
 export const CHARACTERISTIC_BUFF_VALS = 'd3116fb9-adc1-4fc4-9cb4-ceb48925fa1b';
 
-export interface IBluetoothSenderProps {
-    monoCoords: IBlockPlanar[];
-    device: BluetoothDevice;
-    handleDeviceRemove: (device: BluetoothDevice) => void;
-}
+function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties) {
 
-function BluetoothSenderComponent(props: IBluetoothSenderProps) {
+    const { lines, device, handleConnBleProperties } = props;
 
-    const { monoCoords, device } = props; /* handleDeviceRemove */
-
-    const [connectionState, setConnectionState] = useState<string>('connecting');
+    // const [connectionState, setConnectionState] = useState<IConnBleProperties>({
+    //     success: true,
+    //     message: 'initial'
+    // });
     const [gatt, setGatt] = useState<BluetoothRemoteGATTServer>();
 
     const [buffSizeCharacteristic, setBuffSizeCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
@@ -30,50 +28,74 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
     const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(-1);
 
     const blockSendPendingRef = useRef<boolean>(false);
-    // const blockCoordsSpliceRef = useRef<IBlockPlanar[]>([]);
-    // const buffSkipRef = useRef<number>(0);
-
     const writeAndReadTo = useRef<number>(-1);
 
     useEffect(() => {
-        console.debug('✨ building CmdDestComponent');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        console.debug('✨ building BluetoothSenderComponent');
     }, []);
 
     useEffect(() => {
 
-        console.debug('⚙ updating CmdDestComponent (monoCoords)', monoCoords);
+        console.debug('⚙ updating BluetoothSenderComponent (lines)', lines);
 
-        if (monoCoords.length > 0) {
-            setBuffCoords([...monoCoords]);
-            setBuffCoordsTotal(monoCoords.length);
+        if (lines.length > 0) {
+
+            const _buffCords: IBlockPlanar[] = [];
+
+            let vi = 0;
+            let vo = 0;
+            for (let i = 0; i < lines.length; i++) {
+                vo = lines[i].speedB;
+                _buffCords.push({
+                    x: lines[i].coordB.x,
+                    y: lines[i].coordB.y,
+                    z: lines[i].coordB.z,
+                    vi,
+                    vo
+                });
+                vi = vo;
+            }
+
+            setBuffCoords(_buffCords);
+            setBuffCoordsTotal(_buffCords.length);
         }
 
-    }, [monoCoords]);
+    }, [lines]);
+
 
     useEffect(() => {
-        console.debug('⚙ updating CmdDestComponent (device)', device);
-        device.gatt?.connect().then(gatt => {
+
+        console.debug('⚙ updating BluetoothSenderComponent (device)', device);
+        device?.gatt?.connect().then(gatt => {
             setGatt(gatt);
-        }).catch((e: any) => {
-            setConnectionState('failed connecting to gatt server');
+            device.ongattserverdisconnected = () => {
+                setBuffSizeCharacteristic(undefined);
+                setBuffValsCharacteristic(undefined);
+                handleConnBleProperties({
+                    // device implicitly undefined
+                    message: 'disconnected'
+                });
+            }
+        }).catch((e: unknown) => {
+            handleConnBleProperties({
+                // device implicitly undefined
+                message: 'failed to connect to gatt server',
+            });
             console.error(e);
         });
+
     }, [device]);
 
-    useEffect(() => {
-        console.debug('⚙ updating CmdDestComponent (connectionState)', connectionState);
-    }, [connectionState]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating CmdDestComponent (gatt)', gatt);
+        console.debug('⚙ updating BluetoothSenderComponent (gatt)', gatt);
         gatt?.getPrimaryService(UNO_R4_SERVICE_UUID).then(service => {
 
-            console.log('got service, fetching capabilities now ...', service);
+            console.debug('got service, fetching capabilities now ...', service);
             service.getCharacteristics().then(charateristics => {
 
-                console.log('got charateristics', charateristics);
+                console.debug('got charateristics', charateristics);
 
                 const cmdSizeCharacteristic = charateristics.filter(charateristic => charateristic.uuid === CHARACTERISTIC_BUFF_SIZE)[0];
                 setBuffSizeCharacteristic(cmdSizeCharacteristic);
@@ -81,15 +103,25 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
                 const cmdDestCharacteristic = charateristics.filter(charateristic => charateristic.uuid === CHARACTERISTIC_BUFF_VALS)[0];
                 setBuffValsCharacteristic(cmdDestCharacteristic);
 
-                setConnectionState('connected');
+                handleConnBleProperties({
+                    // device implicitly undefined
+                    device,
+                    message: 'failed to connect to gatt server',
+                });
 
-            }).catch((e: any) => {
-                setConnectionState('failed retrieving charateristics');
+            }).catch((e: unknown) => {
+                handleConnBleProperties({
+                    // device implicitly undefined
+                    message: 'failed to retrieve charateristics',
+                });
                 console.error(e);
             });
 
-        }).catch((e: any) => {
-            setConnectionState('failed retrieving primary service');
+        }).catch((e: unknown) => {
+            handleConnBleProperties({
+                // device implicitly undefined
+                message: 'failed to retrieve primary service',
+            });
             console.error(e);
         });
 
@@ -102,7 +134,7 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
             buffSizeCharacteristic?.readValue().then(value => {
 
                 const _buffSize = value.getUint32(0, true);
-                console.log('_buffSize', _buffSize);
+                // console.log('_buffSize', _buffSize);
                 setBuffSize(_buffSize);
 
                 // skip and read the buffer size again as soon as possible
@@ -111,8 +143,11 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
                     readBuffSize();
                 }, 250);
 
-            }).catch((e: any) => {
-                setConnectionState('failed retrieving buffer size');
+            }).catch((e: unknown) => {
+                handleConnBleProperties({
+                    // device implicitly undefined
+                    message: 'failed to retrieve buffer size',
+                });
                 console.error(e);
             });
 
@@ -122,28 +157,23 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
 
     useEffect(() => {
 
-        console.debug('⚙ updating CmdDestComponent (buffSize)', buffSize);
+        console.debug('⚙ updating BluetoothSenderComponent (buffSize)', buffSize);
 
         // if there is enough space to send a new set of coordinates, if there was at least one skip (debounce), if there are more values to be sent
         // if (buffSize > CoordUtil.BUFF_LN * 2 && buffSkipRef.current > 0 && blockCoordsSpliceRef.current.length === 0 && buffCoords.length > 0) {
-        if (buffCoords.length > 0 && buffSize > CoordUtil.BUFF_LN * 4 && !blockSendPendingRef.current) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
+        if (buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4 && !blockSendPendingRef.current) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
 
             blockSendPendingRef.current = true;
 
-            const _blockCoordsSplice = buffCoords.splice(0, CoordUtil.BUFF_LN);
+            const _blockCoordsSplice = buffCoords.splice(0, GeometryUtil.BT___BUFF_BLK);
             // fill to CoordUtil.BUFF_LN entries in case the splice command provided less than CoordUtil.BUFF_LN (happens at the end of file)
-            while (_blockCoordsSplice.length < CoordUtil.BUFF_LN) {
+            while (_blockCoordsSplice.length < GeometryUtil.BT___BUFF_BLK) {
                 _blockCoordsSplice.push({
-                    x0: 0,
-                    y0: 0,
-                    z0: 0,
-                    x1: 0,
-                    y1: 0,
-                    z1: 0,
-                    l: 0,
+                    x: 0,
+                    y: 0,
+                    z: 0,
                     vi: 0,
-                    vo: 0,
-                    bb: false
+                    vo: 0
                 });
             };
             // blockCoordsSpliceRef.current = _blockCoordsSplice;
@@ -153,16 +183,19 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
                 // console.log('buffValsRef.current', blockCoordsSpliceRef.current);
                 const blockBytes = BlockUtil.createBlockBytes(_blockCoordsSplice);
 
-                console.log('before sending blockBytes, ...');
+                // console.log('before sending blockBytes, ...');
                 buffValsCharacteristic?.writeValue(blockBytes).then(() => {
 
-                    console.log('..., done sending blockBytes');
+                    // console.log('..., done sending blockBytes');
                     blockSendPendingRef.current = false;
                     // blockCoordsSpliceRef.current = [];
                     // buffSkipRef.current = 0;
 
-                }).catch((e: any) => {
-                    setConnectionState('failed writing commands');
+                }).catch((e: unknown) => {
+                    handleConnBleProperties({
+                        // device implicitly undefined
+                        message: 'failed to write commands',
+                    });
                     console.error(e);
                 });
 
@@ -170,14 +203,14 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
 
         } else {
             // buffSkipRef.current++;
+            // console.log("sending condition not fulfilled", buffCoords.length, buffSize, blockSendPendingRef.current)
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [buffSize]);
+    }, [buffSize, buffCoords]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating CmdDestComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic);
+        console.debug('⚙ updating BluetoothSenderComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic);
 
         if (buffSizeCharacteristic && buffValsCharacteristic) {
 
@@ -188,57 +221,39 @@ function BluetoothSenderComponent(props: IBluetoothSenderProps) {
 
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [buffSizeCharacteristic, buffValsCharacteristic]);
 
     return (
         // <div style={{ display: 'flex', flexDirection: 'row', flexGrow: '4' }}>
-        <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-            <Grid item xs={11}>
-                <Slider
-                    disabled={buffSize < 0}
-                    value={CoordUtil.BUFF_MAX - buffSize}
-                    aria-labelledby="input-slider"
-                    max={CoordUtil.BUFF_MAX}
-                    min={0}
-                    marks={
-                        [
-                            {
-                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN,
-                                label: `${CoordUtil.BUFF_LN}`
-                            },
-                            {
-                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN * 2,
-                                label: `${CoordUtil.BUFF_LN * 2}`
-                            },
-                            {
-                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN * 3,
-                                label: `${CoordUtil.BUFF_LN * 3}`
-                            },
-                            {
-                                value: CoordUtil.BUFF_MAX - CoordUtil.BUFF_LN * 4,
-                                label: `${CoordUtil.BUFF_LN * 4}`
-                            }
-                        ]
-                    }
-                />
-            </Grid>
-            <Grid item xs={1}>
-                <Typography >{CoordUtil.BUFF_MAX - buffSize}/{CoordUtil.BUFF_MAX}</Typography>
-            </Grid>
-            <Grid item xs={11}>
-                <Slider
-                    disabled={buffCoordsTotal < 0}
-                    value={buffCoords.length}
-                    aria-labelledby="input-slider"
-                    max={buffCoordsTotal}
-                    min={0}
-                />
-            </Grid>
-            <Grid item xs={1}>
-                <Typography >{buffCoords.length}/{buffCoordsTotal}</Typography>
-            </Grid>
-        </Grid>
+        <Stack>
+            <Typography variant='caption'>{GeometryUtil.BT___BUFF_MAX - buffSize}/{GeometryUtil.BT___BUFF_MAX}</Typography>
+            <Slider
+                size='small'
+                // disabled={buffSize < 0}
+                value={GeometryUtil.BT___BUFF_MAX - buffSize}
+                aria-labelledby="input-slider"
+                max={GeometryUtil.BT___BUFF_MAX}
+                min={0}
+                marks={
+                    [
+                        {
+                            value: GeometryUtil.BT___BUFF_MAX - GeometryUtil.BT___BUFF_BLK * 4,
+                            label: `${GeometryUtil.BT___BUFF_BLK * 4}`
+                        }
+                    ]
+                }
+            />
+            <Typography variant='caption'>{buffCoords.length}/{buffCoordsTotal}</Typography>
+            <Slider
+                size='small'
+                // disabled={buffCoordsTotal < 0}
+                value={buffCoords.length}
+                aria-labelledby="input-slider"
+                max={buffCoordsTotal}
+                min={0}
+            />
+        </Stack>
+
 
     );
 }
