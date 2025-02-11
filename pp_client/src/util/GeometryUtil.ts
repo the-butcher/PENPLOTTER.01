@@ -13,7 +13,7 @@ export class GeometryUtil {
 
     static PEN_____WIDTH = 0.1; // mm
     static IMAGE___SCALE = 4;
-    static IMAGE_PADDING = 5;
+    static IMAGE_PADDING = 2;
     static CONN___PREFIX = 'conn';
     static Z_VALUE_PEN_U = 0.0; // pen position when up (mm)
     static Z_VALUE_PEN_D = -8.0; // pen position when down (mm)
@@ -241,8 +241,6 @@ export class GeometryUtil {
 
         }
 
-        // for (let c = 0; c < 1; c++) {
-
         // iterate backwards and reduce entry speed on blocks where entry speed is too high for deceleration within the block
         for (let i = plotPaths1.length - 1; i > 0; i--) {
 
@@ -277,8 +275,6 @@ export class GeometryUtil {
 
         }
 
-        // }
-
         const plotPaths2: ILine3D[] = [];
 
         // entry and exit speeds should be sorted here, now do acceleration / deceleration within the blocks
@@ -290,12 +286,6 @@ export class GeometryUtil {
         for (let index = 0; index < plotPaths1.length; index++) {
 
             const speedO = plotPaths1[index].speedB;
-
-            // if (plotPaths1[index].id.indexOf('_tr_') != -1) {
-            //     plotPaths2.push(plotPaths1[index]);
-            //     speedI = speedO;
-            //     continue;
-            // }
 
             const lViToVm = (mmm * mmm - speedI * speedI) / (2 * acc); // distance travelled while accelerating from entry to full
             const lVmToVo = (speedO * speedO - mmm * mmm) / (2 * -acc); // distance travelled while decelarating from full to exit
@@ -352,66 +342,6 @@ export class GeometryUtil {
 
         }
 
-        // // find portions from pen down to pen up
-        // const drawPaths: ILine3D[] = [];
-        // const doLoessProcessing = false;
-        // if (doLoessProcessing) {
-        //     for (let index = 0; index < plotPaths2.length - 1; index++) {
-
-        //         const plotPathA = plotPaths2[index];
-        //         if (plotPathA.coordA.z === GeometryUtil.Z_VALUE_PEN_D && plotPathA.coordB.z === GeometryUtil.Z_VALUE_PEN_D) {
-
-        //             drawPaths.push(plotPathA);
-
-        //         } else if (drawPaths.length > 0) {
-
-        //             if (drawPaths.length > 6) {
-
-        //                 const data: ILoessData = {
-        //                     x: [0],
-        //                     y: [0]
-        //                 };
-
-        //                 let speedI = 0;
-        //                 let speedO = 0;
-        //                 // let speedD = 0;
-        //                 let scndsL = 0;
-        //                 let scndsT = 0;
-        //                 for (let j = 0; j < drawPaths.length; j++) {
-        //                     if (j > 0) {
-        //                         speedI = drawPaths[j - 1].speedB;
-        //                     }
-        //                     speedO = drawPaths[j].speedB;
-        //                     // speedD = speedO - speedI;
-        //                     scndsL = drawPaths[j].length * 2 / (speedI + speedO);
-        //                     scndsT += scndsL;
-
-        //                     data.x.push(scndsT);
-        //                     data.y.push(speedO);
-        //                 }
-
-        //                 // data.x.push(scndsT + scndsL);
-        //                 // data.y.push(speedO + speedD);
-        //                 console.log('data', data);
-
-        //                 const options = { span: 0.25, band: 0, degree: 1 }
-        //                 const model = new Loess(data, options);
-        //                 const fit = model.predict();
-
-        //                 // skip last to keep it at zero
-        //                 for (let j = 0; j < drawPaths.length - 1; j++) {
-        //                     drawPaths[j].speedB = fit.fitted[j + 1];
-        //                 }
-
-        //             }
-
-        //             drawPaths.length = 0;
-
-        //         }
-
-        //     }
-        // }
-
         return plotPaths2;
 
     }
@@ -467,10 +397,10 @@ export class GeometryUtil {
         cubicgroup.segments.forEach(c => {
 
             const svgPathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            // console.log(c);
             svgPathElement.setAttribute('d', `M${c.coordA.x} ${c.coordA.y}C${c.coordB.x} ${c.coordB.y} ${c.coordC.x} ${c.coordC.y}  ${c.coordD.x} ${c.coordD.y}`);
 
             const pathLength = svgPathElement.getTotalLength();
+            // console.log('pathLength', pathLength);
             const pathSegmts = Math.ceil(pathLength / 1); // TODO :: constant for segment length, consider scale
             const segmtLength = pathLength / pathSegmts;
 
@@ -631,19 +561,37 @@ export class GeometryUtil {
         let intersection: ICoordinate2D | undefined;
         let lengthB: number;
 
-
-        for (let i = linepathNoShorts.segments.length - 2; i > 0; i--) {
-            segmentA = linepathNoShorts.segments[i - 1];
-            segmentB = linepathNoShorts.segments[i];
-            segmentC = linepathNoShorts.segments[i + 1];
+        if (linepathNoShorts.segments.length > 2) {
+            for (let i = linepathNoShorts.segments.length - 2; i > 0; i--) {
+                segmentA = linepathNoShorts.segments[i - 1];
+                segmentB = linepathNoShorts.segments[i];
+                segmentC = linepathNoShorts.segments[i + 1];
+                lengthB = GeometryUtil.getDistance2D(segmentB.coordA, segmentB.coordB);
+                // if a connecting segment is short, remove it and connect neighbouring segmets by intersection
+                if (lengthB < minLength) {
+                    intersection = GeometryUtil.intersectLines(segmentA, segmentC);
+                    if (intersection) {
+                        segmentA.coordB = intersection;
+                        segmentC.coordA = intersection;
+                        linepathNoShorts.segments.splice(i, 1);
+                    }
+                }
+            }
+        }
+        // remove last segment if too short
+        if (linepathNoShorts.segments.length > 0) {
+            segmentB = linepathNoShorts.segments[linepathNoShorts.segments.length - 1];
             lengthB = GeometryUtil.getDistance2D(segmentB.coordA, segmentB.coordB);
             if (lengthB < minLength) {
-                intersection = GeometryUtil.intersectLines(segmentA, segmentC);
-                if (intersection) {
-                    segmentA.coordB = intersection;
-                    segmentC.coordA = intersection;
-                    linepathNoShorts.segments.splice(i, 1);
-                }
+                linepathNoShorts.segments.splice(linepathNoShorts.segments.length - 1, 1);
+            }
+        }
+        if (linepathNoShorts.segments.length > 0) {
+            // remove first segment if too short
+            segmentB = linepathNoShorts.segments[0];
+            lengthB = GeometryUtil.getDistance2D(segmentB.coordA, segmentB.coordB);
+            if (lengthB < minLength) {
+                linepathNoShorts.segments.splice(0, 1);
             }
         }
 

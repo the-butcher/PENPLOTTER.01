@@ -84,7 +84,7 @@ function ConfSvgComponent(props: IConfSvgProperties) {
                         checked={connectSort}
                         onChange={handleConnectSortCheckboxChange}
                     />}
-                    label="connect"
+                    label="'greedy' sorting"
 
                 />
             </FormGroup>

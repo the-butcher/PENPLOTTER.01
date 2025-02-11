@@ -8,7 +8,7 @@ import RootSvgComponent from './components/RootSvgComponent';
 import TimeSvgComponent from './components/TimeSvgComponent';
 import VRulSvgComponent from './components/VRulSvgComponent';
 import { GeometryUtil } from './util/GeometryUtil';
-import { IConfSvgProperties, IConnBleProperties, IFileSvgProperties, ILine3D, IPickSvgProperties, IRootSvgProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
+import { IConfSvgProperties, IConnBleProperties, IFileSvgProperties, ILine3D, ILinePath, IPickSvgProperties, IRootSvgProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
 import { ObjectUtil } from './util/ObjectUtil';
 import { ThemeUtil } from './util/ThemeUtil';
 import PickDeviceComponent from './components/PickDeviceComponent';
@@ -262,23 +262,31 @@ function RootApp() {
       const linepathSimples = linepathScaleds.map(linepath => GeometryUtil.simplifyLinepath(0.1, linepath));
 
       // remove short segments
-      const linepathNoShorts = linepathSimples.map(linepath => GeometryUtil.removeShortSegments(GeometryUtil.PEN_____WIDTH, linepath));
+      const linepathNoShorts: ILinePath[] = [];
+      for (let i = 0; i < linepathSimples.length; i++) {
+        const linepath = GeometryUtil.removeShortSegments(GeometryUtil.PEN_____WIDTH, linepathSimples[i]);
+        if (linepath.segments.length > 0) {
+          linepathNoShorts.push(linepath);
+        }
+      };
       linepathNoShorts.forEach(p => {
-        p.segments.forEach(s => {
+        for (let i = 0; i < p.segments.length; i++) {
+          const s = p.segments[i];
+          // p.segments.forEach(s => {
           const lengthAB = GeometryUtil.getDistance2D(s.coordA, s.coordB);
           if (lengthAB < GeometryUtil.PEN_____WIDTH) {
-            console.log('short segment found (after no shorts)', lengthAB);
+            // console.log('short segment found', lengthAB, 'at position', i, 'in a path containing', p.segments.length, 'segments');
           }
-        });
+        };
       })
 
-      const linepathConects = GeometryUtil.connectLinepaths({
+      const linepathConnecteds = GeometryUtil.connectLinepaths({
         x: overallExtent.xMin,
         y: overallExtent.yMin
       }, linepathNoShorts, confSvgProperties.connectSort);
 
       rootSvgPropertiesRef.current = {
-        lines: linepathConects,
+        lines: linepathConnecteds,
         extent: overallExtent,
         selId: ObjectUtil.createId(),
         handleLineClick
@@ -286,8 +294,8 @@ function RootApp() {
       setRootSvgProperties(rootSvgPropertiesRef.current);
 
       // now lets build a list of 3D lines (aka pen plotter lines)
-      const linepathPlottrs = GeometryUtil.linepathsToPlotpaths(linepathConects);
-      linesRef.current = linepathPlottrs;
+      const plottableLines = GeometryUtil.linepathsToPlotpaths(linepathConnecteds);
+      linesRef.current = plottableLines;
 
       timeSvgPropertiesRef.current = {
         ...timeSvgPropertiesRef.current,

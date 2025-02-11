@@ -23,8 +23,8 @@ function RootSvgComponent(props: IRootSvgProperties) {
 
         const _width = _extent.xMax - _extent.xMin + GeometryUtil.IMAGE_PADDING * 2;
         const _height = _extent.yMax - _extent.yMin + GeometryUtil.IMAGE_PADDING * 2;
-        // const _viewbox = `${_extent.xMin - xDif / 10},${_extent.yMin - yDif / 10},${_extent.xMax + xDif * 2 / 10},${_extent.yMax + yDif * 2 / 10}`;
         const _viewbox = `${_extent.xMin - GeometryUtil.IMAGE_PADDING}, ${_extent.yMin - GeometryUtil.IMAGE_PADDING}, ${_width},${_height}`;
+        console.log('_viewbox', _viewbox);
         setViewbox(_viewbox);
         setWidth(_width * GeometryUtil.IMAGE___SCALE);
         setHeight(_height * GeometryUtil.IMAGE___SCALE);
