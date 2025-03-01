@@ -24,13 +24,13 @@ function RootSvgComponent(props: IRootSvgProperties) {
         const _width = _extent.xMax - _extent.xMin + GeometryUtil.IMAGE_PADDING * 2;
         const _height = _extent.yMax - _extent.yMin + GeometryUtil.IMAGE_PADDING * 2;
         const _viewbox = `${_extent.xMin - GeometryUtil.IMAGE_PADDING}, ${_extent.yMin - GeometryUtil.IMAGE_PADDING}, ${_width},${_height}`;
-        console.log('_viewbox', _viewbox);
         setViewbox(_viewbox);
         setWidth(_width * GeometryUtil.IMAGE___SCALE);
         setHeight(_height * GeometryUtil.IMAGE___SCALE);
 
         const _bounds: ILinePath = {
             id: ObjectUtil.createId(),
+            penId: ObjectUtil.PEN_ID_DEFAULT,
             strokeWidth: GeometryUtil.PEN_____WIDTH / 2,
             stroke: 'red',
             segments: [

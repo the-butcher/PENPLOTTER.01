@@ -1,6 +1,12 @@
 export interface IStepDefProperties {
     label: string;
-    valid: (fileSvgProperties: IFileSvgProperties, confSvgProperties: IConfSvgProperties, connBleProperties: IConnBleProperties) => boolean;
+    valid: (
+        fileSvgProperties: IFileSvgProperties,
+        cnfASvgProperties: ICnfASvgProperties,
+        connBleProperties: IConnBleProperties,
+        cnfBSvgProperties: ICnfBSvgProperties,
+        sendBleProperties: ISendBleProperties
+    ) => boolean;
 }
 
 export interface ILoessData {
@@ -25,6 +31,7 @@ export interface IConnBleProperties {
 
 export interface ISendBleProperties {
     lines: ILine3D[];
+    handlePenDone: () => void;
     // device?: BluetoothDevice;
     // handleConnectionState: (state: IConnBleProperties) => void;
 }
@@ -40,15 +47,24 @@ export interface IPickSvgProperties {
     handleFileSvgProperties: (fileSvgProperties: IFileSvgProperties) => void;
 }
 
-export interface IConfSvgProperties {
+export interface ICnfASvgProperties {
     paperExtent: IExtent;
     connectSort: boolean;
-    done: boolean;
-    handleConfSvgProperties: (confSvgProperties: Pick<IConfSvgProperties, 'paperExtent' | 'connectSort'>) => void;
+    keepTopLeft: boolean;
+    handleCnfASvgProperties: (confSvgProperties: Pick<ICnfASvgProperties, 'paperExtent' | 'connectSort' | 'keepTopLeft'>) => void;
+}
+
+
+export interface ICnfBSvgProperties {
+    penMaxSpeed: number;
+    penIds: string[];
+    penId: string;
+    handleCnfBSvgProperties: (confSvgProperties: Pick<ICnfBSvgProperties, 'penMaxSpeed' | 'penId'>) => void;
 }
 
 export interface IFileSvgProperties {
     fileLabel: string;
+    extent: IExtent;
     linePaths: ILinePath[]; // each linegroup is a 'path', aka connected lines
     cubcPaths: ICubcPath[]; // each cubcgroup is a 'path', aka connected lines
 }
@@ -68,6 +84,7 @@ export interface ITimeSvgProperties {
 
 export interface ILinePath {
     id: string;
+    penId: string;
     segments: ILine2D[]; // a list of lines that this group is composed from
     strokeWidth: number;
     stroke: string;
@@ -75,6 +92,7 @@ export interface ILinePath {
 
 export interface ICubcPath {
     id: string;
+    penId: string;
     segments: ICubc2D[];
 }
 
@@ -101,6 +119,7 @@ export interface ICoordinate3D extends ICoordinate2D {
 
 export interface ILine3D {
     id: string;
+    penId: string;
     coordA: ICoordinate3D;
     coordB: ICoordinate3D;
     length: number; // length of this line (convenience, code must take care of this being up to date after any change to coordinates)

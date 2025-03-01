@@ -10,6 +10,7 @@
 #include <Wire.h>
 
 block_planar_t currBlock = {0, 0, 0, 0, 0};
+uint64_t counter = 0;
 
 void nextBlockIfPresent() {
     if (Coords::hasNextBlock()) {            // check if there is more blocks to be handled at the moment
@@ -47,5 +48,9 @@ void loop() {
     }
     Btle::getBuffVals();
     Btle::setBuffSize();
+    if (counter % 10 == 0) {
+        Btle::setPosition();
+    }
+    counter++;
     delay(100);
 }

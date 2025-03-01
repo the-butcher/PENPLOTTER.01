@@ -1,18 +1,26 @@
 
-import { Slider, Stack, Typography } from '@mui/material';
+import AdjustIcon from '@mui/icons-material/Adjust';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { Button, Divider, FormControl, Grid, IconButton, MenuItem, Select, Slider, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { BlockUtil } from '../util/BlockUtil';
 import { GeometryUtil } from '../util/GeometryUtil';
 import { IBlockPlanar, IConnBleProperties, ISendBleProperties } from '../util/Interfaces';
 import { UNO_R4_SERVICE_UUID } from './PickDeviceComponent';
-
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 export const CHARACTERISTIC_BUFF_SIZE = '067c3c93-eb63-4905-b292-478642f8ae99';
 export const CHARACTERISTIC_BUFF_VALS = 'd3116fb9-adc1-4fc4-9cb4-ceb48925fa1b';
+export const CHARACTERISTIC__POSITION = "b7e24055-35c2-418e-be2e-b690a11cf3fa";
 
 function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties) {
 
-    const { lines, device, handleConnBleProperties } = props;
+    const { lines, device, handleConnBleProperties, handlePenDone } = props;
 
     // const [connectionState, setConnectionState] = useState<IConnBleProperties>({
     //     success: true,
@@ -22,13 +30,159 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     const [buffSizeCharacteristic, setBuffSizeCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
     const [buffValsCharacteristic, setBuffValsCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
+    const [positionCharacteristic, setPositionCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
 
-    const [buffSize, setBuffSize] = useState<number>(-1);
+    const [buffSize, setBuffSize] = useState<number>(GeometryUtil.BT___BUFF_MAX);
     const [buffCoords, setBuffCoords] = useState<IBlockPlanar[]>([]);
-    const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(-1);
+    const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(0);
+
+    const penDistances: number[] = [
+        0.1,
+        1,
+        2
+    ];
+    const [penDistance, setPenDistance] = useState<number>(penDistances[0]);
 
     const blockSendPendingRef = useRef<boolean>(false);
     const writeAndReadTo = useRef<number>(-1);
+
+    const abortPen = () => {
+        setBuffCoords([]);
+        setBuffCoordsTotal(0);
+        setBuffSize(GeometryUtil.BT___BUFF_MAX);
+        handlePenDone();
+    }
+
+    // const movePenDistance = 0.1;
+
+    const movePenTo = (movePosition: IBlockPlanar) => {
+
+        console.log('moving pen to', movePosition)
+        const _buffCoords: IBlockPlanar[] = [];
+        for (let i = 0; i < GeometryUtil.BT___BUFF_BLK; i++) {
+            _buffCoords.push(movePosition);
+        }
+        setBuffCoords(_buffCoords);
+
+    }
+
+    const resetAtPosition = () => {
+
+        const resetPposition: IBlockPlanar = {
+            x: 0,
+            y: 0,
+            z: GeometryUtil.Z_VALUE_RESET,
+            vi: 0,
+            vo: 0
+        };
+
+        const _buffCoords: IBlockPlanar[] = [resetPposition];
+        for (let i = 1; i < GeometryUtil.BT___BUFF_BLK; i++) {
+            _buffCoords.push({
+                x: 0,
+                y: 0,
+                z: GeometryUtil.Z_VALUE_PEN_U,
+                vi: 0,
+                vo: 0
+            });
+        }
+        setBuffCoords(_buffCoords);
+
+    }
+
+    const movePenHome = () => {
+
+        console.debug(`📞 moving pen home`);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                x: 0,
+                y: 0,
+                z: 0,
+            });
+        });
+
+    }
+
+    const movePenYUp = () => {
+
+        console.debug(`📞 moving pen y up by`, penDistance);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                y: position.y - penDistance,
+            });
+        });
+
+    }
+
+    const movePenYDown = () => {
+
+        console.debug(`📞 moving pen y down by`, penDistance);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                y: position.y + penDistance,
+            });
+        });
+
+    }
+
+    const movePenXLeft = () => {
+
+        console.debug(`📞 moving pen x left by`, penDistance);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                x: position.x - penDistance,
+            });
+        });
+
+    }
+
+    const movePenXRight = () => {
+
+        console.log(`📞 moving pen x right by`, penDistance);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                x: position.x + penDistance,
+            });
+        });
+
+    }
+
+    const movePenZUp = () => {
+
+        console.debug(`📞 moving pen z up by`, penDistance);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                z: Math.min(GeometryUtil.Z_VALUE_PEN_U, position.z + penDistance),
+            });
+        });
+
+    }
+
+    const movePenZDown = () => {
+
+        console.debug(`📞 moving pen z down by`, penDistance);
+
+        readPosition().then(position => {
+            movePenTo({
+                ...position,
+                z: Math.max(GeometryUtil.Z_VALUE_PEN_D, position.z - penDistance),
+            });
+
+        });
+
+    }
 
     useEffect(() => {
         console.debug('✨ building BluetoothSenderComponent');
@@ -71,6 +225,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             device.ongattserverdisconnected = () => {
                 setBuffSizeCharacteristic(undefined);
                 setBuffValsCharacteristic(undefined);
+                setPositionCharacteristic(undefined);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'disconnected'
@@ -103,6 +258,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 const cmdDestCharacteristic = charateristics.filter(charateristic => charateristic.uuid === CHARACTERISTIC_BUFF_VALS)[0];
                 setBuffValsCharacteristic(cmdDestCharacteristic);
 
+                const positionCharacteristic = charateristics.filter(charateristic => charateristic.uuid === CHARACTERISTIC__POSITION)[0];
+                setPositionCharacteristic(positionCharacteristic);
+
                 handleConnBleProperties({
                     // device implicitly undefined
                     device,
@@ -127,11 +285,26 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     }, [gatt]);
 
+    const readPosition = async (): Promise<IBlockPlanar> => {
+
+        if (positionCharacteristic) {
+
+            const data = await positionCharacteristic.readValue();
+            const position = BlockUtil.parseBlockBytes(data);
+            console.log(position);
+            return position;
+
+        } else {
+            throw (new Error("failed to read position due to undefined positionCharacteristic"));
+        }
+
+    }
+
     const readBuffSize = () => {
 
         if (buffSizeCharacteristic) {
 
-            buffSizeCharacteristic?.readValue().then(value => {
+            buffSizeCharacteristic.readValue().then(value => {
 
                 const _buffSize = value.getUint32(0, true);
                 // console.log('_buffSize', _buffSize);
@@ -155,18 +328,18 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     }
 
+
+
     useEffect(() => {
 
-        console.debug('⚙ updating BluetoothSenderComponent (buffSize)', buffSize);
+        console.log('⚙ updating BluetoothSenderComponent (buffSize)', buffSize);
 
-        // if there is enough space to send a new set of coordinates, if there was at least one skip (debounce), if there are more values to be sent
-        // if (buffSize > CoordUtil.BUFF_LN * 2 && buffSkipRef.current > 0 && blockCoordsSpliceRef.current.length === 0 && buffCoords.length > 0) {
         if (buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4 && !blockSendPendingRef.current) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
 
             blockSendPendingRef.current = true;
 
             const _blockCoordsSplice = buffCoords.splice(0, GeometryUtil.BT___BUFF_BLK);
-            // fill to CoordUtil.BUFF_LN entries in case the splice command provided less than CoordUtil.BUFF_LN (happens at the end of file)
+            // fill to GeometryUtil.BT___BUFF_BLK entries in case the splice command provided less than GeometryUtil.BT___BUFF_BLK (happens at the end of file)
             while (_blockCoordsSplice.length < GeometryUtil.BT___BUFF_BLK) {
                 _blockCoordsSplice.push({
                     x: 0,
@@ -176,7 +349,6 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                     vo: 0
                 });
             };
-            // blockCoordsSpliceRef.current = _blockCoordsSplice;
 
             if (buffValsCharacteristic) {
 
@@ -186,10 +358,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 // console.log('before sending blockBytes, ...');
                 buffValsCharacteristic?.writeValue(blockBytes).then(() => {
 
-                    // console.log('..., done sending blockBytes');
                     blockSendPendingRef.current = false;
-                    // blockCoordsSpliceRef.current = [];
-                    // buffSkipRef.current = 0;
 
                 }).catch((e: unknown) => {
                     handleConnBleProperties({
@@ -201,7 +370,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
             }
 
-        } else {
+        } else if (buffCoords.length === 0 && buffSize === GeometryUtil.BT___BUFF_MAX) {
+            handlePenDone();
             // buffSkipRef.current++;
             // console.log("sending condition not fulfilled", buffCoords.length, buffSize, blockSendPendingRef.current)
         }
@@ -210,7 +380,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     useEffect(() => {
 
-        console.debug('⚙ updating BluetoothSenderComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic);
+        console.debug('⚙ updating BluetoothSenderComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic, positionCharacteristic);
 
         if (buffSizeCharacteristic && buffValsCharacteristic) {
 
@@ -221,38 +391,164 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         }
 
-    }, [buffSizeCharacteristic, buffValsCharacteristic]);
+    }, [buffSizeCharacteristic, buffValsCharacteristic, positionCharacteristic]);
 
     return (
-        // <div style={{ display: 'flex', flexDirection: 'row', flexGrow: '4' }}>
-        <Stack>
-            <Typography variant='caption'>{GeometryUtil.BT___BUFF_MAX - buffSize}/{GeometryUtil.BT___BUFF_MAX}</Typography>
-            <Slider
-                size='small'
-                // disabled={buffSize < 0}
-                value={GeometryUtil.BT___BUFF_MAX - buffSize}
-                aria-labelledby="input-slider"
-                max={GeometryUtil.BT___BUFF_MAX}
-                min={0}
-                marks={
-                    [
+
+        <Grid container spacing={2} sx={{ alignItems: 'top' }}>
+
+            <Grid item xs={12}>
+                <Divider
+                    style={{
+                        margin: '10px 0px 10px 0px',
+                        padding: '10px 0px 10px 0px'
+                    }}
+                />
+            </Grid>
+
+            <Grid item xs={12}>
+                <FormControl sx={{
+                    width: 'calc(100% - 10px)',
+
+                }} size="small"
+                >
+                    <Select
+                        value={penDistance}
+                        style={{
+                            width: '100%',
+                            height: '32px'
+                        }}
+                        onChange={(e) => setPenDistance(e.target.value as number)}
+                    >
                         {
-                            value: GeometryUtil.BT___BUFF_MAX - GeometryUtil.BT___BUFF_BLK * 4,
-                            label: `${GeometryUtil.BT___BUFF_BLK * 4}`
+                            penDistances.map(_penDistance =>
+                                <MenuItem key={`p${_penDistance * 100}`} value={_penDistance}>{`${_penDistance.toFixed(2)} mm`}</MenuItem>
+                            )
                         }
-                    ]
-                }
-            />
-            <Typography variant='caption'>{buffCoords.length}/{buffCoordsTotal}</Typography>
-            <Slider
-                size='small'
-                // disabled={buffCoordsTotal < 0}
-                value={buffCoords.length}
-                aria-labelledby="input-slider"
-                max={buffCoordsTotal}
-                min={0}
-            />
-        </Stack>
+
+                    </Select>
+                </FormControl>
+            </Grid>
+
+            <Grid item xs={3}></Grid>
+            <Grid item xs={3}>
+                <IconButton aria-label="y-axis up" onClick={() => movePenYUp()}>
+                    <KeyboardArrowUpIcon />
+                </IconButton>
+            </Grid>
+            <Grid item xs={3}></Grid>
+            <Grid item xs={3}>
+                <IconButton aria-label="pen up" onClick={() => movePenZUp()}>
+                    <ArrowUpwardIcon />
+                </IconButton>
+            </Grid>
+
+            <Grid item xs={3}>
+                <IconButton aria-label="x-axis left" onClick={() => movePenXLeft()}>
+                    <KeyboardArrowLeftIcon />
+                </IconButton>
+            </Grid>
+            <Grid item xs={3}>
+                <IconButton aria-label="pen home" onClick={() => movePenHome()}>
+                    <AdjustIcon />
+                </IconButton>
+            </Grid>
+            <Grid item xs={3}>
+                <IconButton aria-label="x-axis right" onClick={() => movePenXRight()}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>
+            </Grid>
+            <Grid item xs={3}></Grid>
+
+            <Grid item xs={3}></Grid>
+            <Grid item xs={3}>
+                <IconButton aria-label="y-axis down" onClick={() => movePenYDown()}>
+                    <KeyboardArrowDownIcon />
+                </IconButton>
+            </Grid>
+            <Grid item xs={3}></Grid>
+            <Grid item xs={3}>
+                <IconButton aria-label="pen down" onClick={() => movePenZDown()}>
+                    <ArrowDownwardIcon />
+                </IconButton>
+            </Grid>
+            <Grid item xs={12}>
+                <Button
+                    variant={'contained'}
+                    onClick={() => resetAtPosition()}
+                    startIcon={<RestartAltIcon />}
+                    sx={{
+                        width: 'calc(100% - 11px)',
+                        margin: '0px 0px 10px 1px'
+                    }}
+                >
+                    reset here
+                </Button>
+            </Grid>
+            <Grid item xs={12}>
+                <Divider
+                    style={{
+                        margin: '0px 0px 10px 0px'
+                    }}
+                />
+            </Grid>
+
+            <Grid item xs={12}>
+                <Typography variant='caption'>{GeometryUtil.BT___BUFF_MAX - buffSize}/{GeometryUtil.BT___BUFF_MAX}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+                <Slider
+                    size='small'
+                    disabled={buffSize === GeometryUtil.BT___BUFF_MAX}
+                    value={GeometryUtil.BT___BUFF_MAX - buffSize}
+                    aria-labelledby="input-slider"
+                    max={GeometryUtil.BT___BUFF_MAX}
+                    min={0}
+                    marks={
+                        [
+                            {
+                                value: GeometryUtil.BT___BUFF_MAX - GeometryUtil.BT___BUFF_BLK * 4,
+                                label: `${GeometryUtil.BT___BUFF_BLK * 4}`
+                            }
+                        ]
+                    }
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <Typography variant='caption'>{buffCoords.length}/{buffCoordsTotal}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+                <Slider
+                    size='small'
+                    disabled={buffCoords.length === 0}
+                    value={buffCoords.length}
+                    aria-labelledby="input-slider"
+                    max={buffCoordsTotal}
+                    min={0}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <Divider
+                    style={{
+                        padding: '10px 0px 10px 0px'
+                    }}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <Button
+                    disabled={buffCoords.length === 0}
+                    variant="contained"
+                    onClick={() => abortPen()}
+                    sx={{
+                        width: '100%'
+                        // marginTop: '10px'
+                    }}
+                >
+                    abort pen
+                </Button>
+            </Grid>
+        </Grid >
+
 
 
     );

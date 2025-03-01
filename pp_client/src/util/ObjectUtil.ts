@@ -7,6 +7,12 @@ export class ObjectUtil {
         maximumFractionDigits: 1,
     };
 
+    static PEN_ID_DEFAULT = 'p_000';
+
+    static isPenIdSet = (penId: string): boolean => {
+        return penId.length <= 8;
+    }
+
     /**
      * create a unique 12-digit id
      * @returns

@@ -1,9 +1,12 @@
 #include <Btle.h>
+#include <Machine.h>
+#include <Motors.h>
 
 BLEDevice Btle::bleCentral;
 BLEService Btle::bleService(COMMAND_SERVICE___UUID);
 BLEUnsignedIntCharacteristic Btle::bleBuffSizeCharacteristic(COMMAND_BUFF_SIZE_UUID, BLERead);
 BLECharacteristic Btle::bleBuffValsCharacteristic(COMMAND_BUFF_VALS_UUID, BLEWrite, sizeof(block_planar_t) * COMMAND_BUFF_VALS_SIZE, true);
+BLECharacteristic Btle::blePositionCharacteristic(COMMAND_POSITION__UUID, BLERead, sizeof(block_planar_t), true);
 
 // Function to convert a struct to a byte array
 // https://wokwi.com/projects/384215584338530305
@@ -28,6 +31,7 @@ bool Btle::begin() {
     BLE.setAdvertisedService(Btle::bleService);
     Btle::bleService.addCharacteristic(Btle::bleBuffSizeCharacteristic);
     Btle::bleService.addCharacteristic(Btle::bleBuffValsCharacteristic);
+    Btle::bleService.addCharacteristic(Btle::blePositionCharacteristic);
     BLE.addService(Btle::bleService);
     Btle::bleBuffSizeCharacteristic.writeValue(Coords::getBuffCoordSpace());
     BLE.advertise();
@@ -54,13 +58,27 @@ void Btle::setBuffSize() {
     }
 }
 
+void Btle::setPosition() {
+    if (Btle::bleCentral.connected()) {
+        coord_corexy_t curCorexy = Motors::getCurCorexy();
+        coord_planar_t curPlanar = Coords::corexyToPlanar(curCorexy);
+        // Serial.print("x: ");
+        // Serial.print(String(curPlanar.x, 3));
+        // Serial.print(", y: ");
+        // Serial.print(String(curPlanar.y, 3));
+        // Serial.print(", z: ");
+        // Serial.println(String(curPlanar.z, 3));
+        uint8_t outValue[sizeof(curPlanar)];
+        serializeData(curPlanar, outValue);
+        Btle::blePositionCharacteristic.writeValue(outValue, sizeof(curPlanar));
+    }
+}
+
 bool Btle::getBuffVals() {
 
     if (Btle::bleCentral.connected()) {
 
         if (Btle::bleBuffValsCharacteristic.written()) {
-
-            // long millisA = millis();
 
             // read byte array from characteristic
             uint8_t* newValue = (uint8_t*)Btle::bleBuffValsCharacteristic.value();
@@ -68,7 +86,15 @@ bool Btle::getBuffVals() {
             block_planar_t blockPlanar;
             for (uint16_t newValueIndex = 0; newValueIndex < COMMAND_BUFF_VALS_SIZE * sizeof(block_planar_t); newValueIndex += sizeof(block_planar_t)) {
                 deserializeData(newValue, newValueIndex, blockPlanar);
-                Coords::addBlock(blockPlanar);
+                if (blockPlanar.z == 9999.0) {
+                    // Serial.print("resetting to coordinate, x:");
+                    // Serial.print(String(blockPlanar.x, 3));
+                    // Serial.print(", y: ");
+                    // Serial.println(String(blockPlanar.y, 3));
+                    Machine::reset(blockPlanar.x, blockPlanar.y);
+                } else {
+                    Coords::addBlock(blockPlanar);
+                }
             }
 
             Btle::setBuffSize();  // update buffer size after reading

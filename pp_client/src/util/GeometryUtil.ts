@@ -8,8 +8,8 @@ export class GeometryUtil {
     static BT___BUFF_MAX = 512;
 
     static PEN___MIN_MMS = 2;
-    static PEN___MAX_MMS = 30; // max speed for draw movements (mm/s)
-    static PEN___MAX_ACC = 90; // acceleration for draw movements (mm/s²)
+    // static PEN___MAX_MMS = 30; // max speed for draw movements (mm/s)
+    // static PEN___MAX_ACC = 90; // acceleration for draw movements (mm/s²)
 
     static PEN_____WIDTH = 0.1; // mm
     static IMAGE___SCALE = 4;
@@ -17,8 +17,12 @@ export class GeometryUtil {
     static CONN___PREFIX = 'conn';
     static Z_VALUE_PEN_U = 0.0; // pen position when up (mm)
     static Z_VALUE_PEN_D = -8.0; // pen position when down (mm)
+    static Z_VALUE_RESET = 9999; // z-value indicating reset
 
-    static linepathsToPlotpaths(linepaths: ILinePath[]): ILine3D[] {
+
+    static linepathsToPlotpaths(linepaths: ILinePath[], maxMMS: number): ILine3D[] {
+
+        const maxACC = maxMMS * 3;
 
         // initial conversion
         const plotPaths1: ILine3D[] = [];
@@ -27,6 +31,7 @@ export class GeometryUtil {
         let coordB3D: ICoordinate3D | undefined;
         const semiLift = (GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D) / 2;
 
+        let penId = '';
         for (let i = 0; i < linepaths.length; i++) {
             const isMoveSegment = linepaths[i].id.indexOf(this.CONN___PREFIX) != -1;
             if (isMoveSegment) { // add up-movement
@@ -34,6 +39,7 @@ export class GeometryUtil {
                 const coordA2D = GeometryUtil.getEdgeCoord('df', linepaths[i]);
                 const coordB2D = GeometryUtil.getEdgeCoord('dr', linepaths[i]);
                 const segmentId = linepaths[i].segments[0].id;
+                penId = linepaths[i].penId;
                 const segmentLength2D = GeometryUtil.getDistance2D(coordA2D, coordB2D);
                 const extraLift = Math.min(semiLift, segmentLength2D / 6);
 
@@ -47,12 +53,13 @@ export class GeometryUtil {
                 };
                 const fullMoveSegment: ILine3D = {
                     id: `${segmentId}_tr_full`,
+                    penId,
                     coordA: coordA3D,
                     coordB: coordB3D,
                     length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                    speedB: GeometryUtil.PEN___MAX_MMS
+                    speedB: maxMMS
                 };
-                const calcMoveSegment = GeometryUtil.trimLine3D('extr', fullMoveSegment, extraLift, fullMoveSegment.length - extraLift, GeometryUtil.PEN___MAX_MMS);
+                const calcMoveSegment = GeometryUtil.trimLine3D('extr', fullMoveSegment, extraLift, fullMoveSegment.length - extraLift, maxMMS);
 
                 // up to semi
                 coordA3D = {
@@ -65,10 +72,11 @@ export class GeometryUtil {
                 };
                 plotPaths1.push({
                     id: `${segmentId}_tr_up_1`,
+                    penId,
                     coordA: coordA3D,
                     coordB: coordB3D,
                     length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                    speedB: GeometryUtil.PEN___MAX_MMS
+                    speedB: maxMMS
                 });
                 coordR3D = coordB3D;
 
@@ -77,10 +85,11 @@ export class GeometryUtil {
                 coordB3D = calcMoveSegment.coordA;
                 plotPaths1.push({
                     id: `${segmentId}_tr_up_2`,
+                    penId,
                     coordA: coordA3D,
                     coordB: coordB3D,
                     length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                    speedB: GeometryUtil.PEN___MAX_MMS
+                    speedB: maxMMS
                 });
                 coordR3D = coordB3D;
 
@@ -89,10 +98,11 @@ export class GeometryUtil {
                 coordB3D = calcMoveSegment.coordB;
                 plotPaths1.push({
                     id: `${segmentId}_tr_move`,
+                    penId,
                     coordA: coordA3D,
                     coordB: coordB3D,
                     length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                    speedB: GeometryUtil.PEN___MAX_MMS
+                    speedB: maxMMS
                 });
                 coordR3D = coordB3D;
 
@@ -104,10 +114,11 @@ export class GeometryUtil {
                 };
                 plotPaths1.push({
                     id: `${segmentId}_tr_dn_1`,
+                    penId,
                     coordA: coordA3D,
                     coordB: coordB3D,
                     length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                    speedB: GeometryUtil.PEN___MAX_MMS
+                    speedB: maxMMS
                 });
                 coordR3D = coordB3D;
 
@@ -119,10 +130,11 @@ export class GeometryUtil {
                 };
                 plotPaths1.push({
                     id: `${segmentId}_tr_dn_2`,
+                    penId,
                     coordA: coordA3D,
                     coordB: coordB3D,
                     length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                    speedB: GeometryUtil.PEN___MAX_MMS
+                    speedB: maxMMS
                 });
                 coordR3D = coordB3D;
 
@@ -138,10 +150,11 @@ export class GeometryUtil {
                     };
                     plotPaths1.push({
                         id: s.id,
+                        penId: linepaths[i].penId,
                         coordA: coordA3D,
                         coordB: coordB3D,
                         length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
-                        speedB: GeometryUtil.PEN___MAX_MMS
+                        speedB: maxMMS
                     });
                 });
                 coordR3D = coordB3D;
@@ -158,6 +171,7 @@ export class GeometryUtil {
         };
         plotPaths1.push({
             id: `${ObjectUtil.createId()}___up`,
+            penId,
             coordA: coordA3D,
             coordB: coordB3D,
             length: GeometryUtil.getDistance3D(coordA3D, coordB3D),
@@ -165,7 +179,7 @@ export class GeometryUtil {
         });
 
         const mapToSpeed = (dot: number) => {
-            return GeometryUtil.mapValues(dot, 0, 1, GeometryUtil.PEN___MIN_MMS, GeometryUtil.PEN___MAX_MMS); // CoordUtil.mapVals(dot, CoordUtil.SEMI_PI, 0, CoordUtil.MIN_MMS, CoordUtil.MAX_MMS);
+            return GeometryUtil.mapValues(dot, 0, 1, GeometryUtil.PEN___MIN_MMS, maxMMS); // CoordUtil.mapVals(dot, CoordUtil.SEMI_PI, 0, CoordUtil.MIN_MMS, CoordUtil.MAX_MMS);
         }
 
         // calculate max junction speeds (roughly)
@@ -250,9 +264,9 @@ export class GeometryUtil {
             const speedO = plotPathB.speedB;
 
             if (speedO < speedI) { // deceleration
-                const lViToVo = (speedO * speedO - speedI * speedI) / (2 * -GeometryUtil.PEN___MAX_ACC); // distance needed to decelerate
+                const lViToVo = (speedO * speedO - speedI * speedI) / (2 * -maxACC); // distance needed to decelerate
                 if (lViToVo > plotPathB.length) { // not possible :: need to adjust previous segments exit speed
-                    plotPathA.speedB = Math.sqrt(plotPathB.length * 2 * GeometryUtil.PEN___MAX_ACC + speedO * speedO);
+                    plotPathA.speedB = Math.sqrt(plotPathB.length * 2 * maxACC + speedO * speedO);
                 }
             }
 
@@ -267,9 +281,9 @@ export class GeometryUtil {
             const speedO = plotPathB.speedB;
 
             if (speedO > speedI) { // acceleration
-                const lViToVo = (speedO * speedO - speedI * speedI) / (2 * GeometryUtil.PEN___MAX_ACC); // distance needed to decelerate
+                const lViToVo = (speedO * speedO - speedI * speedI) / (2 * maxACC); // distance needed to decelerate
                 if (lViToVo > plotPathB.length) { // not possible :: need to adjust this segments exit speed
-                    plotPathB.speedB = Math.sqrt(plotPathB.length * 2 * GeometryUtil.PEN___MAX_ACC + speedI * speedI);
+                    plotPathB.speedB = Math.sqrt(plotPathB.length * 2 * maxACC + speedI * speedI);
                 }
             }
 
@@ -279,9 +293,9 @@ export class GeometryUtil {
 
         // entry and exit speeds should be sorted here, now do acceleration / deceleration within the blocks
         let speedI = 0;
-        const mmm = GeometryUtil.PEN___MAX_MMS;
-        const acc = GeometryUtil.PEN___MAX_ACC;
-        const mal = 0.3; // min accel/decel length, collapse segments otherwise
+        const mmm = maxMMS;
+        const acc = maxACC;
+        const mal = 0.1; // min accel/decel length, collapse segments otherwise
 
         for (let index = 0; index < plotPaths1.length; index++) {
 
@@ -360,6 +374,7 @@ export class GeometryUtil {
         };
         return {
             id: `${line.id}_${idPostfix}`,
+            penId: line.penId,
             coordA,
             coordB,
             length: mult1 - mult0,
@@ -428,6 +443,7 @@ export class GeometryUtil {
 
         return {
             id: ObjectUtil.createId(),
+            penId: cubicgroup.penId,
             segments: lines,
             strokeWidth: GeometryUtil.PEN_____WIDTH,
             stroke: 'black'
@@ -463,6 +479,7 @@ export class GeometryUtil {
     static translateLinepath(translation: ICoordinate2D, linepath: ILinePath): ILinePath {
         return {
             id: linepath.id,
+            penId: linepath.penId,
             strokeWidth: linepath.strokeWidth,
             stroke: linepath.stroke,
             segments: linepath.segments.map(l => GeometryUtil.translateLine2D(translation, l))
@@ -515,6 +532,7 @@ export class GeometryUtil {
     static scaleLinepath(scale: number, linepath: ILinePath): ILinePath {
         return {
             id: linepath.id,
+            penId: linepath.penId,
             strokeWidth: linepath.strokeWidth,
             stroke: linepath.stroke,
             segments: linepath.segments.map(l => GeometryUtil.scaleLine(scale, l))
@@ -558,7 +576,7 @@ export class GeometryUtil {
         let segmentA: ILine2D;
         let segmentB: ILine2D;
         let segmentC: ILine2D;
-        let intersection: ICoordinate2D | undefined;
+        // let intersection: ICoordinate2D | undefined;
         let lengthB: number;
 
         if (linepathNoShorts.segments.length > 2) {
@@ -569,12 +587,21 @@ export class GeometryUtil {
                 lengthB = GeometryUtil.getDistance2D(segmentB.coordA, segmentB.coordB);
                 // if a connecting segment is short, remove it and connect neighbouring segmets by intersection
                 if (lengthB < minLength) {
-                    intersection = GeometryUtil.intersectLines(segmentA, segmentC);
-                    if (intersection) {
-                        segmentA.coordB = intersection;
-                        segmentC.coordA = intersection;
-                        linepathNoShorts.segments.splice(i, 1);
-                    }
+
+                    const midpoint: ICoordinate2D = {
+                        x: (segmentB.coordA.x + segmentB.coordB.x) / 2,
+                        y: (segmentB.coordA.y + segmentB.coordB.y) / 2,
+                    };
+                    segmentA.coordB = midpoint;
+                    segmentC.coordA = midpoint;
+                    linepathNoShorts.segments.splice(i, 1);
+                    // intersection = GeometryUtil.intersectLines(segmentA, segmentC);
+                    // if (intersection) {
+                    //     segmentA.coordB = intersection;
+                    //     segmentC.coordA = intersection;
+                    //     linepathNoShorts.segments.splice(i, 1);
+                    // }
+
                 }
             }
         }
@@ -661,7 +688,10 @@ export class GeometryUtil {
                     LINE_DIRECTIONS.forEach(direction => {
                         coordE = GeometryUtil.getEdgeCoord(direction, linePaths[pathIndex]);
                         distE = GeometryUtil.getDistance2D(coordR, coordE);
-                        if (distE < distMin) {
+                        if (distE < distMin && pathMin?.id !== linePaths[pathIndex].id) { //
+                            if (pathMin?.id === linePaths[pathIndex].id) {
+                                console.log('self connect!')
+                            }
                             distMin = distE;
                             pathMin = linePaths[pathIndex];
                             drctMin = direction;
@@ -679,45 +709,34 @@ export class GeometryUtil {
             }
 
             // remove element from searchable list
-            linePaths.splice(indxMin!, 1);
+            const removedPenId = linePaths.splice(indxMin!, 1)[0].penId;
 
-            // add connecting element
-            connectedLinePaths.push({
-                id: `${ObjectUtil.createId()}_conn`,
-                strokeWidth: 0.05,
-                stroke: 'black',
-                segments: [
-                    {
-                        id: ObjectUtil.createId(),
-                        coordA: coordR,
-                        coordB: GeometryUtil.getEdgeCoord(drctMin!, pathMin!)
-                    }
-                ]
-            });
+            coordE = GeometryUtil.getEdgeCoord(drctMin!, pathMin!);
+            if (coordR.x !== coordE.x || coordR.y !== coordE.y) {
+
+                // add connecting element
+                connectedLinePaths.push({
+                    id: `${ObjectUtil.createId()}_${this.CONN___PREFIX}`,
+                    penId: removedPenId,
+                    strokeWidth: 0.05,
+                    stroke: 'black',
+                    segments: [
+                        {
+                            id: ObjectUtil.createId(),
+                            coordA: coordR,
+                            coordB: GeometryUtil.getEdgeCoord(drctMin!, pathMin!)
+                        }
+                    ]
+                });
+
+            }
 
             connectedLinePaths.push(GeometryUtil.dirLinegroup(drctMin!, pathMin!));
-
-            // const p = pathMin!; // connectedLinePaths[connectedLinePaths.length - 1];
-            // p.segments.forEach(s => {
-            //     const lengthAB = GeometryUtil.getDistance2D(s.coordA, s.coordB);
-            //     if (lengthAB < GeometryUtil.PEN_____WIDTH) {
-            //         console.log('short segment found (after connect)', lengthAB, lengthAB);
-            //     }
-            // });
 
             // get new reference coord
             coordR = GeometryUtil.getEdgeCoord(drctMin! === 'df' ? 'dr' : 'df', pathMin!);
 
         }
-
-        // connectedLinePaths.forEach(p => {
-        //     p.segments.forEach(s => {
-        //         const lengthAB = GeometryUtil.getDistance2D(s.coordA, s.coordB);
-        //         if (lengthAB < GeometryUtil.PEN_____WIDTH) {
-        //             console.log('short segment found (after connect)', lengthAB, lengthAB);
-        //         }
-        //     });
-        // })
 
         return connectedLinePaths;
 
@@ -804,6 +823,7 @@ export class GeometryUtil {
         } else {
             return {
                 id: linegroup.id,
+                penId: linegroup.penId,
                 strokeWidth: linegroup.strokeWidth,
                 stroke: linegroup.stroke,
                 segments: [...linegroup.segments].reverse().map(line => {
@@ -838,6 +858,7 @@ export class GeometryUtil {
         }
         return {
             id: linegroupRaw.id,
+            penId: linegroupRaw.penId,
             strokeWidth: linegroupRaw.strokeWidth,
             stroke: linegroupRaw.stroke,
             segments: segments

@@ -1,44 +1,53 @@
 import { Button, CssBaseline, Stack, Step, StepContent, StepLabel, Stepper, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
-import ConfSvgComponent from './components/ConfSvgComponent';
+import BluetoothSenderComponent from './components/BluetoothSenderComponent';
+import CnfASvgComponent from './components/CnfASvgComponent';
 import HRulSvgComponent from './components/HRulSvgComponent';
+import PickDeviceComponent from './components/PickDeviceComponent';
 import PickSvgComponent from './components/PickSvgComponent';
 import RootSvgComponent from './components/RootSvgComponent';
 import TimeSvgComponent from './components/TimeSvgComponent';
 import VRulSvgComponent from './components/VRulSvgComponent';
 import { GeometryUtil } from './util/GeometryUtil';
-import { IConfSvgProperties, IConnBleProperties, IFileSvgProperties, ILine3D, ILinePath, IPickSvgProperties, IRootSvgProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
+import { ICnfASvgProperties, ICnfBSvgProperties, IConnBleProperties, IFileSvgProperties, ILinePath, IPickSvgProperties, IRootSvgProperties, ISendBleProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
 import { ObjectUtil } from './util/ObjectUtil';
 import { ThemeUtil } from './util/ThemeUtil';
-import PickDeviceComponent from './components/PickDeviceComponent';
-import BluetoothSenderComponent from './components/BluetoothSenderComponent';
+import CnfBSvgComponent from './components/CnfBSvgComponent';
+import BluetoothDisabledIcon from '@mui/icons-material/BluetoothDisabled';
 
 const STEP_DEF_PROPERTIES: IStepDefProperties[] = [
   {
     label: 'pick',
-    valid: () => { // fileSvgProperties: IFileSvgProperties, confSvgProperties: IConfSvgProperties
+    valid: () => {
       return true;
     }
   },
   {
-    label: 'conf',
+    label: 'cnfa',
     valid: (fileSvgProperties: IFileSvgProperties) => {
       return fileSvgProperties.fileLabel !== '';
     }
   },
   {
     label: 'conn',
-    valid: (fileSvgProperties: IFileSvgProperties, confSvgProperties: IConfSvgProperties) => {
-      return fileSvgProperties.fileLabel !== '' && confSvgProperties.done;
+    valid: () => {
+      return false;
     }
   },
   {
-    label: 'plot',
-    valid: (fileSvgProperties: IFileSvgProperties, confSvgProperties: IConfSvgProperties, connBleProperties: IConnBleProperties) => {
-      return fileSvgProperties.fileLabel !== '' && confSvgProperties.done && connBleProperties.success;
+    label: 'cnfb',
+    valid: (fileSvgProperties: IFileSvgProperties, _confSvgProperties: ICnfASvgProperties, connBleProperties: IConnBleProperties) => {
+      return fileSvgProperties.fileLabel !== '' && connBleProperties.success;
     }
-  }
+  },
+
+  // {
+  //   label: 'plot',
+  //   valid: (fileSvgProperties: IFileSvgProperties, _confSvgProperties: IConfSvgProperties, connBleProperties: IConnBleProperties, sendBleProperties: ISendBleProperties) => {
+  //     return fileSvgProperties.fileLabel !== '' && connBleProperties.success && sendBleProperties.lines.length > 0;
+  //   }
+  // }
 ];
 
 function RootApp() {
@@ -110,11 +119,14 @@ function RootApp() {
 
     console.debug(`📞 handling conn ble properties (state)`, _connBleProperties);
 
+    const success = !!_connBleProperties.device;
     connBlePropertiesRef.current = {
-      ..._connBleProperties,
       ...connBlePropertiesRef.current,
-      success: !!_connBleProperties.device
+      ..._connBleProperties,
+      device: _connBleProperties.device,
+      success
     };
+    console.log('connBlePropertiesRef.current', connBlePropertiesRef.current);
     setConnBleProperties(connBlePropertiesRef.current);
 
   }
@@ -135,29 +147,47 @@ function RootApp() {
 
   }
 
-  const handleConfSvgPropertiesDone = (done: boolean) => {
+  const handlePenDone = () => {
 
-    console.debug(`📞 handling conf svg properties (done)`, done);
+    console.debug(`📞 handling pen done`);
 
-    confSvgPropertiesRef.current = {
-      ...confSvgPropertiesRef.current,
-      done
+    sendBlePropertiesRef.current = {
+      ...sendBlePropertiesRef.current,
+      lines: []
     };
+    setSendBleProperties(sendBlePropertiesRef.current);
+
+    cnfBSvgPropertiesRef.current = {
+      ...cnfBSvgPropertiesRef.current,
+      penId: ObjectUtil.createId()
+    };
+    setCnfBSvgProperties(cnfBSvgPropertiesRef.current);
+
     determineActiveStep();
-    // does NOT update svg properties to prevent a full re-render of the svg
 
   }
 
-  const handleConfSvgProperties = (_confSvgProperties: Pick<IConfSvgProperties, 'paperExtent' | 'connectSort'>) => {
+  const handleCnfASvgProperties = (_cnfASvgProperties: Pick<ICnfASvgProperties, 'paperExtent' | 'connectSort' | 'keepTopLeft'>) => {
 
-    console.debug(`📞 handling conf svg properties (pathProperties)`, confSvgProperties);
+    console.debug(`📞 handling cnfa svg properties (pathProperties)`, _cnfASvgProperties);
 
-    confSvgPropertiesRef.current = {
-      ...confSvgPropertiesRef.current,
-      ..._confSvgProperties,
-      done: false,
+    cnfASvgPropertiesRef.current = {
+      ...cnfASvgPropertiesRef.current,
+      ..._cnfASvgProperties
     };
-    setConfSvgProperties(confSvgPropertiesRef.current);
+    setCnfASvgProperties(cnfASvgPropertiesRef.current);
+
+  }
+
+  const handleCnfBSvgProperties = (_cnfBSvgProperties: Pick<ICnfBSvgProperties, 'penMaxSpeed' | 'penId'>) => {
+
+    console.debug(`📞 handling cnfn svg properties (pathProperties)`, _cnfBSvgProperties);
+
+    cnfBSvgPropertiesRef.current = {
+      ...cnfBSvgPropertiesRef.current,
+      ..._cnfBSvgProperties
+    };
+    setCnfBSvgProperties(cnfBSvgPropertiesRef.current);
 
   }
 
@@ -166,10 +196,8 @@ function RootApp() {
     // find out which step is possible
     let maxActiveStep = 1;
     for (let i = 0; i < STEP_DEF_PROPERTIES.length; i++) {
-      if (STEP_DEF_PROPERTIES[i].valid(fileSvgPropertiesRef.current, confSvgPropertiesRef.current, connBlePropertiesRef.current)) {
+      if (STEP_DEF_PROPERTIES[i].valid(fileSvgPropertiesRef.current, cnfASvgPropertiesRef.current, connBlePropertiesRef.current, cnfBSvgPropertiesRef.current, sendBlePropertiesRef.current)) {
         maxActiveStep = i;
-      } else {
-        break;
       }
     }
     setActiveStep(maxActiveStep);
@@ -177,27 +205,41 @@ function RootApp() {
   }
 
   const [activeStep, setActiveStep] = useState<number>(0);
-  const linesRef = useRef<ILine3D[]>([]);
+  // const linesRef = useRef<ILine3D[]>([]);
 
   const fileSvgPropertiesRef = useRef<IFileSvgProperties>({
     fileLabel: '',
     linePaths: [],
-    cubcPaths: []
+    cubcPaths: [],
+    extent: {
+      xMin: 0,
+      yMin: 0,
+      xMax: 0,
+      yMax: 0
+    }
   });
   const [fileSvgProperties, setFileSvgProperties] = useState<IFileSvgProperties>(fileSvgPropertiesRef.current);
 
-  const confSvgPropertiesRef = useRef<IConfSvgProperties>({
+  const cnfASvgPropertiesRef = useRef<ICnfASvgProperties>({
     paperExtent: {
       xMin: 0,
       yMin: 0,
-      xMax: 200, // 200
+      xMax: 176, // 200
       yMax: 148  // 148
     },
     connectSort: true,
-    done: false,
-    handleConfSvgProperties
+    keepTopLeft: false,
+    handleCnfASvgProperties
   });
-  const [confSvgProperties, setConfSvgProperties] = useState<IConfSvgProperties>(confSvgPropertiesRef.current);
+  const [cnfASvgProperties, setCnfASvgProperties] = useState<ICnfASvgProperties>(cnfASvgPropertiesRef.current);
+
+  const cnfBSvgPropertiesRef = useRef<ICnfBSvgProperties>({
+    penMaxSpeed: 30,
+    penIds: [],
+    penId: ObjectUtil.createId(),
+    handleCnfBSvgProperties
+  });
+  const [cnfBSvgProperties, setCnfBSvgProperties] = useState<ICnfBSvgProperties>(cnfBSvgPropertiesRef.current);
 
   const rootSvgPropertiesRef = useRef<IRootSvgProperties>({
     lines: [],
@@ -230,9 +272,45 @@ function RootApp() {
   });
   const [connBleProperties, setConnBleProperties] = useState<IConnBleProperties>(connBlePropertiesRef.current);
 
+  const sendBlePropertiesRef = useRef<ISendBleProperties>({
+    lines: [],
+    handlePenDone
+  });
+  const [sendBleProperties, setSendBleProperties] = useState<ISendBleProperties>(sendBlePropertiesRef.current);
+
   useEffect(() => {
 
-    console.debug('⚙ updating root app component (fileSvgProperties, confSvgProperties)', fileSvgProperties, confSvgProperties);
+    console.log('⚙ updating root app component (fileSvgProperties)', fileSvgProperties);
+
+    if (fileSvgProperties.fileLabel !== '' && (fileSvgProperties.linePaths.length > 0 || fileSvgProperties.cubcPaths.length > 0)) {
+
+      const penIds: string[] = [];
+      fileSvgProperties.linePaths.forEach(linepath => {
+        if (penIds.indexOf(linepath.penId) === -1) {
+          penIds.push(linepath.penId);
+        }
+      });
+      fileSvgProperties.cubcPaths.forEach(cubcPath => {
+        if (penIds.indexOf(cubcPath.penId) === -1) {
+          penIds.push(cubcPath.penId);
+        }
+      });
+      penIds.sort();
+      console.log('penIds from file', penIds);
+
+      cnfBSvgPropertiesRef.current = {
+        ...cnfBSvgPropertiesRef.current,
+        penIds
+      };
+      setCnfBSvgProperties(cnfBSvgPropertiesRef.current);
+
+    }
+
+  }, [fileSvgProperties]);
+
+  useEffect(() => {
+
+    console.log('⚙ updating root app component (cnfASvgProperties, cnfBSvgProperties)', cnfASvgProperties, cnfBSvgProperties);
 
     if (fileSvgProperties.fileLabel !== '' && (fileSvgProperties.linePaths.length > 0 || fileSvgProperties.cubcPaths.length > 0)) {
 
@@ -245,21 +323,43 @@ function RootApp() {
 
       // get extent of all paths (may have negative origin) and translate to origin
       let overallExtent = GeometryUtil.getLinepathsExtent(linepathsMerged);
-      const linepathsOrigin = GeometryUtil.translateLinepaths({
-        x: -overallExtent.xMin,
-        y: -overallExtent.yMin
-      }, linepathsMerged);
+      const linepathsOrigin: ILinePath[] = [];
+      if (cnfASvgProperties.keepTopLeft) {
+        linepathsOrigin.push(...linepathsMerged);
+      } else {
+        linepathsOrigin.push(...GeometryUtil.translateLinepaths({
+          x: -overallExtent.xMin,
+          y: -overallExtent.yMin
+        }, linepathsMerged))
+      }
       overallExtent = GeometryUtil.getLinepathsExtent(linepathsOrigin);
+      if (cnfASvgProperties.keepTopLeft) {
+        overallExtent.xMin = 0;
+        overallExtent.yMin = 0;
+        overallExtent.xMax = fileSvgProperties.extent.xMax - fileSvgProperties.extent.xMin;
+        overallExtent.yMax = fileSvgProperties.extent.yMax - fileSvgProperties.extent.yMin;
+      }
 
       // scale to fit paper size
       const imageDimX = overallExtent.xMax - overallExtent.xMin;
-      const paperDimX = confSvgProperties.paperExtent.xMax - confSvgProperties.paperExtent.xMin;
+      const paperDimX = cnfASvgProperties.paperExtent.xMax - cnfASvgProperties.paperExtent.xMin;
       const scale = paperDimX / imageDimX;
       const linepathScaleds = GeometryUtil.scaleLinepaths(scale, linepathsOrigin);
       overallExtent = GeometryUtil.getLinepathsExtent(linepathScaleds);
+      if (cnfASvgProperties.keepTopLeft) {
+        overallExtent.xMin = 0;
+        overallExtent.yMin = 0;
+        overallExtent.xMax = (fileSvgProperties.extent.xMax - fileSvgProperties.extent.xMin) * scale;
+        overallExtent.yMax = (fileSvgProperties.extent.yMax - fileSvgProperties.extent.yMin) * scale;
+      }
+
+      const isPenIdSet = ObjectUtil.isPenIdSet(cnfBSvgProperties.penId);
+
+      // filtering for penId
+      const linepathPenIds = isPenIdSet ? linepathScaleds.filter(p => p.penId === cnfBSvgProperties.penId) : linepathScaleds;
 
       // simplify and connect
-      const linepathSimples = linepathScaleds.map(linepath => GeometryUtil.simplifyLinepath(0.1, linepath));
+      const linepathSimples = linepathPenIds.map(linepath => GeometryUtil.simplifyLinepath(0.1, linepath));
 
       // remove short segments
       const linepathNoShorts: ILinePath[] = [];
@@ -283,7 +383,7 @@ function RootApp() {
       const linepathConnecteds = GeometryUtil.connectLinepaths({
         x: overallExtent.xMin,
         y: overallExtent.yMin
-      }, linepathNoShorts, confSvgProperties.connectSort);
+      }, linepathNoShorts, cnfASvgProperties.connectSort);
 
       rootSvgPropertiesRef.current = {
         lines: linepathConnecteds,
@@ -293,27 +393,36 @@ function RootApp() {
       }
       setRootSvgProperties(rootSvgPropertiesRef.current);
 
+
+
       // now lets build a list of 3D lines (aka pen plotter lines)
-      const plottableLines = GeometryUtil.linepathsToPlotpaths(linepathConnecteds);
-      linesRef.current = plottableLines;
+      const plottableLines = GeometryUtil.linepathsToPlotpaths(linepathConnecteds, cnfBSvgProperties.penMaxSpeed);
 
       timeSvgPropertiesRef.current = {
         ...timeSvgPropertiesRef.current,
-        lines: linesRef.current
-      }
+        lines: plottableLines
+      };
       setTimeSvgProperties(timeSvgPropertiesRef.current);
 
       connBlePropertiesRef.current = {
         ...connBlePropertiesRef.current,
         handleConnBleProperties
-      }
+      };
       setConnBleProperties(connBlePropertiesRef.current);
+
+      if (isPenIdSet) {
+        sendBlePropertiesRef.current = {
+          ...sendBlePropertiesRef.current,
+          lines: plottableLines
+        };
+        setSendBleProperties(sendBlePropertiesRef.current);
+      }
 
     }
 
     determineActiveStep();
 
-  }, [fileSvgProperties, confSvgProperties]);
+  }, [cnfASvgProperties, cnfBSvgProperties]);
 
   useEffect(() => {
 
@@ -356,109 +465,106 @@ function RootApp() {
                 }
               </StepContent>
             </Step>
-            <Step key={'conf'}>
+            <Step key={'cnfa'}>
               <StepLabel>
                 configure
               </StepLabel>
               <StepContent>
-                <ConfSvgComponent {...confSvgProperties} />
                 <Stack
                   sx={{
-                    flexDirection: 'row',
+                    flexDirection: 'column',
                     padding: '0px',
                     width: 'inherit',
                     paddingTop: '12px'
                   }}
-
                 >
-                  <Button
-                    variant={'contained'}
-                    onClick={() => handleFileSvgProperties({
-                      fileLabel: '',
-                      linePaths: [],
-                      cubcPaths: []
-                    })}
-                    sx={{
-                      flexGrow: 1,
-                      marginRight: '3px'
-                    }}
-                  >
-                    back
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => handleConfSvgPropertiesDone(true)}
-                    sx={{
-                      flexGrow: 1,
-                      marginLeft: '3px'
-                    }}
-                  >
-                    next
-                  </Button>
-                </Stack>
-              </StepContent>
-            </Step>
-            <Step key={'conn'}>
-              <StepLabel>
-                <Typography>
+                  <CnfASvgComponent {...cnfASvgProperties} />
                   {
-                    connBleProperties.device ? `device: ${connBleProperties.device.name}` : 'device'
+                    connBleProperties.device ? <BluetoothSenderComponent {...{
+                      ...connBleProperties,
+                      ...sendBleProperties
+                    }} /> : null
                   }
-                </Typography>
-              </StepLabel>
-              <StepContent>
-                <PickDeviceComponent {...connBleProperties} />
-                <Stack
-                  sx={{
-                    flexDirection: 'row',
-                    padding: '0px',
-                    width: 'inherit',
-                    paddingTop: '12px'
-                  }}
-                >
-                  <Button
-                    variant={'contained'}
-                    onClick={() => handleConfSvgPropertiesDone(false)}
-                    sx={{
-                      flexGrow: 1
-                    }}
-                  >
-                    back
-                  </Button>
                 </Stack>
               </StepContent>
             </Step>
-            <Step key={'plot'}>
+            <Step key={'conn'} active={true}>
               <StepLabel>
-                plot
-              </StepLabel>
-              <StepContent>
-                <BluetoothSenderComponent {...connBleProperties} lines={linesRef.current} />
                 <Stack
                   sx={{
-                    flexDirection: 'row',
+                    flexDirection: 'column',
+                    padding: '0px',
+                    width: 'inherit',
+                    // paddingTop: '12px'
+                  }}
+                >
+                  <Typography>
+                    {
+                      connBleProperties.device ? `device: ${connBleProperties.device.name}` : 'device'
+                    }
+                  </Typography>
+
+                </Stack>
+              </StepLabel>
+              <StepContent>
+                <Stack
+                  sx={{
+                    flexDirection: 'column',
+                    padding: '0px',
+                    width: 'inherit',
+                    // paddingTop: '12px'
+                  }}
+                >
+                  {
+                    connBleProperties.device ?
+                      <Button
+                        startIcon={<BluetoothDisabledIcon />}
+                        variant={'contained'}
+                        onClick={() => {
+                          connBleProperties.device?.gatt?.disconnect();
+                          handleConnBleProperties({
+                            // device implicitly undefined
+                            message: 'manual disconnect'
+                          });
+                        }}
+                        sx={{
+                          flexGrow: 1,
+                          marginRight: '10px'
+                        }}
+                      >
+                        disconnect
+                      </Button>
+                      : <PickDeviceComponent {...connBleProperties} />
+                  }
+
+                </Stack>
+
+              </StepContent>
+            </Step>
+            <Step key={'cnfb'}>
+              <StepLabel>
+                configure
+              </StepLabel>
+              <StepContent>
+                <Stack
+                  sx={{
+                    flexDirection: 'column',
                     padding: '0px',
                     width: 'inherit',
                     paddingTop: '12px'
                   }}
                 >
-                  <Button
-                    variant={'contained'}
-                    onClick={() => {
-                      connBleProperties.device?.gatt?.disconnect();
-                      handleConnBleProperties({
-                        message: 'manual disconnect'
-                      });
-                    }}
-                    sx={{
-                      flexGrow: 1
-                    }}
-                  >
-                    disconnect
-                  </Button>
+                  <CnfBSvgComponent {...cnfBSvgProperties} />
+                  {
+                    connBleProperties.device ? <BluetoothSenderComponent {...{
+                      ...connBleProperties,
+                      ...sendBleProperties
+                    }} /> : null
+                  }
                 </Stack>
               </StepContent>
             </Step>
+
           </Stepper>
         </div>
         {
@@ -483,7 +589,7 @@ function RootApp() {
 
       </Stack>
 
-    </ThemeProvider>
+    </ThemeProvider >
 
   )
 }

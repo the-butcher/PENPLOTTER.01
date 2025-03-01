@@ -13,6 +13,15 @@ export class ThemeUtil {
                 }
             },
             components: {
+                MuiGrid: {
+                    styleOverrides: {
+                        root: {
+                            '&.MuiGrid-item': {
+                                paddingTop: '0px'
+                            }
+                        }
+                    }
+                },
                 MuiStack: {
                     defaultProps: {
                         spacing: 2,

@@ -14,12 +14,14 @@ class Btle {
     static BLEService bleService;
     static BLEUnsignedIntCharacteristic bleBuffSizeCharacteristic;
     static BLECharacteristic bleBuffValsCharacteristic;
+    static BLECharacteristic blePositionCharacteristic;
 
    public:
     static bool begin();
     static bool connect();
     static void setBuffSize();
     static bool getBuffVals();
+    static void setPosition();
 };
 
 #endif

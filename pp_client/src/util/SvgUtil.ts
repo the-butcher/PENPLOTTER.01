@@ -1,5 +1,5 @@
 import { GeometryUtil } from "./GeometryUtil";
-import { ICoordinate2D, ICubc2D, ICubcPath, ILine2D, ILinePath, IFileSvgProperties } from "./Interfaces";
+import { ICoordinate2D, ICubc2D, ICubcPath, ILine2D, ILinePath, IFileSvgProperties, IExtent } from "./Interfaces";
 import { ObjectUtil } from "./ObjectUtil";
 
 
@@ -7,7 +7,7 @@ export class SvgUtil {
 
 
 
-    static async parseSvgPaths(svgNode: SVGSVGElement): Promise<Pick<IFileSvgProperties, 'linePaths' | 'cubcPaths'>> {
+    static async parseSvgPaths(svgNode: SVGSVGElement): Promise<Pick<IFileSvgProperties, 'linePaths' | 'cubcPaths' | 'extent'>> {
 
         const moveToCommand = 'M';
         const lineToCommand = 'L';
@@ -23,10 +23,11 @@ export class SvgUtil {
         const linePaths: ILinePath[] = [];
         const cubcPaths: ICubcPath[] = [];
 
-        const closeLineSegments = (lineSegments: ILine2D[]): ILine2D[] => {
+        const closeLineSegments = (lineSegments: ILine2D[], penId: string): ILine2D[] => {
             if (lineSegments.length > 0) {
                 linePaths.push({
                     id: ObjectUtil.createId(),
+                    penId,
                     segments: lineSegments,
                     strokeWidth: GeometryUtil.PEN_____WIDTH,
                     stroke: 'black'
@@ -34,21 +35,34 @@ export class SvgUtil {
             }
             return [];
         }
-        const closeCubcSegments = (cubcSegments: ICubc2D[]): ICubc2D[] => {
+        const closeCubcSegments = (cubcSegments: ICubc2D[], penId: string): ICubc2D[] => {
             if (cubcSegments.length > 0) {
                 cubcPaths.push({
                     id: ObjectUtil.createId(),
+                    penId,
                     segments: cubcSegments
                 });
             }
             return [];
         }
 
+        const viewboxRaw = svgNode.getAttribute('viewBox');
+        const viewboxTkn = viewboxRaw!.split(/[, ]/g);
+        const viewboxVal = viewboxTkn.map(t => parseFloat(t));
+        const extent: IExtent = {
+            xMin: viewboxVal[0],
+            yMin: viewboxVal[1],
+            xMax: viewboxVal[0] + viewboxVal[2],
+            yMax: viewboxVal[1] + viewboxVal[3]
+        }
+        console.log('extent', viewboxRaw, viewboxVal, extent);
+
         const paths = svgNode.getElementsByTagName('path');
         for (let i = 0; i < paths.length; i++) {
 
             // get path and tokenize
             const path = paths.item(i)!;
+            const penId = path!.getAttribute('pen-id') ?? ObjectUtil.PEN_ID_DEFAULT;
             const tm = path.getCTM()!;
             const d = path!.getAttribute('d')!.replace(/\r?\n|\r/g, " ");
             const exp = `[${upperCaseCommands}${lowerCaseCommands}][0-9+-.,eE ]*`;
@@ -57,8 +71,8 @@ export class SvgUtil {
             const tokens = d!.match(regex); // d!.match(/[A-Za-z][0-9-., ]*/g)!;
             if (tokens) {
 
-                let lineSegments = closeLineSegments([]);
-                let cubcSegments = closeCubcSegments([]);
+                let lineSegments = closeLineSegments([], penId);
+                let cubcSegments = closeCubcSegments([], penId);
 
                 // path reference coordinate
                 let coordR: ICoordinate2D = {
@@ -95,7 +109,7 @@ export class SvgUtil {
 
                     } else if (command.toUpperCase() === horiToCommand) {
 
-                        cubcSegments = closeCubcSegments(cubcSegments);
+                        cubcSegments = closeCubcSegments(cubcSegments, penId);
 
                         for (let k = 0; k < values.length; k++) {
                             const coordB = {
@@ -112,7 +126,7 @@ export class SvgUtil {
 
                     } else if (command.toUpperCase() === vertToCommand) {
 
-                        cubcSegments = closeCubcSegments(cubcSegments);
+                        cubcSegments = closeCubcSegments(cubcSegments, penId);
 
                         for (let k = 0; k < values.length; k++) {
                             const coordB = {
@@ -138,8 +152,8 @@ export class SvgUtil {
                          * In this case, subsequent pairs of coordinates are treated as relative even though the initial moveto is interpreted as an absolute moveto.
                          */
 
-                        lineSegments = closeLineSegments(lineSegments);
-                        cubcSegments = closeCubcSegments(cubcSegments);
+                        lineSegments = closeLineSegments(lineSegments, penId);
+                        cubcSegments = closeCubcSegments(cubcSegments, penId);
 
                         for (let k = 0; k < values.length; k += 2) {
                             // const isFirstOfImplicitPath = values.length > 2 && k === 0;
@@ -148,37 +162,22 @@ export class SvgUtil {
                                 x: parseFloat(values[k + 0]) + (isRelative ? coordR.x : 0),
                                 y: parseFloat(values[k + 1]) + (isRelative ? coordR.y : 0)
                             };
-                            if (k >= 2) { // implicit path elements
-                                lineSegments.push({
-                                    id: ObjectUtil.createId(),
-                                    coordA: GeometryUtil.transformCoordinate2D(coordR, tm),
-                                    coordB: GeometryUtil.transformCoordinate2D(coordB, tm)
-                                });
-                            }
-                            coordR = coordB;
-                        }
+                            if (coordB.x !== coordR.x && coordB.y !== coordR.y) {
+                                if (k >= 2) { // implicit path elements
+                                    lineSegments.push({
+                                        id: ObjectUtil.createId(),
+                                        coordA: GeometryUtil.transformCoordinate2D(coordR, tm),
+                                        coordB: GeometryUtil.transformCoordinate2D(coordB, tm)
+                                    });
+                                }
+                                coordR = coordB;
 
-                        // // close any existing path and start a new path
-                        // if (lineSegments.length > 0) {
-                        //     linePaths.push({
-                        //         id: ObjectUtil.createId(),
-                        //         segments: lineSegments,
-                        //         strokeWidth: GeometryUtil.PEN_____WIDTH,
-                        //         stroke: 'black'
-                        //     });
-                        // }
-                        // lineSegments = [];
-                        // if (cubcSegments.length > 0) {
-                        //     cubcPaths.push({
-                        //         id: ObjectUtil.createId(),
-                        //         segments: cubcSegments
-                        //     });
-                        // }
-                        // cubcSegments = [];
+                            }
+                        }
 
                     } else if (command.toUpperCase() === lineToCommand) {
 
-                        cubcSegments = closeCubcSegments(cubcSegments);
+                        cubcSegments = closeCubcSegments(cubcSegments, penId);
 
                         for (let k = 0; k < values.length; k += 2) {
                             const coordB = {
@@ -195,18 +194,7 @@ export class SvgUtil {
 
                     } else if (command.toUpperCase() === cubcToCommand) {
 
-                        lineSegments = closeLineSegments(lineSegments);
-
-                        // // close any existing line path and start a new one
-                        // if (lineSegments.length > 0) {
-                        //     linePaths.push({
-                        //         id: ObjectUtil.createId(),
-                        //         segments: lineSegments,
-                        //         strokeWidth: GeometryUtil.PEN_____WIDTH,
-                        //         stroke: 'black'
-                        //     });
-                        // }
-                        // lineSegments = [];
+                        lineSegments = closeLineSegments(lineSegments, penId);
 
                         /**
                          * https://www.w3.org/TR/SVG11/paths.html#PathDataCubicBezierCommands
@@ -282,31 +270,19 @@ export class SvgUtil {
 
                 }
 
-                closeLineSegments(lineSegments);
-                // if (lineSegments.length > 0) {
-                //     linePaths.push({
-                //         id: ObjectUtil.createId(),
-                //         segments: lineSegments,
-                //         strokeWidth: GeometryUtil.PEN_____WIDTH,
-                //         stroke: 'black'
-                //     });
-                // }
-                closeCubcSegments(cubcSegments);
-                // if (cubcSegments.length > 0) {
-                //     cubcPaths.push({
-                //         id: ObjectUtil.createId(),
-                //         segments: cubcSegments
-                //     });
-                // }
+                closeLineSegments(lineSegments, penId);
+                closeCubcSegments(cubcSegments, penId);
 
             }
 
         }
+
         const polylines = svgNode.getElementsByTagName('polyline');
         for (let i = 0; i < polylines.length; i++) {
 
             const polyline = polylines.item(i)!;
             const tm = polyline.getCTM()!;
+            const penId = polyline!.getAttribute('pen-id') ?? ObjectUtil.PEN_ID_DEFAULT;
 
             const points = polyline!.getAttribute('points')!.replace(/\r?\n|\r/g, " ");
             const valuesRaw = points.match(/[+-]?(\d*\.\d+|\d+\.?)([eE][+-]?\d+)*/g)!;
@@ -330,6 +306,7 @@ export class SvgUtil {
             }
             linePaths.push({
                 id: ObjectUtil.createId(),
+                penId,
                 segments: lineSegments,
                 strokeWidth: GeometryUtil.PEN_____WIDTH,
                 stroke: 'black'
@@ -342,7 +319,8 @@ export class SvgUtil {
 
         return {
             linePaths,
-            cubcPaths
+            cubcPaths,
+            extent
         };
 
     }

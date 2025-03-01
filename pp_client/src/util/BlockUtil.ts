@@ -3,6 +3,17 @@ import { IBlockPlanar } from "./Interfaces";
 
 export class BlockUtil {
 
+    static parseBlockBytes(data: DataView): IBlockPlanar {
+        // const paramsV = new DataView(value.buffer, value.byteOffset, value.byteLength);
+        return {
+            x: data.getFloat32(0, true),
+            y: data.getFloat32(4, true),
+            z: data.getFloat32(8, true),
+            vi: data.getFloat32(12, true),
+            vo: data.getFloat32(16, true)
+        }
+    }
+
     /**
      * creates the bytes for the given array of blocks
      * @param blocks

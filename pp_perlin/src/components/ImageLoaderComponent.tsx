@@ -95,6 +95,9 @@ function ImageLoaderComponent(props: IBluetoothSenderProps) {
                     particle.v.x += Math.cos(forceAngle0 * 0.14 + forceAngle1 * 0.28 + forceAngle2 * 0.56);
                     particle.v.y += Math.sin(forceAngle0 * 0.14 + forceAngle1 * 0.28 + forceAngle2 * 0.56);
 
+                    // particle.v.x += Math.cos(forceAngle2);
+                    // particle.v.y += Math.sin(forceAngle2);
+
                     particle.v.x *= 0.5
                     particle.v.y *= 0.5
 
@@ -122,7 +125,7 @@ function ImageLoaderComponent(props: IBluetoothSenderProps) {
                     }
 
                     let command = 'L';
-                    if (particle.c > 30) { // wrap ||
+                    if (particle.c > 200) { // wrap ||
                         particle.done = true;
                         // particle.path = `${particle.path}M${particlePosDst.x} ${particlePosDst.y}`;
                     }
@@ -202,7 +205,7 @@ function ImageLoaderComponent(props: IBluetoothSenderProps) {
             let _d1 = '';
             const _particles: IParticle[] = [];
 
-            const density = 3;
+            const density = 4;
             const deviate = 1;
 
             for (let pixelIndexY = density; pixelIndexY < canvasDimY - density; pixelIndexY++) {
