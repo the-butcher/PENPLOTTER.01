@@ -1,3 +1,4 @@
+import * as turf from '@turf/turf';
 import { Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
@@ -15,46 +16,42 @@ export class MapLayerLabels extends AMapLayer {
 
     async openTile(): Promise<void> { }
 
-    async accept(_vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
+    async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
 
+        if (vectorTileKey.lod === 15) { //
 
-        if (feature.valueLookup.hasKey('_name')) { // && !this.hasTestText
+            // console.log('_name21', feature.getValue('_name21')?.getValue(), '_label_class21', feature.getValue('_label_class21')?.getValue(), _vectorTileKey.lod);
+            for (let i = 1; i < 28; i++) {
 
-            const nameKey = feature.valueLookup.getKeyPointer('_name');
-            const nameVal = feature.valueLookup.getValue(nameKey)?.getValue() as string;
+                const nameVal = feature.getValue('_name' + i)?.getValue();
+                if (nameVal) {
 
-            const symbKey = feature.valueLookup.getKeyPointer('_label_class');
-            const symbVal = feature.valueLookup.getValue(symbKey)?.getValue() as number;
-            console.log('nameVal', nameVal, 'symbVal', symbVal);
+                    console.log('nameVal', nameVal);
 
-            // // const multiPolygonText = VectorTileGeometryUtil.getMultiPolygonText(nameVal, [
-            // //     feature.coordinates[0].x,
-            // //     feature.coordinates[0].y
-            // // ]);
-            // let multiPolygonText = VectorTileGeometryUtil.getMultiPolygonText(nameVal, [
-            //     0,
-            //     0
-            // ]);
+                    const multiPolygonText = VectorTileGeometryUtil.getMultiPolygonText(nameVal.toString(), [
+                        feature.coordinates[0].x,
+                        feature.coordinates[0].y
+                    ]);
 
-            // const matrix = VectorTileGeometryUtil.matrixMultiply(VectorTileGeometryUtil.matrixTranslationInstance(2000, 750), VectorTileGeometryUtil.matrixRotationInstance(0.95));
-            // multiPolygonText = VectorTileGeometryUtil.transformMultiPolygon(multiPolygonText, matrix);
+                    let position4326: Position;
+                    multiPolygonText.coordinates.forEach(polygon => {
+                        polygon.forEach(ring => {
+                            ring.forEach(position => {
+                                position4326 = turf.toWgs84(VectorTileGeometryUtil.toMercator(vectorTileKey, position));
+                                position[0] = position4326[0];
+                                position[1] = position4326[1];
+                            })
+                        });
+                    });
 
-            // let position4326: Position;
-            // multiPolygonText.coordinates.forEach(polygon => {
-            //     polygon.forEach(ring => {
-            //         ring.forEach(position => {
-            //             position4326 = turf.toWgs84(VectorTileGeometryUtil.toMercator(vectorTileKey, position));
-            //             position[0] = position4326[0];
-            //             position[1] = position4326[1];
-            //         })
-            //     });
-            // });
+                    this.multiPolygon.coordinates.push(...multiPolygonText.coordinates);
 
-            // this.multiPolygon.coordinates.push(...multiPolygonText.coordinates);
+                }
 
-            // this.hasTestText = true;
+            }
 
         }
+
 
     }
 
@@ -66,10 +63,10 @@ export class MapLayerLabels extends AMapLayer {
 
         const distances: number[] = [];
         for (let i = 0; i < 20; i++) {
-            distances.push(-3);
+            distances.push(-1);
         }
 
-        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(this.multiPolygon, ...distances);
+        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(this.multiPolygon, true, ...distances);
 
         // rebuild from polygonsB
         const coordinatesB: Position[][][] = [];
@@ -82,13 +79,17 @@ export class MapLayerLabels extends AMapLayer {
             type: 'MultiPolygon',
             coordinates: coordinatesB
         }
-        this.multiPolyline030 = {
+        this.multiPolyline010 = {
             type: 'MultiLineString',
             coordinates: coordinatesC
         }
 
         console.log(`${this.name}, done`);
 
+    }
+
+    async postProcess(): Promise<void> {
+        // TODO :: buffer fill similar to buildings
     }
 
 }

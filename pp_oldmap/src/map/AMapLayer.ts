@@ -4,6 +4,7 @@ import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
+import { ISkipOptions } from './ISkipOptions';
 
 export interface ILayerProps {
     createLayerInstance: () => AMapLayer;
@@ -45,19 +46,20 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
         };
     }
 
-    accepts(vectorTileFeature: IVectorTileFeature): boolean {
-        return this.filter.accepts(vectorTileFeature);
+    accepts(vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature): boolean {
+        return this.filter.accepts(vectorTileKey, vectorTileFeature);
     }
 
     abstract openTile(vectorTileKey: IVectorTileKey): Promise<void>;
     abstract accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void>;
     abstract closeTile(vectorTileKey: IVectorTileKey): Promise<void>;
 
-    clipToLayerMultipolygon(layer: AMapLayer, distance: number, options?: {
-        skip005?: boolean;
-        skip010?: boolean;
-        skip030?: boolean;
-        skip050?: boolean;
+    clipToLayerMultipolygon(layer: AMapLayer, distance: number, options: ISkipOptions = {
+        skip005: false,
+        skip010: false,
+        skip030: false,
+        skip050: false,
+        skipMlt: true
     }): void {
 
         if (layer?.multiPolygon && layer.multiPolygon.coordinates.length > 0) {
@@ -87,12 +89,20 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
             if (!options?.skip050) {
                 this.multiPolyline050 = VectorTileGeometryUtil.clipMultiPolyline(this.multiPolyline050, bufferResult!, distance);
             }
+            if (!options?.skipMlt) {
+                const featureC = turf.featureCollection([turf.feature(this.multiPolygon), bufferResult!]);
+                const difference = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
+                const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(difference);
+                this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+            }
 
         }
 
     }
 
     abstract process(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
+
+    abstract postProcess(): Promise<void>;
 
     // abstract drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void;
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
@@ -143,11 +153,49 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
     }
 
     bboxClip(bboxMap4326: BBox): void {
-        console.log(`${this.name}, bbox-clip ....`);
+        // console.log(`${this.name}, bbox-clip ...`);
         this.multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline005, bboxMap4326);
         this.multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline010, bboxMap4326);
         this.multiPolyline030 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline030, bboxMap4326);
         this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
+    }
+
+    connectPolylines(toleranceMeters: number, options: ISkipOptions = {
+        skip005: false,
+        skip010: false,
+        skip030: false,
+        skip050: false,
+        skipMlt: true
+    }): void {
+        console.log(`${this.name}, connect-polylines ...`);
+        if (!options.skip005) {
+            this.multiPolyline005 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline005, toleranceMeters);
+        }
+        if (!options.skip010) {
+            this.multiPolyline010 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline010, toleranceMeters);
+        }
+        if (!options.skip030) {
+            this.multiPolyline030 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline030, toleranceMeters);
+        }
+        if (!options.skip050) {
+            this.multiPolyline050 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline050, toleranceMeters);
+        }
+    }
+
+    cleanCoords() {
+        console.log(`${this.name}, cleaning coords ...`);
+        turf.cleanCoords(this.multiPolyline005, {
+            mutate: true
+        });
+        turf.cleanCoords(this.multiPolyline010, {
+            mutate: true
+        });
+        turf.cleanCoords(this.multiPolyline030, {
+            mutate: true
+        });
+        turf.cleanCoords(this.multiPolyline050, {
+            mutate: true
+        });
     }
 
 }

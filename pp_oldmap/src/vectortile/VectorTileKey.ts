@@ -2,6 +2,11 @@ import { Position } from "geojson";
 import { IVectorTileKey } from "./IVectorTileKey";
 import { IVectorTileLod } from "./IVectorTileLod";
 
+/**
+ * helper class for vector-tile-caches in the slippy tilign scheme
+ * @author h.fleischer
+ * @since 05.03.2025
+ */
 export class VectorTileKey {
 
     static readonly lods: IVectorTileLod[] = [
@@ -109,12 +114,6 @@ export class VectorTileKey {
 
     static readonly DIM = 512;
     static readonly ORI = 20037508.342789244;
-
-    // static readonly LOD_15 = VectorTileKey.lods[15];
-    // static readonly LOD_16 = VectorTileKey.lods[16];
-
-    // static readonly RES = VectorTileKey.LOD.resolution;
-    // static readonly MTR = VectorTileKey.DIM * VectorTileKey.LOD.resolution;
 
     static toTileKey = (point3857: Position, lod: number): IVectorTileKey => {
         const tileMeters = VectorTileKey.DIM * VectorTileKey.lods[lod].resolution;

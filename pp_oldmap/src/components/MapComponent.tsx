@@ -3,19 +3,22 @@ import { Button } from "@mui/material";
 import * as turf from '@turf/turf';
 import { Position } from "geojson";
 import { createRef, useEffect, useState } from "react";
+import { ISkipOptions } from '../map/ISkipOptions';
 import { Map } from '../map/Map';
 import { MapLayerBuildings } from "../map/MapLayerBuildings";
 import { MapLayerFrame } from '../map/MapLayerFrame';
-import { MapLayerRoads } from '../map/MapLayerRoads';
 import { MapLayerLines } from '../map/MapLayerLines';
 import { MapLayerMisc } from "../map/MapLayerMisc";
+import { MapLayerPoints } from '../map/MapLayerPoints';
+import { MapLayerRoads } from '../map/MapLayerRoads';
+import { MapLayerTunnels } from '../map/MapLayerTunnels';
 import { MapLayerWater } from '../map/MapLayerWater';
 import { IVectorTileFeature } from '../protobuf/vectortile/IVectorTileFeature';
 import { Uid } from '../util/Uid';
+import { IVectorTileKey } from '../vectortile/IVectorTileKey';
 import { IVectorTileUrl } from '../vectortile/IVectorTileUrl';
 import { VectorTileKey } from "../vectortile/VectorTileKey";
 import MapLayerComponent, { IMapLayerComponentProps } from "./MapLayerComponent";
-import { MapLayerWood } from '../map/MapLayerWood';
 
 
 
@@ -32,10 +35,6 @@ function MapComponent() {
 
         const _map = new Map({
 
-            // bbox3857: [ // most all of vienna
-            //     1822000, 6141000,
-            //     1827000, 6149000 // 9000, 10000
-            // ],
             // bbox3857: [ // alte donau
             //     1828000, 6144000,
             //     1830000, 6146000
@@ -48,9 +47,9 @@ function MapComponent() {
             //     1824000, 6147000,
             //     1825000, 6149000
             // ],
-            // bbox3857: [ // augarten
-            //     1822000, 6143000,
-            //     1825000, 6145000
+            // bbox3857: [ // erster bezirk
+            //     1820500, 6140200,
+            //     1824500, 6143200
             // ],
             // bbox3857: [ // 20. bezirk
             //     1825000, 6145000,
@@ -60,91 +59,120 @@ function MapComponent() {
             //     1820635, 6149670,
             //     1822635, 6151670
             // ],
-            // bbox3857: [ // salzburg
-            //     1450600, 6072150,
-            //     1454600, 6075150
-            // ],
-            bbox3857: [ // salzburg klein
-                1451700, 6072250,
-                1452900, 6073200
+            bbox3857: [ // salzburg
+                1450600, 6072150,
+                1454600, 6075150
             ],
+            // bbox3857: [ // salzburg klein 2
+            //     1451600, 6073150,
+            //     1452600, 6074150
+            // ],
+            // bbox3857: [ // salzburg klein 1
+            //     1451700, 6072250,
+            //     1452900, 6073200
+            // ],
+            // bbox3857: [ // salzburg kleiner
+            //     1451900, 6072700,
+            //     1452700, 6073200
+            // ],
             // bbox3857: [ // st. wolfgang
-            //     1496500, 6062382,
-            //     1497500, 6064382
+            //     1495000, 6062382,
+            //     1498000, 6064382
             // ],
             // bbox3857: [ // bluntau
             //     1457000, 6034000,
             //     1460000, 6036000
             // ],
             // bbox3857: [ // vigaun
-            //     1461000, 6050039,
-            //     1462500, 6052039
+            //     1459800, 6049450,
+            //     1463800, 6052450
             // ],
             // bbox3857: [ // hallein
-            //     1456152, 6052787,
-            //     1459152, 6054787
+            //     1455600, 6052700,
+            //     1459600, 6055700
             // ],
-            // bbox3857: [ // vigaun klein
-            //     1461000, 6050000,
-            //     1461200, 6050200
-            // ],
-            // bbox3857: [ // lobau
-            //     1822000, 6143000,
-            //     1825000, 6145000
+            // bbox3857: [ // lobau -> issues with small geometries ("holzhäuser" do not show, but are also in a strange resolution in original basemap)
+            //     1834537, 6141225,
+            //     1836537, 6143225
             // ],
 
+
             layers: [
-                // {
-                //     createLayerInstance: () => new MapLayerWater(Map.LAYER__NAME______WATER, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return vectorTileFeature.layerName === 'GEWAESSER_F_GEWF';
-                //         }
-                //     })
-                // },
-                // {
-                //     createLayerInstance: () => new MapLayerMisc(Map.LAYER__NAME__GREENAREA, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX_GREENAREA); // Grünflächen :: 1,
-                //         }
-                //     }, [2, -2], 500, 'rgba(0, 127, 0, 0.10)')
-                // },
                 {
-                    createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
-                        accepts: (vectorTileFeature: IVectorTileFeature) => {
-                            return vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
+                    createLayerInstance: () => new MapLayerWater(Map.LAYER__NAME______WATER, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GEWAESSER_F_GEWF';
                         }
                     })
                 },
-                // {
-                //     createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____TRACKS, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
-                //         }
-                //     }, l => l.multiPolyline010)
-                // },
-                // {
-                //     createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME______ROADS, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             // const isGip = // || vectorTileFeature.layerName === 'GIP_INSIDE_L_GIP';
-                //             return vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-                //         }
-                //     }, false)
-                // },
-                // {
-                //     createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME_____TUNNEL, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
-                //         }
-                //     }, true)
-                // },
-                // {
-                //     createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return (vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL');
-                //         }
-                //     }, l => l.multiPolyline005)
-                // },
-
+                {
+                    createLayerInstance: () => new MapLayerMisc(Map.LAYER__NAME__GREENAREA, {
+                        accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX_GREENAREA, Map.SYMBOL_INDEX___LEISURE);
+                        }
+                    }, [2, -2], 500, 'rgba(0, 127, 0, 0.10)')
+                },
+                {
+                    createLayerInstance: () => new MapLayerMisc(Map.LAYER__NAME_______WOOD, {
+                        accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX______WOOD);
+                        }
+                    }, [2, -2], 500, 'rgba(0, 64, 0, 0.10)')
+                },
+                {
+                    createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
+                        }
+                    })
+                },
+                {
+                    createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____TRACKS, {
+                        accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
+                        }
+                    }, l => l.multiPolyline010)
+                },
+                {
+                    createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME______ROADS, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            // const isGip = // || vectorTileFeature.layerName === 'GIP_INSIDE_L_GIP';
+                            return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE');
+                        }
+                    })
+                },
+                {
+                    createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
+                        }
+                    })
+                },
+                {
+                    createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
+                                // console.log(vectorTileFeature.getValue('_name'));
+                                return true
+                            }
+                            return false;
+                        }
+                    }, l => l.multiPolyline005)
+                },
+                {
+                    createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, { // GIPFEL_L09-20
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return  vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
+                        }
+                    }, MapLayerPoints.createChurchSymbol)
+                },
+                {
+                    createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            return  vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GIPFEL_L09-20'
+                        }
+                    }, MapLayerPoints.createSummitSymbol)
+                },
                 {
                     createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
                         accepts: () => {
@@ -154,6 +182,25 @@ function MapComponent() {
                 },
 
 
+
+                // {
+                //     createLayerInstance: () => new MapLayerLabels(Map.LAYER__NAME_____LABELS, {
+                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
+                //             if (vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label') {
+                //                 return vectorTileFeature.getValue('_label_class')?.getValue() === 7
+                //             } else {
+                //                 return false;
+                //             }
+                //         }
+                //     })
+                // },
+                // {
+                //     createLayerInstance: () => new MapLayerLabels(Map.LAYER__NAME_____LABELS, {
+                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
+                //             return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG'; //
+                //         }
+                //     })
+                // },
                 // {
                 //     createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_B, {
                 //         accepts: (vectorTileFeature: IVectorTileFeature) => { // AUSTRIA_HL50_100_1000_smooth500m_HL
@@ -164,27 +211,15 @@ function MapComponent() {
                 //         }
                 //     }, l => l.multiPolyline05)
                 // },
-                // {
-                //     createLayerInstance: () => new MapLayerLabels(Map.LAYER__NAME_____LABELS, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return vectorTileFeature.layerName === 'GEONAMEN_P_GEONAMEN';
-                //         }
-                //     })
-                // },
+
                 // {
                 //     createLayerInstance: () => new MapLayerWood(Map.LAYER__NAME_______WOOD, {
                 //         accepts: (vectorTileFeature: IVectorTileFeature) => {
                 //             return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX______WOOD); // Wald :: 3
                 //         }
                 //     })
-                // },
-                // {
-                //     createLayerInstance: () => new MapLayerMisc(Map.LAYER__NAME_______MISC, {
-                //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-                //             return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX______MISC); // Sonstiges :: 5
-                //         }
-                //     }, [2, -2], 100, 'rgba(0, 0, 0, 0.10)')
-                // },
+                // }
+
 
 
             ]
@@ -199,12 +234,7 @@ function MapComponent() {
             toUrl: tileKey => `https://nbfleischer.int.vertigis.com/bmaph/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf` // https://mapsneu.wien.gv.at/basemapv/bmapvhl/3857/tile
         };
 
-        const clip = (layerName: string, layerNameB: string, distance: number, options?: {
-            skip005?: boolean;
-            skip010?: boolean;
-            skip030?: boolean;
-            skip050?: boolean;
-        }) => {
+        const clip = (layerName: string, layerNameB: string, distance: number, options?: ISkipOptions) => {
             console.log(`${layerName}, clipping to ${layerNameB}, ${distance.toFixed(2)}m`);
             _map.findLayerByName(layerName)?.clipToLayerMultipolygon(_map.findLayerByName(layerNameB)!, distance, options);
         }
@@ -212,50 +242,61 @@ function MapComponent() {
         // TODO :: better loading strategy (start with finest, switch to coarse in case of failure)
         _map.load(vectorTileUrlBmapv, Map.LOD_16).then(() => {
             _map.load(vectorTileUrlBmapv, Map.LOD_15).then(() => {
+                _map.load(vectorTileUrlBmapv, 14).then(() => {
 
-                // _map.load(vectorTileUrlBmaph, Map.LOD_16).then(() => {
-                // _map.load(vectorTileUrlBmaph, 15).then(() => {
-                _map.load(vectorTileUrlBmaph, 14).then(() => {
+                    _map.load(vectorTileUrlBmaph, 14).then(() => {
 
-                    _map.process().then(() => {
+                        _map.process().then(() => {
 
-                        clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME__BUILDINGS, 6);
-                        clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______WATER, 6);
-                        clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______ROADS, 6);
+                            clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME__GREENAREA, 6); // remove duplicates between greenarea and wood
 
-                        clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______ROADS, 6); // remove water where roads pass over
-                        clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME_____TRACKS, 6); // remove water where tracks pass over
+                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME__BUILDINGS, 6);
+                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______WATER, 6);
+                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______ROADS, 6);
+                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME_____CHURCH, 6);
+                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME_____SUMMIT, 6);
 
-                        // clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME_______MISC, 5); // remove water for misc (may have bridge outlines, does not work on the VIGAUN extent)
-                        // clip(Map.LAYER__NAME_______MISC, Map.LAYER__NAME______ROADS, 5);
+                            clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______ROADS, 6); // remove water where roads pass over
+                            clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME_____TRACKS, 6); // remove water where tracks pass over
 
-                        clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 6, {
-                            skip010: true,
-                            skip050: true
-                        }); // remove road boundaries where a building boundary is nearby
+                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 2, {
+                                skip005: true,
+                                skip030: true
+                            }); // remove road boundaries where a building boundary is nearby
+                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 6, {
+                                skip010: true,
+                                skip050: true
+                            }); // remove road boundaries where a building boundary is nearby
+                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME_____CHURCH, 6);
+                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME_____SUMMIT, 6);
 
-                        clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______FRAME, 0);
-                        clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______FRAME, 0);
-                        clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0);
-                        clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME______FRAME, 0);
-                        clip(Map.LAYER__NAME_____TRACKS, Map.LAYER__NAME______FRAME, 0);
-                        clip(Map.LAYER__NAME_____TUNNEL, Map.LAYER__NAME______FRAME, 0);
-                        clip(Map.LAYER__NAME__ELEVATE_A, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME_____TRACKS, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME_____TUNNEL, Map.LAYER__NAME______FRAME, 0);
+                            clip(Map.LAYER__NAME__ELEVATE_A, Map.LAYER__NAME______FRAME, 0);
 
-                        // _map.findLayerByName(Map.LAYER__NAME______WATER)?.clip(_map.findLayerByName(Map.LAYER__NAME_____LABELS)!);
-                        // _map.findLayerByName(Map.LAYER__NAME__BUILDINGS)?.clip(_map.findLayerByName(Map.LAYER__NAME_____LABELS)!);
-                        // _map.findLayerByName(Map.LAYER__NAME______ROADS)?.clip(_map.findLayerByName(Map.LAYER__NAME_____LABELS)!);
-                        // _map.findLayerByName(Map.LAYER__NAME__GREENAREA)?.clip(_map.findLayerByName(Map.LAYER__NAME_____LABELS)!);
-                        // _map.findLayerByName(Map.LAYER__NAME_____TRACKS)?.clip(_map.findLayerByName(Map.LAYER__NAME_____LABELS)!);
+                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME_____CHURCH, 8, {
+                                skipMlt: false
+                            });
+                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME_____SUMMIT, 8, {
+                                skipMlt: false
+                            });
+                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0, {
+                                skipMlt: false
+                            });
 
-                        setMap(_map);
+                            _map.postProcess().then(() => {
+                                setMap(_map);
+                            });
+
+                        });
 
                     });
 
                 });
-                // });
-                // });
-
             });
         });
 

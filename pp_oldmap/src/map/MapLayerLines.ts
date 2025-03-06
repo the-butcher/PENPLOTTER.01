@@ -52,9 +52,16 @@ export class MapLayerLines extends AMapLayer {
         // cleanCoords(this.multiPolyline03);
         // cleanCoords(this.multiPolyline05);
 
+        console.log(`${this.name}, clipping to bboxMap4326 ....`);
         this.bboxClip(bboxMap4326);
+
         console.log(`${this.name}, done`);
 
+    }
+
+    async postProcess(): Promise<void> {
+        console.log(`${this.name}, connecting polylines ....`);
+        this.connectPolylines(2);
     }
 
 }

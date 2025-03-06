@@ -226,12 +226,14 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 setBuffSizeCharacteristic(undefined);
                 setBuffValsCharacteristic(undefined);
                 setPositionCharacteristic(undefined);
+                window.clearTimeout(writeAndReadTo.current);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'disconnected'
                 });
             }
         }).catch((e: unknown) => {
+            window.clearTimeout(writeAndReadTo.current);
             handleConnBleProperties({
                 // device implicitly undefined
                 message: 'failed to connect to gatt server',
@@ -268,6 +270,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 });
 
             }).catch((e: unknown) => {
+                window.clearTimeout(writeAndReadTo.current);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'failed to retrieve charateristics',
@@ -276,6 +279,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             });
 
         }).catch((e: unknown) => {
+            window.clearTimeout(writeAndReadTo.current);
             handleConnBleProperties({
                 // device implicitly undefined
                 message: 'failed to retrieve primary service',
@@ -304,25 +308,32 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         if (buffSizeCharacteristic) {
 
-            buffSizeCharacteristic.readValue().then(value => {
+            if (!blockSendPendingRef.current) {
 
-                const _buffSize = value.getUint32(0, true);
-                // console.log('_buffSize', _buffSize);
-                setBuffSize(_buffSize);
+                buffSizeCharacteristic.readValue().then(value => {
 
-                // skip and read the buffer size again as soon as possible
-                window.clearTimeout(writeAndReadTo.current);
-                writeAndReadTo.current = window.setTimeout(() => {
-                    readBuffSize();
-                }, 250);
+                    const _buffSize = value.getUint32(0, true);
+                    console.log('_buffSize', _buffSize);
+                    setBuffSize(_buffSize);
 
-            }).catch((e: unknown) => {
-                handleConnBleProperties({
-                    // device implicitly undefined
-                    message: 'failed to retrieve buffer size',
+
+
+                }).catch((e: unknown) => {
+                    window.clearTimeout(writeAndReadTo.current);
+                    handleConnBleProperties({
+                        // device implicitly undefined
+                        message: 'failed to retrieve buffer size',
+                    });
+                    console.error(e);
                 });
-                console.error(e);
-            });
+
+            }
+
+            // skip and read the buffer size again as soon as possible
+            window.clearTimeout(writeAndReadTo.current);
+            writeAndReadTo.current = window.setTimeout(() => {
+                readBuffSize();
+            }, 250);
 
         }
 
@@ -361,6 +372,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                     blockSendPendingRef.current = false;
 
                 }).catch((e: unknown) => {
+                    window.clearTimeout(writeAndReadTo.current);
                     handleConnBleProperties({
                         // device implicitly undefined
                         message: 'failed to write commands',
@@ -382,7 +394,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug('⚙ updating BluetoothSenderComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic, positionCharacteristic);
 
-        if (buffSizeCharacteristic && buffValsCharacteristic) {
+        if (buffSizeCharacteristic && buffValsCharacteristic && positionCharacteristic) {
 
             window.clearTimeout(writeAndReadTo.current);
             writeAndReadTo.current = window.setTimeout(() => {

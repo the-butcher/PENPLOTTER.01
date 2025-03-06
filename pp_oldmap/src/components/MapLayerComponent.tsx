@@ -67,8 +67,8 @@ function MapLayerComponent(props: IMapLayerComponentProps) {
     }, [polylines005, polylines010, polylines030, polylines050]);
 
     const toStrokeWidth = (penWidth: number): number => {
-        // return penWidth * 10;
-        return 0.2;
+        return penWidth * 12;
+        // return 0.2;
     }
 
     return (
@@ -100,10 +100,10 @@ function MapLayerComponent(props: IMapLayerComponentProps) {
             <path
                 style={{
                     stroke: 'black',
-                    strokeWidth: toStrokeWidth(0.3),
+                    strokeWidth: toStrokeWidth(0.2),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
-                    fill: 'none'
+                    fill: 'none' // 'rgba(0, 0, 0, 0.10)'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
                 pen-id='p030'

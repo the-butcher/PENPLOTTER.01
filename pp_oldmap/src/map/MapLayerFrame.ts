@@ -97,4 +97,8 @@ export class MapLayerFrame extends AMapLayer {
 
     }
 
+    async postProcess(): Promise<void> {
+        // nothing
+    }
+
 }

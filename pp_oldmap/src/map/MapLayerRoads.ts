@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Polygon, Position } from "geojson";
+import { BBox, Feature, MultiLineString, MultiPolygon, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -13,9 +13,8 @@ export class MapLayerRoads extends AMapLayer {
     multiPolyline34: MultiLineString;
     multiPolyline56: MultiLineString;
     multiPolyline78: MultiLineString;
-    dashed: boolean;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, dashed: boolean) {
+    constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
         this.multiPolyline02 = {
             type: 'MultiLineString',
@@ -33,7 +32,6 @@ export class MapLayerRoads extends AMapLayer {
             type: 'MultiLineString',
             coordinates: []
         };
-        this.dashed = dashed;
     }
 
     async openTile(): Promise<void> { }
@@ -42,20 +40,16 @@ export class MapLayerRoads extends AMapLayer {
 
         const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
         const symbolValue = feature.getValue('_symbol')?.getValue() as number;
-        if (!this.dashed) {
-            if (symbolValue === Map.SYMBOL_INDEX___HIGHWAY || symbolValue === Map.SYMBOL_INDEX______RAMP || symbolValue === Map.SYMBOL_INDEX__SPEEDWAY) {
-                this.multiPolyline02.coordinates.push(...polylines.map(p => p.coordinates));
-            } else if (symbolValue === Map.SYMBOL_INDEX_____MAJOR || symbolValue === Map.SYMBOL_INDEX_COMMUNITY) {
-                this.multiPolyline34.coordinates.push(...polylines.map(p => p.coordinates));
-            } else if (symbolValue === Map.SYMBOL_INDEX_____OTHER || symbolValue === Map.SYMBOL_INDEX_____MINOR) {
-                this.multiPolyline56.coordinates.push(...polylines.map(p => p.coordinates));
-            } else if (symbolValue === Map.SYMBOL_INDEX__PEDEST_A || symbolValue === Map.SYMBOL_INDEX__PEDEST_B) {
-                this.multiPolyline78.coordinates.push(...polylines.map(p => p.coordinates));
-            }
-        } else if (symbolValue < Map.SYMBOL_INDEX_____OTHER) {
-            console.log(symbolValue);
+        if (symbolValue === Map.SYMBOL_INDEX___HIGHWAY || symbolValue === Map.SYMBOL_INDEX______RAMP || symbolValue === Map.SYMBOL_INDEX__SPEEDWAY) {
+            this.multiPolyline02.coordinates.push(...polylines.map(p => p.coordinates));
+        } else if (symbolValue === Map.SYMBOL_INDEX_____MAJOR || symbolValue === Map.SYMBOL_INDEX_COMMUNITY) {
+            this.multiPolyline34.coordinates.push(...polylines.map(p => p.coordinates));
+        } else if (symbolValue === Map.SYMBOL_INDEX_____OTHER) {
+            this.multiPolyline56.coordinates.push(...polylines.map(p => p.coordinates));
+        } else if (symbolValue === Map.SYMBOL_INDEX_____MINOR || symbolValue === Map.SYMBOL_INDEX__PEDEST_A || symbolValue === Map.SYMBOL_INDEX__PEDEST_B) {
             this.multiPolyline78.coordinates.push(...polylines.map(p => p.coordinates));
         }
+
 
     }
 
@@ -143,49 +137,10 @@ export class MapLayerRoads extends AMapLayer {
         multiOutline56 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon02));
         this.multiPolyline78 = VectorTileGeometryUtil.clipMultiPolyline(this.multiPolyline78, turf.feature(multiPolygon02));
 
-        if (this.dashed) {
-
-            const dashLengthBase = 11;
-            const polylines78A = VectorTileGeometryUtil.destructureMultiPolyline(this.multiPolyline78);
-            const polylines78B: LineString[] = [];
-            polylines78A.forEach(polyline78 => {
-                const feature78 = turf.feature(polyline78);
-                const length = turf.length(feature78, {
-                    units: 'meters'
-                });
-                let dashCount = Math.round(length / dashLengthBase);
-                if (dashCount % 2 === 0) {
-                    dashCount++;
-                };
-                const dashLength = length / dashCount;
-                // console.log(dashCount, dashLength);
-                for (let i = 0; i < dashCount - 1; i++) {
-                    if (i % 2 === 0) {
-                        const coordinateA = turf.along(feature78, i * dashLength, {
-                            units: 'meters'
-                        }).geometry.coordinates;
-                        const coordinateB = turf.along(feature78, (i + 1) * dashLength, {
-                            units: 'meters'
-                        }).geometry.coordinates;
-                        polylines78B.push({
-                            type: 'LineString',
-                            coordinates: [coordinateA, coordinateB]
-                        });
-                    }
-                }
-            });
-            this.multiPolyline78 = VectorTileGeometryUtil.restructureMultiPolyline(polylines78B);
-
-        }
-
         this.multiPolyline010.coordinates.push(...multiOutline34.coordinates);
         this.multiPolyline010.coordinates.push(...multiOutline56.coordinates);
         this.multiPolyline030.coordinates.push(...this.multiPolyline78.coordinates);
         this.multiPolyline030.coordinates.push(...multiOutline02.coordinates);
-
-        if (this.dashed) {
-            console.log('dashed feature length',)
-        }
 
         const union08 = VectorTileGeometryUtil.unionPolygons([...polygons02, ...polygons34, ...polygons56, ...polygons78]);
         const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
@@ -193,8 +148,14 @@ export class MapLayerRoads extends AMapLayer {
 
         console.log(`${this.name}, clipping to bboxMap4326 ....`);
         this.bboxClip(bboxMap4326);
+
         console.log(`${this.name}, done`);
 
+    }
+
+    async postProcess(): Promise<void> {
+        console.log(`${this.name}, connecting polylines ....`);
+        this.connectPolylines(5);
     }
 
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {

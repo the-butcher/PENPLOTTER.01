@@ -19,10 +19,11 @@ export interface IMapProps {
 export class Map {
 
     static readonly LAYER__NAME______WATER = 'l_____water';
-    static readonly LAYER__NAME_______MISC = 'l______misc';
+    static readonly LAYER__NAME_______WOOD = 'l______wood';
     static readonly LAYER__NAME__GREENAREA = 'l_greenarea';
     static readonly LAYER__NAME__BUILDINGS = 'l_buildings';
-    static readonly LAYER__NAME_______WOOD = 'l______wood';
+    static readonly LAYER__NAME_____CHURCH = 'l____church';
+    static readonly LAYER__NAME_____SUMMIT = 'l____summit';
     static readonly LAYER__NAME______FRAME = 'l_____frame';
     static readonly LAYER__NAME_____LABELS = 'l____labels';
     static readonly LAYER__NAME_____TRACKS = 'l____tracks';
@@ -34,6 +35,7 @@ export class Map {
     static readonly SYMBOL_INDEX_GREENAREA = 1; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______WOOD = 3; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______MISC = 5; // on NUTZUNG_L16_20
+    static readonly SYMBOL_INDEX___LEISURE = 8; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX____TRACKS = 5; // on NATURBESTAND_L_NATURBESTAND_L
 
     static readonly SYMBOL_INDEX___HIGHWAY = 0; // on GIP_L_GIP_144 and GIP_BAUWERK_L_BRÜCKE
@@ -133,7 +135,7 @@ export class Map {
                     vectorTile.layers.forEach(vectorTileLayer => {
                         vectorTileLayer.features.forEach(vectorTileFeature => {
                             this.layers.forEach(async layer => {
-                                if (layer.accepts(vectorTileFeature)) {
+                                if (layer.accepts(vectorTileKey, vectorTileFeature)) {
                                     await layer.accept(vectorTile.tileKey, vectorTileFeature);
                                 }
                             });
@@ -164,6 +166,15 @@ export class Map {
         for (let i = 0; i < this.layers.length; i++) {
             await this.layers[i].process(bboxClp4326, bboxMap4326);
         }
+
+    }
+
+    async postProcess(): Promise<void> {
+
+        for (let i = 0; i < this.layers.length; i++) {
+            await this.layers[i].postProcess();
+        }
+
     }
 
     drawToCanvas(context: CanvasRenderingContext2D): void {

@@ -56,10 +56,16 @@ export class MapLayerMisc extends AMapLayer {
         }) > 50);
         this.multiPolyline010 = VectorTileGeometryUtil.restructureMultiPolyline(polylines);
 
-
+        console.log(`${this.name}, clipping to bboxMap4326 ....`);
         this.bboxClip(bboxMap4326);
+
         console.log(`${this.name}, done`);
 
+    }
+
+    async postProcess(): Promise<void> {
+        console.log(`${this.name}, connecting polylines ....`);
+        this.connectPolylines(2);
     }
 
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {

@@ -154,6 +154,10 @@ export class MapLayerWood extends AMapLayer {
 
     }
 
+    async postProcess(): Promise<void> {
+
+    }
+
     // drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
 
     //     context.fillStyle = 'rgba(255, 0, 0, 0.75)';

@@ -38,19 +38,19 @@ export class MapLayerWater extends AMapLayer {
         const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(this.multiPolygon, 3, -3);
         this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
 
-        // console.log(`${this.name}, fill polygons, danube_canal ...`);
-        // polygonsA.push(...this.findFillPolygons(danube_canal));
+        console.log(`${this.name}, fill polygons, danube_canal ...`);
+        polygonsA.push(...this.findFillPolygons(danube_canal));
         // console.log(`${this.name}, fill polygons, danube_inlet ...`);
         // polygonsA.push(...this.findFillPolygons(danube_inlet));
         // console.log(`${this.name}, fill polygons, danube__main ...`);
         // polygonsA.push(...this.findFillPolygons(danube__main));
-        // console.log(`${this.name}, fill polygons, wien____main ...`);
-        // polygonsA.push(...this.findFillPolygons(wien____main));
+        console.log(`${this.name}, fill polygons, wien____main ...`);
+        polygonsA.push(...this.findFillPolygons(wien____main));
 
-        // console.log(`${this.name}, stat polygons, danube___old ...`);
-        // polygonsA.push(danube___old);
-        // console.log(`${this.name}, stat polygons, danube___new ...`);
-        // polygonsA.push(danube___new);
+        console.log(`${this.name}, stat polygons, danube___old ...`);
+        polygonsA.push(danube___old);
+        console.log(`${this.name}, stat polygons, danube___new ...`);
+        polygonsA.push(danube___new);
 
         console.log(`${this.name}, union ....`);
         const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
@@ -80,8 +80,14 @@ export class MapLayerWater extends AMapLayer {
 
         console.log(`${this.name}, clipping to bboxMap4326 ....`);
         this.bboxClip(bboxMap4326);
+
         console.log(`${this.name}, done`);
 
+    }
+
+    async postProcess(): Promise<void> {
+        console.log(`${this.name}, connecting polylines ....`);
+        this.connectPolylines(2);
     }
 
     findFillPolygons(river: LineString, drawPoint?: (coordinate: Position, label?: string) => void): Polygon[] {

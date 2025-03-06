@@ -1,4 +1,5 @@
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
+import { IVectorTileKey } from "./IVectorTileKey";
 
 /**
  * definition for a type that checks for layer name and symbol id
@@ -6,5 +7,5 @@ import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
  * @since 20.02.2025
  */
 export interface IVectorTileFeatureFilter {
-    accepts: (vectorTileFeature: IVectorTileFeature) => boolean;
+    accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => boolean;
 }

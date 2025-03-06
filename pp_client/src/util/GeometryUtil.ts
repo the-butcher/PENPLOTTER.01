@@ -7,7 +7,7 @@ export class GeometryUtil {
     static BT___BUFF_BLK = 24; // bluetooth buffer size
     static BT___BUFF_MAX = 512;
 
-    static PEN___MIN_MMS = 2;
+    static PEN___MIN_MMS = 1;
     // static PEN___MAX_MMS = 30; // max speed for draw movements (mm/s)
     // static PEN___MAX_ACC = 90; // acceleration for draw movements (mm/s²)
 
