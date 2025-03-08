@@ -1,7 +1,7 @@
 export type VECTOR_TILE_VALUE_TYPES = string | number | undefined;
 
 /**
- * definition for types that hold a feature value<br>
+ * definition for types that hold a vector-tile-feature value<br>
  *
  * @author h.fleischer
  * @since 26.07.2019

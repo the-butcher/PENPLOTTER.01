@@ -1,40 +1,43 @@
-data
 OK sharper edges around buildings
-   -- first insets with a thinner pen
-   -- wider buffer steps (2 meters and the 0.5 pen roughen the paper)
-   -- check different speeds to edge sharpness
+OK first insets with a thinner pen
+OK wider buffer steps (2 meters and the 0.5 pen roughen the paper)
+OK check different speeds to edge sharpness
 
 -- labels
-   -- find out how much information about labels is available in the tiles
+-- find out how much information about labels is available in the tiles
 
 OK water lines narrower
 
--- no trees unless better symbology is found
+OK no trees unless better symbology is found
 
 OK streets
-   -- street double lines with 0.1, highway double lines 0.3
-   -- street single lines with 0.3
-   OK improve self-clip distance and try to join corners, so the pen does not lift at intersections
+-- street double lines with 0.1, highway double lines 0.3
+-- street single lines with 0.3
+OK improve self-clip distance and try to join corners, so the pen does not lift at intersections
 
--- pen change without repeated homing (hopefully better precision across different thicknesses)
-   -- introduce some contract in the svg that the client app would understand and consider in sorting and connecting lines
-   -- at "pen boundaries" no further commands would be send to machine (which may be homing at that point (?)) and the user would be prompted to change pen and confirm
+OK pen change without repeated homing (hopefully better precision across different thicknesses)
+OK introduce some contract in the svg that the client app would understand and consider in sorting and connecting lines
+OK at "pen boundaries" no further commands would be send to machine (which may be homing at that point (?)) and the user would be prompted to change pen and confirm
 
 -- drawing "stages" (?)
-   -- allow i.e. labels to be applied to a drawing state that does not require full rebuild
-
+-- allow i.e. labels to be applied to a drawing state that does not require full rebuild
+-- review all layers for
+-- code duplication
+-- possibility to separate into drawing stages
+-- maybe some type of config schema for layers, so some properties can be changed at runtime
+-- maybe some type of storage format, so expensive calculations can be preserved
 
 -- flowing water
-   https://www.data.gv.at/katalog/en/dataset/bev_digitaleslandschaftsmodellgewsserstichtag25102022/resource/a02af662-98dc-4d45-b986-3b234de1869d#resources
+https://www.data.gv.at/katalog/en/dataset/bev_digitaleslandschaftsmodellgewsserstichtag25102022/resource/a02af662-98dc-4d45-b986-3b234de1869d#resources
 -- standing water
-   https://www.data.gv.at/katalog/dataset/ce50ffa6-5032-4771-90a2-1c48d6a0ac85
+https://www.data.gv.at/katalog/dataset/ce50ffa6-5032-4771-90a2-1c48d6a0ac85
 -- basemap vectortile
-   https://basemap.at/standard-5/
+https://basemap.at/standard-5/
 -- basemap höhenlinien
-   https://basemap.at/standard-3/
+https://basemap.at/standard-3/
 
 -- be able to convert a single typeface.js character to geojson geometry
-   -- like in the client project this could be done with temporary paths and getPointAtLength
+-- like in the client project this could be done with temporary paths and getPointAtLength
 -- be able to put multiple characters next to each other, find out if this should rather be done before or after conversion to geojson
 
 -- be able to create shapes in tile-space (=output svg space), then convert back to webmercator, then to wgs84 to have shapes that can be applied as clip geometries onto the geometries acquired from vector tiles
@@ -46,9 +49,9 @@ https://github.com/mikolalysenko/vectorize-text?tab=readme-ov-file
 -- OK :: find an appropriate free font :: https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSerif/NotoSerif-Regular.ttf
 
 -- TODO :: identify layers to be drawn and how to draw them
-   OK would be nice if no esri tech was involved at runtime (maybe with the exception of preparation of some geojson)
-   OK public data only!
-      -- helper :: fliessgewässer for joining segments of the same river
-      -- helper :: stehende gewässer for better quality
-   OK assume the basemap vector tile cache to be public, which it is per "nutzungsbedingungen"
-   OK WATER :: find a way to get river polylines for the area of interest and use them to join river polygons, i.e. where they are separated by a bridge
+OK would be nice if no esri tech was involved at runtime (maybe with the exception of preparation of some geojson)
+OK public data only!
+-- helper :: fliessgewässer for joining segments of the same river
+-- helper :: stehende gewässer for better quality
+OK assume the basemap vector tile cache to be public, which it is per "nutzungsbedingungen"
+OK WATER :: find a way to get river polylines for the area of interest and use them to join river polygons, i.e. where they are separated by a bridge

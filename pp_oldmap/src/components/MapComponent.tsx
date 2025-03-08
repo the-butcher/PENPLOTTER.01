@@ -5,20 +5,21 @@ import { Position } from "geojson";
 import { createRef, useEffect, useState } from "react";
 import { ISkipOptions } from '../map/ISkipOptions';
 import { Map } from '../map/Map';
-import { MapLayerBuildings } from "../map/MapLayerBuildings";
-import { MapLayerFrame } from '../map/MapLayerFrame';
-import { MapLayerLines } from '../map/MapLayerLines';
-import { MapLayerMisc } from "../map/MapLayerMisc";
-import { MapLayerPoints } from '../map/MapLayerPoints';
 import { MapLayerRoads } from '../map/MapLayerRoads';
-import { MapLayerTunnels } from '../map/MapLayerTunnels';
-import { MapLayerWater } from '../map/MapLayerWater';
 import { IVectorTileFeature } from '../protobuf/vectortile/IVectorTileFeature';
 import { Uid } from '../util/Uid';
 import { IVectorTileKey } from '../vectortile/IVectorTileKey';
 import { IVectorTileUrl } from '../vectortile/IVectorTileUrl';
 import { VectorTileKey } from "../vectortile/VectorTileKey";
 import MapLayerComponent, { IMapLayerComponentProps } from "./MapLayerComponent";
+import { MapLayerTunnels } from '../map/MapLayerTunnels';
+import { MapLayerPoints } from '../map/MapLayerPoints';
+import { MapLayerWater } from '../map/MapLayerWater';
+import { MapLayerMisc } from '../map/MapLayerMisc';
+import { MapLayerBuildings } from '../map/MapLayerBuildings';
+import { MapLayerLines } from '../map/MapLayerLines';
+import { MapLayerFrame } from '../map/MapLayerFrame';
+import { MapLayerLineLabel } from '../map/MapLayerLineLabel';
 
 
 
@@ -59,10 +60,10 @@ function MapComponent() {
             //     1820635, 6149670,
             //     1822635, 6151670
             // ],
-            bbox3857: [ // salzburg
-                1450600, 6072150,
-                1454600, 6075150
-            ],
+            // bbox3857: [ // salzburg
+            //     1450600, 6072150,
+            //     1454600, 6075150
+            // ],
             // bbox3857: [ // salzburg klein 2
             //     1451600, 6073150,
             //     1452600, 6074150
@@ -83,10 +84,10 @@ function MapComponent() {
             //     1457000, 6034000,
             //     1460000, 6036000
             // ],
-            // bbox3857: [ // vigaun
-            //     1459800, 6049450,
-            //     1463800, 6052450
-            // ],
+            bbox3857: [ // vigaun
+                1459800, 6049450,
+                1463800, 6052450
+            ],
             // bbox3857: [ // hallein
             //     1455600, 6052700,
             //     1459600, 6055700
@@ -152,7 +153,6 @@ function MapComponent() {
                     createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
                         accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
                             if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
-                                // console.log(vectorTileFeature.getValue('_name'));
                                 return true
                             }
                             return false;
@@ -180,6 +180,17 @@ function MapComponent() {
                         }
                     })
                 },
+                {
+                    createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
+                        accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+                            if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label') { //  &&
+                                return true;
+                            }
+                            return false;
+                        }
+                    })
+                },
+
 
 
 
@@ -234,9 +245,13 @@ function MapComponent() {
             toUrl: tileKey => `https://nbfleischer.int.vertigis.com/bmaph/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf` // https://mapsneu.wien.gv.at/basemapv/bmapvhl/3857/tile
         };
 
-        const clip = (layerName: string, layerNameB: string, distance: number, options?: ISkipOptions) => {
-            console.log(`${layerName}, clipping to ${layerNameB}, ${distance.toFixed(2)}m`);
-            _map.findLayerByName(layerName)?.clipToLayerMultipolygon(_map.findLayerByName(layerNameB)!, distance, options);
+        const clip = (layerNameDest: string, layerNameClip: string, distance: number, options?: ISkipOptions) => {
+            const layerDest = _map.findLayerByName(layerNameDest);
+            const layerClip = _map.findLayerByName(layerNameClip);
+            if (layerDest && layerClip) {
+                console.log(`${layerNameDest}, clipping to ${layerNameClip}, ${distance.toFixed(2)}m`);
+                layerDest.clipToLayerMultipolygon(layerClip, distance, options);
+            }
         }
 
         // TODO :: better loading strategy (start with finest, switch to coarse in case of failure)
@@ -246,51 +261,67 @@ function MapComponent() {
 
                     _map.load(vectorTileUrlBmaph, 14).then(() => {
 
-                        _map.process().then(() => {
+                        _map.processData().then(() => {
 
-                            clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME__GREENAREA, 6); // remove duplicates between greenarea and wood
+                            _map.processLine().then(() => {
 
-                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME__BUILDINGS, 6);
-                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______WATER, 6);
-                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______ROADS, 6);
-                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME_____CHURCH, 6);
-                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME_____SUMMIT, 6);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME__GREENAREA, 6); // remove duplicates between greenarea and wood
 
-                            clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______ROADS, 6); // remove water where roads pass over
-                            clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME_____TRACKS, 6); // remove water where tracks pass over
+                                clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME__BUILDINGS, 6);
+                                clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______WATER, 6);
+                                clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______ROADS, 6);
+                                clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME_____CHURCH, 6);
+                                clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME_____SUMMIT, 6);
 
-                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 2, {
-                                skip005: true,
-                                skip030: true
-                            }); // remove road boundaries where a building boundary is nearby
-                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 6, {
-                                skip010: true,
-                                skip050: true
-                            }); // remove road boundaries where a building boundary is nearby
-                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME_____CHURCH, 6);
-                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME_____SUMMIT, 6);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME__BUILDINGS, 6);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME______WATER, 6);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME______ROADS, 6);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME_____CHURCH, 6);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME_____SUMMIT, 6);
 
-                            clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______FRAME, 0);
-                            clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______FRAME, 0);
-                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0);
-                            clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME______FRAME, 0);
-                            clip(Map.LAYER__NAME_____TRACKS, Map.LAYER__NAME______FRAME, 0);
-                            clip(Map.LAYER__NAME_____TUNNEL, Map.LAYER__NAME______FRAME, 0);
-                            clip(Map.LAYER__NAME__ELEVATE_A, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______ROADS, 6); // remove water where roads pass over or nearby
+                                clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME_____TRACKS, 6); // remove water where tracks pass over or nearby
 
-                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME_____CHURCH, 8, {
-                                skipMlt: false
+                                clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 2, {
+                                    skip005: true,
+                                    skip030: true
+                                }); // remove road boundaries where a building boundary is nearby
+                                clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME__BUILDINGS, 6, {
+                                    skip010: true,
+                                    skip050: true
+                                }); // remove road boundaries where a building boundary is nearby, different threshold
+                                clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME_____CHURCH, 0);
+                                clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME_____SUMMIT, 0);
+
+                                clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME__GREENAREA, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME______ROADS, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME_____TRACKS, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME_____TUNNEL, Map.LAYER__NAME______FRAME, 0);
+                                clip(Map.LAYER__NAME__ELEVATE_A, Map.LAYER__NAME______FRAME, 0);
+
+                                clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME_____CHURCH, 0, {
+                                    skipMlt: false
+                                });
+                                clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME_____SUMMIT, 0, {
+                                    skipMlt: false
+                                });
+                                clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0, {
+                                    skipMlt: false
+                                });
+                                clip(Map.LAYER__NAME______WATER, Map.LAYER__NAME___RIVER_TX, 7, {
+                                    skipMlt: false
+                                });
+
+                                _map.postProcess().then(() => {
+                                    setMap(_map);
+                                });
+
                             });
-                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME_____SUMMIT, 8, {
-                                skipMlt: false
-                            });
-                            clip(Map.LAYER__NAME__BUILDINGS, Map.LAYER__NAME______FRAME, 0, {
-                                skipMlt: false
-                            });
 
-                            _map.postProcess().then(() => {
-                                setMap(_map);
-                            });
+                            // setMap(_map);
 
                         });
 
@@ -302,7 +333,9 @@ function MapComponent() {
 
     }, []);
 
-
+    /**
+     * react-hook for updates to the map
+     */
     useEffect(() => {
 
         console.log('⚙ updating map (map)', map);

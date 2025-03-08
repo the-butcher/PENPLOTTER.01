@@ -7,7 +7,7 @@ import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "./AMapLayer";
 
 
-export class MapLayerWood extends AMapLayer {
+export class MapLayerWood extends AMapLayer<Polygon> {
 
     hexpoints: MultiPoint;
 
@@ -23,32 +23,32 @@ export class MapLayerWood extends AMapLayer {
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
         const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates);
-        this.multiPolygon.coordinates.push(...polygons.map(p => p.coordinates));
+        this.polyData.coordinates.push(...polygons.map(p => p.coordinates));
     }
 
     async closeTile(): Promise<void> { }
 
-    async process(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processData(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing ...`);
 
-        turf.simplify(this.multiPolygon!, {
+        turf.simplify(this.polyData!, {
             mutate: true,
             tolerance: 0.00001,
             highQuality: true
         });
-        turf.cleanCoords(this.multiPolygon, {
+        turf.cleanCoords(this.polyData, {
             mutate: true
         });
 
-        const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(this.multiPolygon, -10, 10);
-        this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+        const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(this.polyData, -10, 10);
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
 
         console.log(`${this.name}, clipping ...`);
-        this.multiPolygon = VectorTileGeometryUtil.bboxClipMultiPolygon(this.multiPolygon, bboxClp4326);
+        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
 
         const gridDim = 40;
-        const hexgrid = turf.hexGrid(turf.bbox(this.multiPolygon), gridDim, {
+        const hexgrid = turf.hexGrid(turf.bbox(this.polyData), gridDim, {
             units: 'meters'
         });
         hexgrid.features.forEach(hexcell => {
@@ -70,7 +70,7 @@ export class MapLayerWood extends AMapLayer {
         }
 
         // filter coordinates to be within the wood polygons
-        const pointsWithinMultiPolygon = turf.pointsWithinPolygon(turf.feature(this.hexpoints), this.multiPolygon);
+        const pointsWithinMultiPolygon = turf.pointsWithinPolygon(turf.feature(this.hexpoints), this.polyData);
 
         // remove duplicate points
         pointsWithinMultiPolygon.features.forEach(feature => {
@@ -151,6 +151,10 @@ export class MapLayerWood extends AMapLayer {
 
         this.bboxClip(bboxMap4326);
         console.log(`${this.name}, done`);
+
+    }
+
+    async processLine(): Promise<void> {
 
     }
 

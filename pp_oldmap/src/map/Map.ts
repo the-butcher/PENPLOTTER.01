@@ -3,7 +3,7 @@ import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { IVectorTileUrl } from "../vectortile/IVectorTileUrl";
 import { VectorTileKey } from "../vectortile/VectorTileKey";
 import { VectorTileLoader } from "../vectortile/VectorTileLoader";
-import { AMapLayer, ILayerProps } from "./AMapLayer";
+import { AMapLayer, ILayerProps, MAP_LAYER_GEOMETRY_TYPES } from "./AMapLayer";
 import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import * as turf from '@turf/turf';
 import { Pen } from "./Pen";
@@ -27,6 +27,7 @@ export class Map {
     static readonly LAYER__NAME______FRAME = 'l_____frame';
     static readonly LAYER__NAME_____LABELS = 'l____labels';
     static readonly LAYER__NAME_____TRACKS = 'l____tracks';
+    static readonly LAYER__NAME___RIVER_TX = 'l__river_tx';
     static readonly LAYER__NAME______ROADS = 'l_____roads';
     static readonly LAYER__NAME_____TUNNEL = 'l____tunnel';
     static readonly LAYER__NAME__ELEVATE_A = 'l_elevate_a';
@@ -55,12 +56,10 @@ export class Map {
 
     static readonly LOD_15 = 15;
     static readonly LOD_16 = 16;
-    // private readonly minTileKey15: IVectorTileKey;
-    // private readonly maxTileKey15: IVectorTileKey;
 
     readonly min3857Pos: Position;
     readonly tileDim15: Position;
-    readonly layers: AMapLayer[];
+    readonly layers: AMapLayer<MAP_LAYER_GEOMETRY_TYPES>[];
 
     constructor(props: IMapProps) {
 
@@ -97,7 +96,7 @@ export class Map {
         });
     }
 
-    findLayerByName(name: string): AMapLayer | undefined {
+    findLayerByName(name: string): AMapLayer<MAP_LAYER_GEOMETRY_TYPES> | undefined {
         return this.layers.find(l => l.name === name);
     }
 
@@ -153,26 +152,54 @@ export class Map {
 
     }
 
-    async process(): Promise<void> {
-
+    getBBoxClp4326(): BBox {
         const minClp4326 = turf.toWgs84([this.bboxClp3857[0], this.bboxClp3857[1]]);
         const maxClp4326 = turf.toWgs84([this.bboxClp3857[2], this.bboxClp3857[3]]);
-        const bboxClp4326: BBox = [minClp4326[0], minClp4326[1], maxClp4326[0], maxClp4326[1]];
+        return [
+            minClp4326[0],
+            minClp4326[1],
+            maxClp4326[0],
+            maxClp4326[1]
+        ];
+    }
 
+    getBBoxMap4326(): BBox {
         const minMap4326 = turf.toWgs84([this.bboxMap3857[0], this.bboxMap3857[1]]);
         const maxMap4326 = turf.toWgs84([this.bboxMap3857[2], this.bboxMap3857[3]]);
-        const bboxMap4326: BBox = [minMap4326[0], minMap4326[1], maxMap4326[0], maxMap4326[1]];
+        return [
+            minMap4326[0],
+            minMap4326[1],
+            maxMap4326[0],
+            maxMap4326[1]
+        ];
+    }
 
+    async processData(): Promise<void> {
+
+        const bboxClp4326 = this.getBBoxClp4326();
+        const bboxMap4326 = this.getBBoxMap4326();
         for (let i = 0; i < this.layers.length; i++) {
-            await this.layers[i].process(bboxClp4326, bboxMap4326);
+            await this.layers[i].processData(bboxClp4326, bboxMap4326);
+        }
+
+    }
+
+    async processLine(): Promise<void> {
+
+        const bboxClp4326 = this.getBBoxClp4326();
+        const bboxMap4326 = this.getBBoxMap4326();
+        for (let i = 0; i < this.layers.length; i++) {
+            await this.layers[i].processLine(bboxClp4326, bboxMap4326);
         }
 
     }
 
     async postProcess(): Promise<void> {
 
+        const bboxClp4326 = this.getBBoxClp4326();
+        const bboxMap4326 = this.getBBoxMap4326();
         for (let i = 0; i < this.layers.length; i++) {
-            await this.layers[i].postProcess();
+            await this.layers[i].postProcess(bboxClp4326, bboxMap4326);
         }
 
     }
@@ -191,33 +218,6 @@ export class Map {
         const coordinate4326ToCoordinateCanvas = (coordinate4326: Position): Position => {
             return coordinate3857ToCoordinateCanvas(turf.toMercator(coordinate4326));
         }
-
-        // const mapUL = coordinate3857ToCoordinateCanvas([
-        //     this.bboxMap3857[0],
-        //     this.bboxMap3857[3]
-        // ]);
-        // const mapUR = coordinate3857ToCoordinateCanvas([
-        //     this.bboxMap3857[2],
-        //     this.bboxMap3857[3]
-        // ]);
-        // const mapLR = coordinate3857ToCoordinateCanvas([
-        //     this.bboxMap3857[2],
-        //     this.bboxMap3857[1]
-        // ]);
-        // const mapLL = coordinate3857ToCoordinateCanvas([
-        //     this.bboxMap3857[0],
-        //     this.bboxMap3857[1]
-        // ]);
-        // context.strokeStyle = 'green';
-        // context.setLineDash([8, 4]);
-        // context.lineWidth = 3;
-        // context.beginPath();
-        // context.moveTo(mapUL[0], mapUL[1]);
-        // context.lineTo(mapUR[0], mapUR[1]);
-        // context.lineTo(mapLR[0], mapLR[1]);
-        // context.lineTo(mapLL[0], mapLL[1]);
-        // context.lineTo(mapUL[0], mapUL[1]);
-        // context.stroke();
 
         const minTileKey = VectorTileKey.toTileKey([
             this.bboxClp3857[0],
@@ -263,14 +263,6 @@ export class Map {
                     ul3857Pos[0] + offset,
                     lr3857Pos[1] + offset
                 ]);
-                // const mapLR = coordinate3857ToCoordinateCanvas([
-                //     this.bboxMap3857[2],
-                //     this.bboxMap3857[1]
-                // ]);
-                // const mapLL = coordinate3857ToCoordinateCanvas([
-                //     this.bboxMap3857[0],
-                //     this.bboxMap3857[1]
-                // ]);
 
                 context.beginPath();
                 context.moveTo(mapUL[0], mapUL[1]);

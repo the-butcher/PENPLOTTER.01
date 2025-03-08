@@ -9,7 +9,7 @@ import { danube___new, danube___old, danube__main, danube_canal, danube_inlet, w
 
 
 
-export class MapLayerWater extends AMapLayer {
+export class MapLayerWater extends AMapLayer<Polygon> {
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
@@ -19,24 +19,26 @@ export class MapLayerWater extends AMapLayer {
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
         const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > 100);
-        this.multiPolygon!.coordinates.push(...polygons.map(p => p.coordinates));
+        this.tileData.push(...polygons);
     }
 
     async closeTile(): Promise<void> { }
 
-    async process(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processData(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
 
-        console.log(`${this.name}, processing ...`);
+        console.log(`${this.name}, processing data ...`);
 
-        turf.simplify(this.multiPolygon!, {
-            mutate: true,
-            tolerance: 0.000005,
-            highQuality: true
-        });
-        turf.cleanCoords(this.multiPolygon);
+        // turf.simplify(this.multiPolygon!, {
+        //     mutate: true,
+        //     tolerance: 0.000005,
+        //     highQuality: true
+        // });
 
-        const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(this.multiPolygon, 3, -3);
-        this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+        const outin: [number, number] = [3, -3];
+        console.log(`${this.name}, buffer in-out [${outin[0]}, ${outin[1]}] ...`);
+        const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...outin);
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+        turf.cleanCoords(this.polyData);
 
         console.log(`${this.name}, fill polygons, danube_canal ...`);
         polygonsA.push(...this.findFillPolygons(danube_canal));
@@ -47,47 +49,64 @@ export class MapLayerWater extends AMapLayer {
         console.log(`${this.name}, fill polygons, wien____main ...`);
         polygonsA.push(...this.findFillPolygons(wien____main));
 
-        console.log(`${this.name}, stat polygons, danube___old ...`);
-        polygonsA.push(danube___old);
-        console.log(`${this.name}, stat polygons, danube___new ...`);
-        polygonsA.push(danube___new);
+        // console.log(`${this.name}, stat polygons, danube___old ...`);
+        // polygonsA.push(danube___old);
+        // console.log(`${this.name}, stat polygons, danube___new ...`);
+        // polygonsA.push(danube___new);
 
-        console.log(`${this.name}, union ....`);
+        /**
+         * union of original data, fill-polygons and additional polygons
+         */
+        console.log(`${this.name}, union ...`);
         const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
         const polygonsM: Polygon[] = VectorTileGeometryUtil.destructureUnionPolygon(unionPolygon);
-        this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
 
+        console.log(`${this.name}, clipping to bboxClp4326 (1) ...`);
+        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326); // outer ring only, for potential future clipping operations
+
+        console.log(`${this.name}, done`);
+
+    }
+
+    async processLine(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+
+        console.log(`${this.name}, processing line ...`);
+
+        /**
+         * create the buffered set of polygons that determine the appearance of the water layer
+         * the result of this operation is the basis for the layer's polylines
+         */
         let distance = -5;
         const distances: number[] = [];
         for (let i = 0; i < 20; i++) {
             distances.push(distance);
             distance *= 1.25;
         }
-        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(unionPolygon, false, ...distances);
+        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(this.polyData, false, ...distances);
         let multiPolygonB = VectorTileGeometryUtil.restructureMultiPolygon(polygonsB);
 
-        console.log(`${this.name}, clipping to bboxClp4326 (1) ...`);
-        this.multiPolygon = VectorTileGeometryUtil.bboxClipMultiPolygon(this.multiPolygon, bboxClp4326); // outer ring only, for potential future clipping operations
         console.log(`${this.name}, clipping to bboxClp4326 (2) ...`);
         multiPolygonB = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonB, bboxClp4326); // with buffered rings
 
         const coordinates005: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
         this.multiPolyline005.coordinates.push(...coordinates005);
 
-        // first ring is 0.3 for a distinct water line
-        const coordinates030: Position[][] = this.multiPolygon.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-        this.multiPolyline030.coordinates.push(...coordinates030);
+        // first ring is 0.3 for a more distinct water line
+        const coordinates010: Position[][] = this.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+        this.multiPolyline010.coordinates.push(...coordinates010);
 
-        console.log(`${this.name}, clipping to bboxMap4326 ....`);
+        console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClip(bboxMap4326);
-
-        console.log(`${this.name}, done`);
 
     }
 
+
     async postProcess(): Promise<void> {
-        console.log(`${this.name}, connecting polylines ....`);
+
+        console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(2);
+
     }
 
     findFillPolygons(river: LineString, drawPoint?: (coordinate: Position, label?: string) => void): Polygon[] {
@@ -95,14 +114,14 @@ export class MapLayerWater extends AMapLayer {
         const fillPolygons: Polygon[] = [];
 
         // map and sort intersections along line
-        const intersections = turf.lineIntersect(this.multiPolygon!, river).features!;
+        const intersections = turf.lineIntersect(this.polyData!, river).features!;
         if (intersections.length > 0) {
 
             const mappedToLine = intersections.map(i => turf.nearestPointOnLine(river, i));
             mappedToLine.sort((a, b) => a.properties!.location - b.properties!.location);
 
             const lineCoordinates: Position[][] = [];
-            this.multiPolygon.coordinates.forEach(coordinates => {
+            this.polyData.coordinates.forEach(coordinates => {
                 lineCoordinates.push(coordinates[0]);
             });
             const multiLine: MultiLineString = {
@@ -186,11 +205,11 @@ export class MapLayerWater extends AMapLayer {
 
                 const polygonA: Polygon = {
                     type: 'Polygon',
-                    coordinates: this.multiPolygon!.coordinates[pointOnPolygonA.properties.multiFeatureIndex]
+                    coordinates: this.polyData!.coordinates[pointOnPolygonA.properties.multiFeatureIndex]
                 }
                 const polygonB: Polygon = {
                     type: 'Polygon',
-                    coordinates: this.multiPolygon!.coordinates[pointOnPolygonB.properties.multiFeatureIndex]
+                    coordinates: this.polyData!.coordinates[pointOnPolygonB.properties.multiFeatureIndex]
                 }
 
                 // console.log('A-');
@@ -283,7 +302,7 @@ export class MapLayerWater extends AMapLayer {
 
         super.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
 
-        this.multiPolygon.coordinates.forEach(polygon => {
+        this.polyData.coordinates.forEach(polygon => {
             drawPolygon(polygon);
         })
 

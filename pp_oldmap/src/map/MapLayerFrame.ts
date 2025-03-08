@@ -1,9 +1,9 @@
-import { BBox, Position } from "geojson";
+import { BBox, LineString, Position } from "geojson";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { AMapLayer } from "./AMapLayer";
 import * as turf from '@turf/turf';
 
-export class MapLayerFrame extends AMapLayer {
+export class MapLayerFrame extends AMapLayer<LineString> {
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
@@ -15,7 +15,7 @@ export class MapLayerFrame extends AMapLayer {
 
     async closeTile(): Promise<void> { }
 
-    async process(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processData(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing ...`);
 
@@ -43,7 +43,7 @@ export class MapLayerFrame extends AMapLayer {
             return coordinates3857;
         }
 
-        this.multiPolygon = {
+        this.polyData = {
             type: 'MultiPolygon',
             coordinates: [
                 [getCircleCoordinates3857(coordinateUL3857).map(c => turf.toWgs84(c))],
@@ -80,22 +80,14 @@ export class MapLayerFrame extends AMapLayer {
             ]
         }
 
-        // this.multiPolyline050 = {
-        //     type: 'MultiLineString',
-        //     coordinates: [
-        //         [
-        //             [bboxMap4326[0], bboxMap4326[1]], // LL
-        //             [bboxMap4326[2], bboxMap4326[1]], // LR
-        //             [bboxMap4326[2], bboxMap4326[3]], // UR
-        //             [bboxMap4326[0], bboxMap4326[3]], // UL
-        //             [bboxMap4326[0], bboxMap4326[1]], // LL
-        //         ]
-        //     ]
-        // }
-
         console.log(`${this.name}, done`);
 
     }
+
+    async processLine(): Promise<void> {
+
+    }
+
 
     async postProcess(): Promise<void> {
         // nothing

@@ -70,12 +70,21 @@ export class VectorTileFeature implements IVectorTileFeature {
     }
 
     /**
-     * resolve the feature's value for the given key, then compare that value to the given value
+     * resolve the feature's value for the given key, then compare that value to the given values
      * @param key
      * @param value
      */
     hasValue(key: string, ...value: (string | number)[]): boolean {
-        return value.find(v => this.getValue(key)?.getValue() === v) !== undefined;
+        const featureValue = this.getValue(key)?.getValue();
+        if (featureValue) {
+            if (value.length > 0) {
+                return value.some(v => featureValue === v);
+            } else {
+                return true;
+            }
+        }
+        return false;
+        // return value.map(v => this.getValue(key)?.getValue() === v) !== undefined;
     }
 
 

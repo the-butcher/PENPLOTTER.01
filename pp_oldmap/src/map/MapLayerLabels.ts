@@ -1,12 +1,12 @@
 import * as turf from '@turf/turf';
-import { Polygon, Position } from "geojson";
+import { Point, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "./AMapLayer";
 
-export class MapLayerLabels extends AMapLayer {
+export class MapLayerLabels extends AMapLayer<Point> {
 
     hasTestText = false;
 
@@ -44,7 +44,7 @@ export class MapLayerLabels extends AMapLayer {
                         });
                     });
 
-                    this.multiPolygon.coordinates.push(...multiPolygonText.coordinates);
+                    this.polyData.coordinates.push(...multiPolygonText.coordinates);
 
                 }
 
@@ -57,7 +57,7 @@ export class MapLayerLabels extends AMapLayer {
 
     async closeTile(): Promise<void> { }
 
-    async process(): Promise<void> { // bboxMap4326: BBox
+    async processData(): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing ...`);
 
@@ -66,7 +66,7 @@ export class MapLayerLabels extends AMapLayer {
             distances.push(-1);
         }
 
-        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(this.multiPolygon, true, ...distances);
+        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(this.polyData, true, ...distances);
 
         // rebuild from polygonsB
         const coordinatesB: Position[][][] = [];
@@ -75,7 +75,7 @@ export class MapLayerLabels extends AMapLayer {
             coordinatesB.push(polygonB.coordinates);
             coordinatesC.push(...polygonB.coordinates)
         });
-        this.multiPolygon = {
+        this.polyData = {
             type: 'MultiPolygon',
             coordinates: coordinatesB
         }
@@ -87,6 +87,11 @@ export class MapLayerLabels extends AMapLayer {
         console.log(`${this.name}, done`);
 
     }
+
+    async processLine(): Promise<void> {
+
+    }
+
 
     async postProcess(): Promise<void> {
         // TODO :: buffer fill similar to buildings

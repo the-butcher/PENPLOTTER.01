@@ -8,7 +8,7 @@ import { AMapLayer } from "./AMapLayer";
 import { Pen } from './Pen';
 
 
-export class MapLayerBuildings extends AMapLayer {
+export class MapLayerBuildings extends AMapLayer<Polygon> {
 
     polygons: Polygon[];
 
@@ -32,48 +32,48 @@ export class MapLayerBuildings extends AMapLayer {
 
         if (this.polygons.length > 1) {
 
-            // union of this specific tile
+            // union of this tiles polygons (faster processing on the full map later on)
             const collA = turf.featureCollection(this.polygons.map(p => turf.feature(p)));
             const unionA = turf.union(collA)!;
             if (unionA.geometry.type === 'MultiPolygon') {
                 unionA.geometry.coordinates.forEach(coordinates => {
-                    this.multiPolygon.coordinates.push(coordinates);
+                    this.polyData.coordinates.push(coordinates);
                 });
             } else if (unionA.geometry.type === 'Polygon') {
-                this.multiPolygon.coordinates.push(unionA.geometry.coordinates);
+                this.polyData.coordinates.push(unionA.geometry.coordinates);
             }
 
         } else {
             this.polygons.forEach(polygon => {
-                this.multiPolygon.coordinates.push(polygon.coordinates);
+                this.polyData.coordinates.push(polygon.coordinates);
             })
         }
 
     }
 
-    async process(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processData(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
-        console.log(`${this.name}, processing ...`);
+        console.log(`${this.name}, processing data ...`);
 
-        turf.simplify(this.multiPolygon, {
+        turf.simplify(this.polyData, {
             mutate: true,
             tolerance: 0.000012,
             highQuality: true
         });
-        turf.cleanCoords(this.multiPolygon);
+        turf.cleanCoords(this.polyData);
 
         console.log(`${this.name}, clipping to bboxClp4326 ...`);
-        this.multiPolygon = VectorTileGeometryUtil.bboxClipMultiPolygon(this.multiPolygon, bboxClp4326);
+        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
 
         // get outer rings, all holes removed
-        let polygons010 = VectorTileGeometryUtil.destructureMultiPolygon(this.multiPolygon);
+        let polygons010 = VectorTileGeometryUtil.destructureMultiPolygon(this.polyData);
         polygons010.forEach(polygonO => {
             polygonO.coordinates = polygonO.coordinates.slice(0, 1);
         });
         let multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons010);
 
         // get inner ring reversed, act like real polygons temporarily
-        let polygonsI: Polygon[] = VectorTileGeometryUtil.destructureMultiPolygon(this.multiPolygon);
+        let polygonsI: Polygon[] = VectorTileGeometryUtil.destructureMultiPolygon(this.polyData);
         const polygonsIFlat: Polygon[] = [];
         polygonsI.forEach(polygonI => {
             polygonI.coordinates.slice(1).forEach(hole => {
@@ -93,7 +93,7 @@ export class MapLayerBuildings extends AMapLayer {
         console.log(`${this.name}, clipping to bboxClp4326 (1) ...`);
         multiPolygonO = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonO, bboxClp4326);
         console.log(`${this.name}, clipping to bboxClp4326 (2) ...`);
-        this.multiPolygon = VectorTileGeometryUtil.bboxClipMultiPolygon(this.multiPolygon, bboxClp4326);
+        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
 
         // let the polygons be a litte smaller than original to account for pen width
         const inout0 = 0;
@@ -119,22 +119,29 @@ export class MapLayerBuildings extends AMapLayer {
             console.log(`${this.name}, reapplying holes ...`);
             const difference = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
             const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(difference);
-            this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+            this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
 
         }
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
-        this.multiPolygon = VectorTileGeometryUtil.bboxClipMultiPolygon(this.multiPolygon, bboxMap4326);
+        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxMap4326);
 
         // another very small in-out removes artifact at the bounding box edges
         const inoutA: number[] = [-0.11, 0.1];
         console.log(`${this.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
-        const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(this.multiPolygon, ...inoutA);
-        this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
+        const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(this.polyData, ...inoutA);
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
 
         console.log(`${this.name}, done`);
 
     }
+
+    async processLine(): Promise<void> {
+
+        // do nothing, lines are only build after clipping this layer
+
+    }
+
 
     async postProcess(): Promise<void> {
 
@@ -149,14 +156,14 @@ export class MapLayerBuildings extends AMapLayer {
             distances010.push(polygonDelta010);
         }
         console.log(`${this.name}, buffer collect 010 ...`, distances010);
-        const features010 = VectorTileGeometryUtil.bufferCollect2(this.multiPolygon, true, ...distances010);
+        const features010 = VectorTileGeometryUtil.bufferCollect2(this.polyData, true, ...distances010);
 
         const distances030: number[] = [polygonDelta030 * 2.00]; // let the first ring be well inside the finer rings
         for (let i = 0; i < polygonCount030; i++) {
             distances030.push(polygonDelta030);
         }
         console.log(`${this.name}, buffer collect 030 ...`, distances030);
-        const features030 = VectorTileGeometryUtil.bufferCollect2(this.multiPolygon, false, ...distances030);
+        const features030 = VectorTileGeometryUtil.bufferCollect2(this.polyData, false, ...distances030);
 
         const connected010 = VectorTileGeometryUtil.connectBufferFeatures(features010);
         this.multiPolyline010 = VectorTileGeometryUtil.restructureMultiPolyline(connected010);

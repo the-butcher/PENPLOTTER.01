@@ -447,14 +447,12 @@ export class VectorTileGeometryUtil {
 
     }
 
-    static getMultiPolygonText(text: string, textOffset: Position): MultiPolygon {
+    static getMultiPolygonText(text: string, textOffset: Position, scale: number = 0.008): MultiPolygon {
 
         const coordinates: Position[][][] = [];
 
         const chars = Array.from(text);
         let charOffset: Position = [...textOffset];
-        const scale = 0.008;
-
         for (let i = 0; i < chars.length; i++) {
 
             coordinates.push(...VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, charOffset).coordinates);
@@ -610,6 +608,12 @@ export class VectorTileGeometryUtil {
         ]
     }
 
+    /**
+     * parses a set of coordinates in vector-tile-space (0/512) to geojson polygons in EPSG:4326 coordinate space
+     * @param vectorTileKey
+     * @param coordinates
+     * @returns
+     */
     static toPolygons(vectorTileKey: IVectorTileKey, coordinates: IVectorTileCoordinate[]): Polygon[] {
 
         const polygons: Polygon[] = [];
@@ -632,7 +636,6 @@ export class VectorTileGeometryUtil {
 
                 // re-insert first coordinate
                 ring.push(ring[0]);
-                // nothing to be done in context
 
                 const isOuter = turf.booleanClockwise(ring);
                 const polygon: Polygon = {
@@ -655,13 +658,21 @@ export class VectorTileGeometryUtil {
 
     }
 
-    static toPoints(vectorTileKey: IVectorTileKey, coordinates: IVectorTileCoordinate[]): Position[] {
+    /**
+     * parses a set of coordinates in vector-tile-space (0/512) to geojson positions in EPSG:4326 coordinate space
+     * @param vectorTileKey
+     * @param coordinates
+     * @returns
+     */
+    static toPoints(vectorTileKey: IVectorTileKey, coordinates: IVectorTileCoordinate[]): Point[] {
 
-        const points: Position[] = [];
+        const points: Point[] = [];
         coordinates.forEach(coordinate => {
-
-            points.push(turf.toWgs84(VectorTileGeometryUtil.toMercator(vectorTileKey, [coordinate.x, coordinate.y])));
-
+            const coordinates = turf.toWgs84(VectorTileGeometryUtil.toMercator(vectorTileKey, [coordinate.x, coordinate.y]));
+            points.push({
+                type: 'Point',
+                coordinates
+            });
         });
         return points;
 
@@ -895,238 +906,12 @@ export class VectorTileGeometryUtil {
             mutate: true
         }));
 
-        // const tracedPolylineIds: string[] = [];
-        // const tracePolylineWithDeviations = (outerId: string): Position[] => {
-
-        //     tracedPolylineIds.push(outerId);
-
-        //     const outerFeature = bufferLinesById[outerId];
-        //     // const outerRing = outerFeature.geometry.coordinates[0];
-
-        //     const polyDeviations = ringDeviations.filter(d => d.outerId == outerId);
-        //     polyDeviations.sort((a, b) => (a.deviationProps.index - b.deviationProps.index) * 100 + a.deviationProps.location - b.deviationProps.location);
-
-        //     if (polyDeviations.length > 0) {
-
-        //         const coordinates: Position[] = [];
-        //         let coordIndex = 0;
-        //         for (let i = 0; i < polyDeviations.length; i++) {
-
-        //             const innerId = polyDeviations[i].innerId;
-
-        //             // up to the deviation
-        //             for (; coordIndex <= polyDeviations[i].deviationProps.index; coordIndex++) {
-        //                 coordinates.push(outerFeature.geometry.coordinates[coordIndex]);
-        //             }
-        //             // deviation point
-        //             coordinates.push(polyDeviations[i].deviationProps.point);
-        //             // around inner polygon
-        //             coordinates.push(...tracePolylineWithDeviations(innerId!));
-        //             // deviation point
-        //             coordinates.push(polyDeviations[i].deviationProps.point);
-        //         }
-        //         // rest of polygon
-        //         for (; coordIndex < outerFeature.geometry.coordinates.length; coordIndex++) {
-        //             coordinates.push(outerFeature.geometry.coordinates[coordIndex]);
-        //         }
-        //         return coordinates;
-
-        //     } else {
-        //         // no deviation from this polyline
-        //         return outerFeature.geometry.coordinates;
-        //     }
-
-        // }
-
-        // // console.log('ringDeviations', ringDeviations);
-
-        // console.log(`connecting polylines2, applying connections (${ringDeviations.length}) ...`);
-
-        // const outerFeatures = bufferLines.filter(f => !f.properties!.parent);
-        // outerFeatures.forEach(outerFeature => {
-        //     const outerId = outerFeature.properties!.id;
-        //     // if (tracedPolylineIds.indexOf(outerId) === -1) { // was not traced yet
-        //         const coordinates = tracePolylineWithDeviations(outerId);
-        //         results.push({
-        //             type: 'LineString',
-        //             coordinates
-        //         });
-        //     // }
-        // })
-
-
-        console.log(`connecting polylines2, done`);
-        return results.map(p => turf.cleanCoords(p, {
-            mutate: true
-        }));
-
 
     }
 
-    // static connectMultiPolyline2(multiPolyline: MultiLineString, toleranceMeters: number): MultiLineString {
-
-    //     const polylinesA = VectorTileGeometryUtil.destructureMultiPolyline(multiPolyline);
-    //     const polylinesB = VectorTileGeometryUtil.connectPolylines2(polylinesA, toleranceMeters);
-    //     const result = VectorTileGeometryUtil.restructureMultiPolyline(polylinesB);
-    //     console.log(`connected polylines (${polylinesA.length} -> ${polylinesB.length}) ...`);
-    //     return result;
-
-    // }
-
-    // static connectPolylines2(polylines2: LineString[], toleranceMeters: number): LineString[] {
-
-    //     // polylines2.forEach(p => {
-    //     //     const coordShift = Math.floor(Math.random() * p.coordinates.length);
-    //     //     const sliced = p.coordinates.splice(0, coordShift);
-    //     //     p.coordinates.push(...sliced);
-    //     // });
-
-    //     const inclone: IPolylineWithLength[] = polylines2.map(p => {
-    //         return {
-    //             ...p,
-    //             length: turf.length(turf.feature(p))
-    //         }
-    //     });
-
-    //     // sort from small to large
-    //     console.log(`connecting polylines2, sorting ...`);
-    //     inclone.sort((a, b) => a.length - b.length);
-
-    //     // console.log('inclone', inclone);
-
-    //     const ringDeviations: IRingDeviation[] = [];
-
-    //     console.log(`connecting polylines2, finding connections ...`);
-    //     for (let curPolylineIndexA = 0; curPolylineIndexA < inclone.length - 1; curPolylineIndexA++) {
-
-    //         if (curPolylineIndexA % 100 === 0) {
-    //             console.log(`connecting polylines2, finding connections (${curPolylineIndexA}/${inclone.length}) ...`);
-    //         }
-
-    //         let minDistance = toleranceMeters;
-    //         let curDistance: number;
-
-    //         let minPoint: Feature<Point, {
-    //             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //             [key: string]: any;
-    //             dist: number;
-    //             index: number;
-    //             multiFeatureIndex: number;
-    //             location: number;
-    //         }> | undefined;
-    //         let curPoint: Feature<Point, {
-    //             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //             [key: string]: any;
-    //             dist: number;
-    //             index: number;
-    //             multiFeatureIndex: number;
-    //             location: number;
-    //         }> | undefined;
-
-    //         let minPolylineIndexB: number | undefined;
-
-    //         const position0L = inclone[curPolylineIndexA].coordinates[inclone[curPolylineIndexA].coordinates.length - 1]; // last coordinate of polyline a
-    //         for (let curPolylineIndexB = curPolylineIndexA + 1; curPolylineIndexB < inclone.length; curPolylineIndexB++) {
-
-    //             const bbox = turf.bbox(inclone[curPolylineIndexB]);
-    //             if (position0L[0] > bbox[0] && position0L[0] < bbox[2] && position0L[1] > bbox[1] && position0L[1] < bbox[3]) {
-
-    //                 turf.cleanCoords(inclone[curPolylineIndexB], {
-    //                     mutate: true
-    //                 });
-
-    //                 curPoint = turf.nearestPointOnLine(inclone[curPolylineIndexB], position0L);
-    //                 curDistance = turf.distance(curPoint, position0L, {
-    //                     units: 'meters'
-    //                 });
-    //                 if (curDistance < minDistance) {
-    //                     minDistance = curDistance
-    //                     minPoint = curPoint;
-    //                     minPolylineIndexB = curPolylineIndexB;
-    //                     break;
-    //                 }
-
-    //             }
-
-    //         }
-
-    //         if (minPoint && minPolylineIndexB) {
-
-    //             ringDeviations.push({
-    //                 smPolygonIndex: curPolylineIndexA,
-    //                 lgPolygonIndex: minPolylineIndexB,
-    //                 deviationProps: {
-    //                     ...minPoint.properties,
-    //                     point: minPoint.geometry.coordinates
-    //                 }
-    //             });
-
-    //         }
-
-    //     }
-
-    //     const tracedPolylineIndices: number[] = [];
-    //     const tracePolylineWithDeviations = (curPolylineIndex: number): Position[] => {
-
-    //         tracedPolylineIndices.push(curPolylineIndex);
-
-    //         const polyDeviations = ringDeviations.filter(d => d.lgPolygonIndex == curPolylineIndex);
-    //         polyDeviations.sort((a, b) => (a.deviationProps.index - b.deviationProps.index) * 100 + a.deviationProps.location - b.deviationProps.location);
-
-    //         if (polyDeviations.length > 0) {
-
-    //             const coordinates: Position[] = [];
-    //             let coordIndex = 0;
-    //             for (let i = 0; i < polyDeviations.length; i++) {
-    //                 // up to the deviation
-    //                 for (; coordIndex <= polyDeviations[i].deviationProps.index; coordIndex++) {
-    //                     coordinates.push(inclone[curPolylineIndex].coordinates[coordIndex]);
-    //                 }
-    //                 // deviation point
-    //                 coordinates.push(polyDeviations[i].deviationProps.point);
-    //                 // around inner polygon
-    //                 coordinates.push(...tracePolylineWithDeviations(polyDeviations[i].smPolygonIndex!));
-    //                 // deviation point
-    //                 coordinates.push(polyDeviations[i].deviationProps.point);
-    //             }
-    //             // rest of polygon
-    //             for (; coordIndex < inclone[curPolylineIndex].coordinates.length; coordIndex++) {
-    //                 coordinates.push(inclone[curPolylineIndex].coordinates[coordIndex]);
-    //             }
-    //             return coordinates;
-
-    //         } else {
-    //             // no deviation from this polyline
-    //             return inclone[curPolylineIndex].coordinates;
-    //         }
-
-    //     }
-
-    //     // console.log('ringDeviations', ringDeviations);
-
-    //     console.log(`connecting polylines2, applying connections (${ringDeviations.length}) ...`);
-    //     const results: LineString[] = [];
-    //     for (let curPolylineIndex = inclone.length - 1; curPolylineIndex >= 0; curPolylineIndex--) {
-
-    //         if (tracedPolylineIndices.indexOf(curPolylineIndex) === -1) {
-    //             const coordinates = tracePolylineWithDeviations(curPolylineIndex);
-    //             results.push({
-    //                 type: 'LineString',
-    //                 coordinates
-    //             })
-    //         }
-
-    //     }
-
-    //     console.log(`connecting polylines2, done`);
-    //     return results.map(p => turf.cleanCoords(p, {
-    //         mutate: true
-    //     }));
-
-    // }
-
     /**
-     * convert a set of vector-tile-coordinates to an array of line-strings
+     * parses a set of coordinates in vector-tile coordinate space (0/512) to geojson lines in EPSG:4326 coordinate space
+     * lines are clipped to polygon boundaries because it has shown to be complex to reliably find overlap between lines
      * @param vectorTileKey
      * @param coordinates
      * @returns

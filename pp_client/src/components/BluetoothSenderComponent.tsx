@@ -33,8 +33,12 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     const [positionCharacteristic, setPositionCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
 
     const [buffSize, setBuffSize] = useState<number>(GeometryUtil.BT___BUFF_MAX);
+    const [position, setPosition] = useState<IBlockPlanar>();
+
     const [buffCoords, setBuffCoords] = useState<IBlockPlanar[]>([]);
     const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(0);
+
+    const positionCallbackRef = useRef<(position: IBlockPlanar) => void>();
 
     const penDistances: number[] = [
         0.1,
@@ -43,8 +47,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     ];
     const [penDistance, setPenDistance] = useState<number>(penDistances[0]);
 
-    const blockSendPendingRef = useRef<boolean>(false);
-    const writeAndReadTo = useRef<number>(-1);
+    const gattOperationPendingRef = useRef<boolean>(false);
+    const readBuffSizeTo = useRef<number>(-1);
+    const readPositionTo = useRef<number>(-1);
 
     const abortPen = () => {
         setBuffCoords([]);
@@ -60,8 +65,13 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
         console.log('moving pen to', movePosition)
         const _buffCoords: IBlockPlanar[] = [];
         for (let i = 0; i < GeometryUtil.BT___BUFF_BLK; i++) {
-            _buffCoords.push(movePosition);
+            _buffCoords.push({
+                ...movePosition,
+                vi: 5,
+                vo: 5
+            });
         }
+        // console.log('moving pen to', _buffCoords)
         setBuffCoords(_buffCoords);
 
     }
@@ -94,14 +104,17 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen home`);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                x: 0,
-                y: 0,
-                z: 0,
-            });
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            if (_position) {
+                movePenTo({
+                    ..._position,
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                });
+            }
+        };
+        readPosition();
 
     }
 
@@ -109,12 +122,15 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen y up by`, penDistance);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                y: position.y - penDistance,
-            });
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            if (_position) {
+                movePenTo({
+                    ..._position,
+                    y: _position.y - penDistance,
+                });
+            }
+        };
+        readPosition();
 
     }
 
@@ -122,12 +138,15 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen y down by`, penDistance);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                y: position.y + penDistance,
-            });
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            if (_position) {
+                movePenTo({
+                    ..._position,
+                    y: _position.y + penDistance,
+                });
+            }
+        };
+        readPosition();
 
     }
 
@@ -135,12 +154,15 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen x left by`, penDistance);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                x: position.x - penDistance,
-            });
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            if (_position) {
+                movePenTo({
+                    ..._position,
+                    x: _position.x - penDistance,
+                });
+            }
+        };
+        readPosition();
 
     }
 
@@ -148,12 +170,15 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.log(`📞 moving pen x right by`, penDistance);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                x: position.x + penDistance,
-            });
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            if (_position) {
+                movePenTo({
+                    ..._position,
+                    x: _position.x + penDistance,
+                });
+            }
+        };
+        readPosition();
 
     }
 
@@ -161,26 +186,33 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen z up by`, penDistance);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                z: Math.min(GeometryUtil.Z_VALUE_PEN_U, position.z + penDistance),
-            });
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            if (_position) {
+                movePenTo({
+                    ..._position,
+                    z: Math.min(GeometryUtil.Z_VALUE_PEN_U, _position.z + penDistance),
+                });
+            }
+        };
+        readPosition();
 
     }
 
     const movePenZDown = () => {
 
-        console.debug(`📞 moving pen z down by`, penDistance);
+        console.debug(`📞 moving pen z down (1) by`, penDistance, 'from', position);
 
-        readPosition().then(position => {
-            movePenTo({
-                ...position,
-                z: Math.max(GeometryUtil.Z_VALUE_PEN_D, position.z - penDistance),
-            });
-
-        });
+        positionCallbackRef.current = (_position: IBlockPlanar) => {
+            console.debug(`📞 moving pen z down (2) by`, penDistance, 'from', _position);
+            if (_position) {
+                console.debug(`📞 moving pen z down (3) by`, penDistance, 'from', _position);
+                movePenTo({
+                    ..._position,
+                    z: Math.max(GeometryUtil.Z_VALUE_PEN_D, _position.z - penDistance),
+                })
+            }
+        };
+        readPosition();
 
     }
 
@@ -226,14 +258,14 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 setBuffSizeCharacteristic(undefined);
                 setBuffValsCharacteristic(undefined);
                 setPositionCharacteristic(undefined);
-                window.clearTimeout(writeAndReadTo.current);
+                window.clearTimeout(readBuffSizeTo.current);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'disconnected'
                 });
             }
         }).catch((e: unknown) => {
-            window.clearTimeout(writeAndReadTo.current);
+            window.clearTimeout(readBuffSizeTo.current);
             handleConnBleProperties({
                 // device implicitly undefined
                 message: 'failed to connect to gatt server',
@@ -270,7 +302,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 });
 
             }).catch((e: unknown) => {
-                window.clearTimeout(writeAndReadTo.current);
+                window.clearTimeout(readBuffSizeTo.current);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'failed to retrieve charateristics',
@@ -279,7 +311,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             });
 
         }).catch((e: unknown) => {
-            window.clearTimeout(writeAndReadTo.current);
+            window.clearTimeout(readBuffSizeTo.current);
             handleConnBleProperties({
                 // device implicitly undefined
                 message: 'failed to retrieve primary service',
@@ -289,14 +321,28 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     }, [gatt]);
 
-    const readPosition = async (): Promise<IBlockPlanar> => {
+    const readPosition = () => {
 
         if (positionCharacteristic) {
 
-            const data = await positionCharacteristic.readValue();
-            const position = BlockUtil.parseBlockBytes(data);
-            console.log(position);
-            return position;
+            if (!gattOperationPendingRef.current) {
+
+                gattOperationPendingRef.current = true;
+                positionCharacteristic.readValue().then(data => {
+                    gattOperationPendingRef.current = false;
+                    const position = BlockUtil.parseBlockBytes(data);
+                    console.log('got new position', position);
+                    setPosition(position);
+                })
+
+            } else {
+
+                window.clearTimeout(readPositionTo.current);
+                readPositionTo.current = window.setTimeout(() => {
+                    readPosition();
+                }, 250);
+
+            }
 
         } else {
             throw (new Error("failed to read position due to undefined positionCharacteristic"));
@@ -308,18 +354,20 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         if (buffSizeCharacteristic) {
 
-            if (!blockSendPendingRef.current) {
+            if (!gattOperationPendingRef.current) {
+
+                gattOperationPendingRef.current = true;
 
                 buffSizeCharacteristic.readValue().then(value => {
 
+                    gattOperationPendingRef.current = false;
+
                     const _buffSize = value.getUint32(0, true);
-                    console.log('_buffSize', _buffSize);
+                    // console.log('_buffSize', _buffSize);
                     setBuffSize(_buffSize);
 
-
-
                 }).catch((e: unknown) => {
-                    window.clearTimeout(writeAndReadTo.current);
+                    window.clearTimeout(readBuffSizeTo.current);
                     handleConnBleProperties({
                         // device implicitly undefined
                         message: 'failed to retrieve buffer size',
@@ -330,8 +378,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             }
 
             // skip and read the buffer size again as soon as possible
-            window.clearTimeout(writeAndReadTo.current);
-            writeAndReadTo.current = window.setTimeout(() => {
+            window.clearTimeout(readBuffSizeTo.current);
+            readBuffSizeTo.current = window.setTimeout(() => {
                 readBuffSize();
             }, 250);
 
@@ -339,15 +387,26 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     }
 
+    useEffect(() => {
 
+        console.log('⚙ updating BluetoothSenderComponent (position)', position);
+
+        if (position && positionCallbackRef.current) {
+            positionCallbackRef.current(position);
+            positionCallbackRef.current = undefined;
+            setPosition(undefined);
+        }
+
+
+    }, [position]);
 
     useEffect(() => {
 
         console.log('⚙ updating BluetoothSenderComponent (buffSize)', buffSize);
 
-        if (buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4 && !blockSendPendingRef.current) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
+        if (!gattOperationPendingRef.current && buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
 
-            blockSendPendingRef.current = true;
+            gattOperationPendingRef.current = true;
 
             const _blockCoordsSplice = buffCoords.splice(0, GeometryUtil.BT___BUFF_BLK);
             // fill to GeometryUtil.BT___BUFF_BLK entries in case the splice command provided less than GeometryUtil.BT___BUFF_BLK (happens at the end of file)
@@ -369,10 +428,10 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 // console.log('before sending blockBytes, ...');
                 buffValsCharacteristic?.writeValue(blockBytes).then(() => {
 
-                    blockSendPendingRef.current = false;
+                    gattOperationPendingRef.current = false;
 
                 }).catch((e: unknown) => {
-                    window.clearTimeout(writeAndReadTo.current);
+                    window.clearTimeout(readBuffSizeTo.current);
                     handleConnBleProperties({
                         // device implicitly undefined
                         message: 'failed to write commands',
@@ -396,8 +455,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         if (buffSizeCharacteristic && buffValsCharacteristic && positionCharacteristic) {
 
-            window.clearTimeout(writeAndReadTo.current);
-            writeAndReadTo.current = window.setTimeout(() => {
+            window.clearTimeout(readBuffSizeTo.current);
+            readBuffSizeTo.current = window.setTimeout(() => {
                 readBuffSize();
             }, 10);
 
@@ -444,29 +503,29 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
             <Grid item xs={3}></Grid>
             <Grid item xs={3}>
-                <IconButton aria-label="y-axis up" onClick={() => movePenYUp()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="y-axis up" onClick={() => movePenYUp()}>
                     <KeyboardArrowUpIcon />
                 </IconButton>
             </Grid>
             <Grid item xs={3}></Grid>
             <Grid item xs={3}>
-                <IconButton aria-label="pen up" onClick={() => movePenZUp()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="pen up" onClick={() => movePenZUp()}>
                     <ArrowUpwardIcon />
                 </IconButton>
             </Grid>
 
             <Grid item xs={3}>
-                <IconButton aria-label="x-axis left" onClick={() => movePenXLeft()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="x-axis left" onClick={() => movePenXLeft()}>
                     <KeyboardArrowLeftIcon />
                 </IconButton>
             </Grid>
             <Grid item xs={3}>
-                <IconButton aria-label="pen home" onClick={() => movePenHome()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="pen home" onClick={() => movePenHome()}>
                     <AdjustIcon />
                 </IconButton>
             </Grid>
             <Grid item xs={3}>
-                <IconButton aria-label="x-axis right" onClick={() => movePenXRight()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="x-axis right" onClick={() => movePenXRight()}>
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </Grid>
@@ -474,18 +533,19 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
             <Grid item xs={3}></Grid>
             <Grid item xs={3}>
-                <IconButton aria-label="y-axis down" onClick={() => movePenYDown()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="y-axis down" onClick={() => movePenYDown()}>
                     <KeyboardArrowDownIcon />
                 </IconButton>
             </Grid>
             <Grid item xs={3}></Grid>
             <Grid item xs={3}>
-                <IconButton aria-label="pen down" onClick={() => movePenZDown()}>
+                <IconButton disabled={!positionCharacteristic} aria-label="pen down" onClick={() => movePenZDown()}>
                     <ArrowDownwardIcon />
                 </IconButton>
             </Grid>
             <Grid item xs={12}>
                 <Button
+                    disabled={!positionCharacteristic}
                     variant={'contained'}
                     onClick={() => resetAtPosition()}
                     startIcon={<RestartAltIcon />}

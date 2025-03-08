@@ -70,12 +70,13 @@ function MapLayerComponent(props: IMapLayerComponentProps) {
         return penWidth * 12;
         // return 0.2;
     }
+    const stroke = 'rgba(0, 0, 0, 1)';
 
     return (
         <g id={id}>
             <path
                 style={{
-                    stroke: 'black',
+                    stroke,
                     strokeWidth: toStrokeWidth(0.05),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
@@ -87,7 +88,7 @@ function MapLayerComponent(props: IMapLayerComponentProps) {
             />
             <path
                 style={{
-                    stroke: 'black',
+                    stroke,
                     strokeWidth: toStrokeWidth(0.1),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
@@ -99,7 +100,7 @@ function MapLayerComponent(props: IMapLayerComponentProps) {
             />
             <path
                 style={{
-                    stroke: 'black',
+                    stroke,
                     strokeWidth: toStrokeWidth(0.2),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
@@ -111,7 +112,7 @@ function MapLayerComponent(props: IMapLayerComponentProps) {
             />
             <path
                 style={{
-                    stroke: 'black',
+                    stroke,
                     strokeWidth: toStrokeWidth(0.5),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',

@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, MultiLineString, MultiPolygon, Polygon, Position } from "geojson";
+import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -7,12 +7,17 @@ import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "./AMapLayer";
 import { Map } from './Map';
 
-export class MapLayerRoads extends AMapLayer {
+export class MapLayerRoads extends AMapLayer<LineString> {
 
     multiPolyline02: MultiLineString;
     multiPolyline34: MultiLineString;
     multiPolyline56: MultiLineString;
     multiPolyline78: MultiLineString;
+
+    polygons02: Polygon[];
+    polygons34: Polygon[];
+    polygons56: Polygon[];
+    polygons78: Polygon[];
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
@@ -32,6 +37,10 @@ export class MapLayerRoads extends AMapLayer {
             type: 'MultiLineString',
             coordinates: []
         };
+        this.polygons02 = [];
+        this.polygons34 = [];
+        this.polygons56 = [];
+        this.polygons78 = [];
     }
 
     async openTile(): Promise<void> { }
@@ -55,9 +64,9 @@ export class MapLayerRoads extends AMapLayer {
 
     async closeTile(): Promise<void> { }
 
-    async process(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processData(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
 
-        console.log(`${this.name}, processing ...`);
+        console.log(`${this.name}, processing data ...`);
 
         console.log(`${this.name}, clipping to bboxClp4326 ...`);
         this.multiPolyline02 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline02, bboxClp4326);
@@ -66,45 +75,54 @@ export class MapLayerRoads extends AMapLayer {
         this.multiPolyline78 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline78, bboxClp4326);
 
         // highways - do not join with general streets
-        const polygons02: Polygon[] = []
         if (this.multiPolyline02.coordinates.length > 0) {
             const linebuffer02 = turf.buffer(this.multiPolyline02, 6, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
-            polygons02.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer02.geometry));
+            this.polygons02.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer02.geometry));
         }
-        const multiPolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(polygons02);
 
         // larger streets
-        const polygons34: Polygon[] = []
         if (this.multiPolyline34.coordinates.length > 0) {
             const linebuffer34 = turf.buffer(this.multiPolyline34, 5, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
-            polygons34.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer34.geometry));
+            this.polygons34.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer34.geometry));
         }
-        const multiPolygon34 = VectorTileGeometryUtil.restructureMultiPolygon(polygons34);
 
         // smaller streets
-        const polygons56: Polygon[] = []
         if (this.multiPolyline56.coordinates.length > 0) {
             const linebuffer56 = turf.buffer(this.multiPolyline56, 4, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
-            polygons56.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer56.geometry));
+            this.polygons56.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer56.geometry));
         }
-        const multiPolygon56 = VectorTileGeometryUtil.restructureMultiPolygon(polygons56);
 
         // smallest streets
-        const polygons78: Polygon[] = []
         if (this.multiPolyline78.coordinates.length > 0) {
-            const linebuffer78 = turf.buffer(this.multiPolyline78, 1, {
+            const linebuffer78 = turf.buffer(this.multiPolyline78, 2, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
-            polygons78.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer78.geometry));
+            this.polygons78.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer78.geometry));
         }
-        // const multiPolygon78 = VectorTileGeometryUtil.restructureMultiPolygon(polygons78);
 
+
+        // rebuild multipolygon
+        const union08 = VectorTileGeometryUtil.unionPolygons([...this.polygons02, ...this.polygons34, ...this.polygons56, ...this.polygons78]);
+        const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);
+
+        console.log(`${this.name}, done`);
+
+    }
+
+    async processLine(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+
+        console.log(`${this.name}, processing line ...`);
+
+        const multiPolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(this.polygons02);
+        const multiPolygon34 = VectorTileGeometryUtil.restructureMultiPolygon(this.polygons34);
+        const multiPolygon56 = VectorTileGeometryUtil.restructureMultiPolygon(this.polygons56);
 
         const coordinates02: Position[][] = multiPolygon02.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
         const multiOutline02: MultiLineString = {
@@ -128,8 +146,8 @@ export class MapLayerRoads extends AMapLayer {
         // clip bigger streets away from smaller streets
         multiOutline56 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon34));
 
-        // clip bigger and smaller streets away from smaller streets
-        const union36 = VectorTileGeometryUtil.unionPolygons([...polygons34, ...polygons56]);
+        // clip bigger and smaller streets away from smallest streets
+        const union36 = VectorTileGeometryUtil.unionPolygons([...this.polygons34, ...this.polygons56]);
         this.multiPolyline78 = VectorTileGeometryUtil.clipMultiPolyline(this.multiPolyline78, turf.feature(union36));
 
         // clip away highways from all streets
@@ -142,19 +160,16 @@ export class MapLayerRoads extends AMapLayer {
         this.multiPolyline030.coordinates.push(...this.multiPolyline78.coordinates);
         this.multiPolyline030.coordinates.push(...multiOutline02.coordinates);
 
-        const union08 = VectorTileGeometryUtil.unionPolygons([...polygons02, ...polygons34, ...polygons56, ...polygons78]);
-        const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
-        this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);
-
-        console.log(`${this.name}, clipping to bboxMap4326 ....`);
+        console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClip(bboxMap4326);
 
         console.log(`${this.name}, done`);
 
     }
 
+
     async postProcess(): Promise<void> {
-        console.log(`${this.name}, connecting polylines ....`);
+        console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(5);
     }
 
@@ -188,7 +203,7 @@ export class MapLayerRoads extends AMapLayer {
 
         super.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
 
-        this.multiPolygon.coordinates.forEach(polygon => {
+        this.polyData.coordinates.forEach(polygon => {
             drawPolygon(polygon);
         })
 

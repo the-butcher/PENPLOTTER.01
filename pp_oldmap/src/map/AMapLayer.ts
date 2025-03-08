@@ -1,21 +1,29 @@
 import * as turf from '@turf/turf';
-import { BBox, MultiLineString, MultiPolygon, Position } from "geojson";
+import { BBox, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
-import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
+import { UnionPolygon, VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { ISkipOptions } from './ISkipOptions';
 
+export type MAP_LAYER_GEOMETRY_TYPES = Polygon | LineString | Point;
+
 export interface ILayerProps {
-    createLayerInstance: () => AMapLayer;
+    createLayerInstance: () => AMapLayer<MAP_LAYER_GEOMETRY_TYPES>;
 }
 
-export abstract class AMapLayer implements IVectorTileFeatureFilter {
+export abstract class AMapLayer<F> implements IVectorTileFeatureFilter {
 
     readonly name: string;
     readonly filter: IVectorTileFeatureFilter;
 
-    multiPolygon: MultiPolygon; // working object
+    /**
+     * this layers raw data, Polygons, LinesStrings or Points
+     */
+    tileData: F[];
+    polyData: MultiPolygon; // polygon (even for line and point layers) describing an area around this layer's features, meant to be ready after the processPoly method has run
+    clipData: MultiPolygon; // polygon (even for line and point layers) describing an area around this layer's features, after clipping
+
     multiPolyline005: MultiLineString;
     multiPolyline010: MultiLineString;
     multiPolyline030: MultiLineString;
@@ -24,7 +32,12 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         this.name = name;
         this.filter = filter;
-        this.multiPolygon = {
+        this.tileData = [];
+        this.polyData = {
+            type: 'MultiPolygon',
+            coordinates: []
+        };
+        this.clipData = {
             type: 'MultiPolygon',
             coordinates: []
         };
@@ -54,7 +67,7 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
     abstract accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void>;
     abstract closeTile(vectorTileKey: IVectorTileKey): Promise<void>;
 
-    clipToLayerMultipolygon(layer: AMapLayer, distance: number, options: ISkipOptions = {
+    clipToLayerMultipolygon(layer: AMapLayer<MAP_LAYER_GEOMETRY_TYPES>, distance: number, options: ISkipOptions = {
         skip005: false,
         skip010: false,
         skip030: false,
@@ -62,10 +75,10 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
         skipMlt: true
     }): void {
 
-        if (layer?.multiPolygon && layer.multiPolygon.coordinates.length > 0) {
+        if (layer?.polyData && layer.polyData.coordinates.length > 0) {
 
             // add some buffer margin for better readability
-            const bufferResult = turf.buffer(layer.multiPolygon, distance, {
+            const bufferResult = turf.buffer(layer.polyData, distance, {
                 units: 'meters'
             });
             turf.simplify(bufferResult!, {
@@ -90,24 +103,38 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
                 this.multiPolyline050 = VectorTileGeometryUtil.clipMultiPolyline(this.multiPolyline050, bufferResult!, distance);
             }
             if (!options?.skipMlt) {
-                const featureC = turf.featureCollection([turf.feature(this.multiPolygon), bufferResult!]);
-                const difference = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
+                const featureC = turf.featureCollection([turf.feature(this.polyData), bufferResult!]);
+                const difference: UnionPolygon = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
                 const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(difference);
-                this.multiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+                this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
             }
 
         }
 
     }
 
-    abstract process(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
+    /**
+     * meant to run after all data has been acquired
+     * @param bboxClp4326
+     * @param bboxMap4326
+     */
+    abstract processData(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
 
-    abstract postProcess(): Promise<void>;
+    /**
+     * build a base set of polylines, ready to be clipped
+     * layers that rely on final lines after clipping should have their data ready in this step
+     * @param bboxClp4326
+     * @param bboxMap4326
+     */
+    abstract processLine(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
 
-    // abstract drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void;
+
+    abstract postProcess(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
+
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
 
         context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
+        context.fillStyle = 'rgba(0, 0, 0, 0.20)';
 
         const drawRing = (ring: Position[]) => {
             let isMove = true;
@@ -128,7 +155,21 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
             context.stroke();
         }
 
+        const drawPolygon = (polygon: Position[][]) => {
+            context.beginPath();
+            polygon.forEach(ring => {
+                // console.log('ring', ring);
+                drawRing(ring);
+            });
+            context.fill();
+            // context.stroke();
+        }
+
         const ratio = 10;
+
+        this.polyData.coordinates.forEach(polygon => {
+            drawPolygon(polygon);
+        })
 
         context.lineWidth = 0.05 * ratio;
         this.multiPolyline005.coordinates.forEach(polyline005 => {
@@ -140,7 +181,7 @@ export abstract class AMapLayer implements IVectorTileFeatureFilter {
             drawPolyline(polyline010);
         });
 
-        context.lineWidth = 0.30 * ratio;
+        context.lineWidth = 0.20 * ratio;
         this.multiPolyline030.coordinates.forEach(polyline030 => {
             drawPolyline(polyline030);
         });
