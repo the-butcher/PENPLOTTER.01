@@ -6,6 +6,7 @@ import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "./AMapLayer";
 import { Pen } from './Pen';
+import { Map } from './Map';
 
 
 export class MapLayerBuildings extends AMapLayer<Polygon> {
@@ -126,19 +127,17 @@ export class MapLayerBuildings extends AMapLayer<Polygon> {
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxMap4326);
 
-        // another very small in-out removes artifact at the bounding box edges
+        // another very small in-out removes artifacts at the bounding box edges
         const inoutA: number[] = [-0.11, 0.1];
         console.log(`${this.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
         const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(this.polyData, ...inoutA);
         this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
 
-        console.log(`${this.name}, done`);
-
     }
 
     async processLine(): Promise<void> {
 
-        // do nothing, lines are only build after clipping this layer
+        // do nothing, lines are only built after clipping this layer
 
     }
 
@@ -147,8 +146,8 @@ export class MapLayerBuildings extends AMapLayer<Polygon> {
 
         const polygonCount010 = 3;
         const polygonCount030 = 50;
-        const polygonDelta010 = Pen.getPenWidthMeters(0.10, 25000) * -0.60;
-        const polygonDelta030 = Pen.getPenWidthMeters(0.20, 25000) * -0.60;
+        const polygonDelta010 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
+        const polygonDelta030 = Pen.getPenWidthMeters(0.20, Map.SCALE) * -0.60;
 
         // thinner rings for better edge precision
         const distances010: number[] = [];
@@ -174,64 +173,5 @@ export class MapLayerBuildings extends AMapLayer<Polygon> {
         this.cleanCoords();
 
     }
-
-    // drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
-
-    //     context.fillStyle = 'rgba(255, 0, 0, 0.10)';
-
-    //     const drawRing = (ring: Position[]) => {
-    //         let isMove = true;
-    //         ring.forEach(coordinate => {
-    //             const coordinateCanvas = coordinate4326ToCoordinateCanvas(coordinate);
-    //             if (isMove) {
-    //                 context.moveTo(coordinateCanvas[0], coordinateCanvas[1]);
-    //             } else {
-    //                 context.lineTo(coordinateCanvas[0], coordinateCanvas[1]);
-    //             }
-    //             isMove = false;
-    //         });
-    //     }
-
-    //     const drawPolygon = (polygon: Position[][]) => {
-    //         context.beginPath();
-    //         polygon.forEach(ring => {
-    //             drawRing(ring);
-    //         });
-    //         context.fill();
-    //     }
-
-    //     const drawPolyline = (polyline: Position[]) => {
-    //         context.beginPath();
-    //         drawRing(polyline);
-    //         context.stroke();
-    //     }
-
-    //     super.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
-
-    //     // const ratio = 10;
-
-    //     // context.strokeStyle = 'rgba(0, 255, 0, 1)';
-    //     // context.lineWidth = 0.05 * ratio;
-    //     // this.multiPolyline010.coordinates.forEach(polyline005 => {
-    //     //     drawPolyline(polyline005);
-    //     // });
-
-    //     // context.strokeStyle = 'rgba(255, 0, 0, 1)';
-    //     // context.lineWidth = 0.30 * ratio;
-    //     // this.multiPolyline030.coordinates.forEach(polyline030 => {
-    //     //     drawPolyline(polyline030);
-    //     // });
-
-    //     // context.strokeStyle = 'rgba(0, 0, 255, 1)';
-    //     // context.lineWidth = 0.50 * ratio;
-    //     // this.multiPolyline050.coordinates.forEach(polyline050 => {
-    //     //     drawPolyline(polyline050);
-    //     // });
-
-    //     this.multiPolygon.coordinates.forEach(polygon => {
-    //         drawPolygon(polygon);
-    //     })
-
-    // }
 
 }

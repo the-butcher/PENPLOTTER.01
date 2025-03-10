@@ -9,10 +9,12 @@ import * as turf from '@turf/turf';
 export class MapLayerLines extends AMapLayer<LineString> {
 
     private getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString;
+    private dashArray: [number, number];
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0]) {
         super(name, filter);
         this.getDefaultPolylineContainer = getDefaultPolylineContainer;
+        this.dashArray = dashArray;
     }
 
     async openTile(): Promise<void> { }
@@ -20,7 +22,6 @@ export class MapLayerLines extends AMapLayer<LineString> {
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
         const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
         this.tileData.push(...polylines);
-        // this.getDefaultPolylineContainer(this).coordinates.push(...polylines.map(p => p.coordinates));
     }
 
     async closeTile(): Promise<void> { }
@@ -41,8 +42,6 @@ export class MapLayerLines extends AMapLayer<LineString> {
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
 
-        console.log(`${this.name}, done`);
-
     }
 
     async processLine(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
@@ -52,9 +51,12 @@ export class MapLayerLines extends AMapLayer<LineString> {
         const tileDataMult = VectorTileGeometryUtil.restructureMultiPolyline(this.tileData);
         this.getDefaultPolylineContainer(this).coordinates.push(...tileDataMult.coordinates);
 
-        this.bboxClip(bboxMap4326);
+        if (this.dashArray[1] > 0) {
+            const dashedPolyline = VectorTileGeometryUtil.dashMultiPolyline(this.getDefaultPolylineContainer(this), this.dashArray);
+            this.getDefaultPolylineContainer(this).coordinates = dashedPolyline.coordinates;
+        }
 
-        console.log(`${this.name}, done`);
+        this.bboxClip(bboxMap4326);
 
     }
 

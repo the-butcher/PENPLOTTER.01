@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
+import { BBox, GeoJsonObject, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -12,7 +12,7 @@ export interface ILayerProps {
     createLayerInstance: () => AMapLayer<MAP_LAYER_GEOMETRY_TYPES>;
 }
 
-export abstract class AMapLayer<F> implements IVectorTileFeatureFilter {
+export abstract class AMapLayer<F extends GeoJsonObject> implements IVectorTileFeatureFilter {
 
     readonly name: string;
     readonly filter: IVectorTileFeatureFilter;
@@ -128,7 +128,6 @@ export abstract class AMapLayer<F> implements IVectorTileFeatureFilter {
      */
     abstract processLine(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
 
-
     abstract postProcess(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
 
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
@@ -158,7 +157,6 @@ export abstract class AMapLayer<F> implements IVectorTileFeatureFilter {
         const drawPolygon = (polygon: Position[][]) => {
             context.beginPath();
             polygon.forEach(ring => {
-                // console.log('ring', ring);
                 drawRing(ring);
             });
             context.fill();
@@ -167,9 +165,16 @@ export abstract class AMapLayer<F> implements IVectorTileFeatureFilter {
 
         const ratio = 10;
 
+        // this.tileData.forEach(tileGeometry => {
+        //     if (tileGeometry.type === 'Polygon') {
+        //         const tilePolygon = (tileGeometry as unknown) as Polygon;
+        //         drawPolygon(tilePolygon.coordinates);
+        //     }
+        // })
+
         this.polyData.coordinates.forEach(polygon => {
             drawPolygon(polygon);
-        })
+        });
 
         context.lineWidth = 0.05 * ratio;
         this.multiPolyline005.coordinates.forEach(polyline005 => {
@@ -235,6 +240,9 @@ export abstract class AMapLayer<F> implements IVectorTileFeatureFilter {
             mutate: true
         });
         turf.cleanCoords(this.multiPolyline050, {
+            mutate: true
+        });
+        turf.cleanCoords(this.polyData, {
             mutate: true
         });
     }

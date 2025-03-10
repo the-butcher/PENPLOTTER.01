@@ -1,22 +1,21 @@
 import * as turf from '@turf/turf';
 import { BBox, Polygon, Position } from "geojson";
-import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
-import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
-import { IVectorTileKey } from "../vectortile/IVectorTileKey";
-import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
-import { AMapLayer } from "./AMapLayer";
+import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
+import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
+import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
+import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { AMapLayer } from '../AMapLayer';
+
 
 export class MapLayerMisc extends AMapLayer<Polygon> {
 
     outin: [number, number];
     minArea: number;
-    fillStyle: string;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, outin: [number, number], minArea: number, fillStyle: string) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, outin: [number, number], minArea: number) {
         super(name, filter);
         this.outin = outin;
         this.minArea = minArea;
-        this.fillStyle = fillStyle;
     }
 
     async openTile(): Promise<void> { }
@@ -32,6 +31,22 @@ export class MapLayerMisc extends AMapLayer<Polygon> {
 
         console.log(`${this.name}, processing data ...`);
 
+        return new Promise((resolve) => { // , reject
+            const workerInstance = new Worker(new URL('./worker_poly_data.ts', import.meta.url), { // let respective layers produce URLs and worker input
+                type: 'module',
+            });
+            workerInstance.onmessage = (e) => {
+                this.polyData = e.data.polyData;
+                resolve();
+            };
+            workerInstance.postMessage({
+                name: this.name,
+                tileData: this.tileData,
+                outin: this.outin,
+                bboxClp4326
+            });
+        });
+
         // turf.simplify(this.polyData!, {
         //     mutate: true,
         //     tolerance: 0.00001,
@@ -41,14 +56,12 @@ export class MapLayerMisc extends AMapLayer<Polygon> {
         //     mutate: true
         // });
 
-        console.log(`${this.name}, buffer in-out [${this.outin[0]}, ${this.outin[1]}] ...`);
-        const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...this.outin);
-        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+        // console.log(`${this.name}, buffer in-out [${this.outin[0]}, ${this.outin[1]}] ...`);
+        // const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...this.outin);
+        // this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
 
-        console.log(`${this.name}, clipping ...`);
-        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
-
-        console.log(`${this.name}, done`);
+        // console.log(`${this.name}, clipping ...`);
+        // this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
 
     }
 
@@ -61,8 +74,6 @@ export class MapLayerMisc extends AMapLayer<Polygon> {
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClip(bboxMap4326);
-
-        console.log(`${this.name}, done`);
 
     }
 

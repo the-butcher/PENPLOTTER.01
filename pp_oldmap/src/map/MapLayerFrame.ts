@@ -80,8 +80,6 @@ export class MapLayerFrame extends AMapLayer<LineString> {
             ]
         }
 
-        console.log(`${this.name}, done`);
-
     }
 
     async processLine(): Promise<void> {

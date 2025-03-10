@@ -84,8 +84,6 @@ export class MapLayerLabels extends AMapLayer<Point> {
             coordinates: coordinatesC
         }
 
-        console.log(`${this.name}, done`);
-
     }
 
     async processLine(): Promise<void> {

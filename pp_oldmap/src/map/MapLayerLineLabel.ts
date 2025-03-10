@@ -1,30 +1,45 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiLineString, Position } from "geojson";
+import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "./AMapLayer";
 import { Pen } from "./Pen";
+import { ILabelDef } from './ILabelDef';
+import { Map } from './Map';
 
 export class MapLayerLineLabel extends AMapLayer<LineString> {
 
-    linesByName: {[K:string]: MultiLineString} = {};
+    linesByName: { [K: string]: MultiLineString } = {};
+    polyText: MultiPolygon;
+    labelDefs: ILabelDef[];
 
-    constructor(name: string, filter: IVectorTileFeatureFilter) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[]) {
         super(name, filter);
+        this.labelDefs = labelDefs;
+        this.polyText = {
+            type: 'MultiPolygon',
+            coordinates: []
+        };
     }
 
     async openTile(): Promise<void> { }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
 
-        const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
-        if (feature.hasValue('_name') && feature.hasValue('_label_class', 4, 5)) {
-            let name = feature.getValue('_name')!.getValue()!.toString();
+        // console.log(feature.hasValue('_name'), feature);
 
-            if (name.startsWith('Taugl')) {
-                name = 'Taugl';
+        const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
+        if (feature.hasValue('_name')) { //  && feature.hasValue('_label_class', 4, 5)
+
+            let name = feature.getValue('_name')!.getValue()!.toString();
+            console.log('name', name, feature.getValue('_label_class'));
+
+            for (let i = 0; i < this.labelDefs.length; i++) {
+                if (this.labelDefs[i].tileName === name) {
+                    name = this.labelDefs[i].plotName;
+                }
             }
 
             // console.log('name', name);
@@ -47,63 +62,113 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
 
         for (const lineName in this.linesByName) {
 
-            const connectedLines =  VectorTileGeometryUtil.connectMultiPolyline(this.linesByName[lineName], 5);
+            const connectedLinesA = VectorTileGeometryUtil.connectMultiPolyline(this.linesByName[lineName], 5);
+            const connectedLinesB = VectorTileGeometryUtil.destructureMultiPolyline(connectedLinesA);
 
-            if (connectedLines.coordinates.length === 1) {
+            if (connectedLinesB.length > 0) {
 
-                const lengthPos = lineName.startsWith('Taugl') ? 0.42 : 0.55
-                const labelLine = turf.bboxClip(VectorTileGeometryUtil.destructureMultiPolyline(connectedLines)[0], bboxMap4326).geometry as LineString;
-                let labelLinePositionA = turf.length(turf.feature(labelLine), {
-                    units: 'meters'
-                }) * lengthPos;
-                let labelCoordinate4326A = turf.along(labelLine, labelLinePositionA, {
-                    units: 'meters'
-                }).geometry.coordinates;
-                let labelCoordinate3857A = turf.toMercator(labelCoordinate4326A);
+                for (let a = 0; a < connectedLinesB.length; a++) {
 
-                const scale = 0.04;
-                const chars = Array.from(lineName);
-                const zeroOffset: Position = [0, 0];
-                for (let i = 0; i < chars.length; i++) {
+                    let labelDef: ILabelDef = {
+                        tileName: lineName,
+                        plotName: lineName,
+                        distance: 0.50,
+                        vertical: 12,
+                        charsign: 0,
+                        txtscale: 0.022,
+                        idxvalid: () => true
+                    };
+                    for (let i = 0; i < this.labelDefs.length; i++) {
+                        if (this.labelDefs[i].plotName === lineName) {
+                            labelDef = this.labelDefs[i];
+                            break;
+                        }
+                    }
 
-                    let charCoordinates = VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, zeroOffset).coordinates;
-                    const charOffset = VectorTileGeometryUtil.getCharOffset(chars[i], scale, zeroOffset, zeroOffset);
+                    if (!labelDef.idxvalid(a)) {
+                        continue;
+                    }
 
-                    // the sign in this expression effectively determines text-direction, since it affects the angle
-                    const labelLinePositionB = labelLinePositionA - charOffset[0];
-                    const labelCoordinate4326B = turf.along(labelLine, labelLinePositionB, {
+                    const labelLine = connectedLinesB[a]; // turf.bboxClip(connectedLinesB[a], bboxMap4326).geometry as LineString;
+                    console.log('labelLine', labelLine);
+                    turf.cleanCoords(labelLine, {
+                        mutate: true
+                    });
+                    const labelLineLength = turf.length(turf.feature(labelLine), {
+                        units: 'meters'
+                    });
+                    if (labelLineLength === 0) {
+                        continue; // next
+                    }
+
+                    let labelLinePositionA = labelLineLength * labelDef.distance;
+                    let labelCoordinate4326A = turf.along(labelLine, labelLinePositionA, {
                         units: 'meters'
                     }).geometry.coordinates;
-                    const labelCoordinate3857B = turf.toMercator(labelCoordinate4326B);
+                    let labelCoordinate3857A = turf.toMercator(labelCoordinate4326A);
 
-                    const angle = Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
-                    const matrixA = VectorTileGeometryUtil.matrixRotationInstance(-angle);
-                    const matrixB = VectorTileGeometryUtil.matrixTranslationInstance(0, 25);
-                    charCoordinates = VectorTileGeometryUtil.transformPosition3(charCoordinates, VectorTileGeometryUtil.matrixMultiply(matrixA, matrixB));
+                    const scale = labelDef.txtscale;
+                    const chars = Array.from(labelDef.plotName);
+                    const zeroOffset: Position = [0, 0];
+                    for (let i = 0; i < chars.length; i++) {
 
-                    let position4326: Position;
-                    charCoordinates.forEach(polygon => {
-                        polygon.forEach(ring => {
-                            ring.forEach(position => {
-                                const position3857 = [
-                                    labelCoordinate3857A[0] + position[0],
-                                    labelCoordinate3857A[1] - position[1]
-                                ];
-                                position4326 = turf.toWgs84([
-                                    position3857[0],
-                                    position3857[1]
-                                ]);
-                                position[0] = position4326[0];
-                                position[1] = position4326[1];
-                            })
+                        let charCoordinates = VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, zeroOffset).coordinates;
+                        const charOffset = VectorTileGeometryUtil.getCharOffset(chars[i], scale, zeroOffset, zeroOffset);
+
+                        if (labelDef.charsign === 0) { // auto
+                            const labelLinePositionT = labelLinePositionA + charOffset[0];
+                            const labelCoordinate4326T = turf.along(labelLine, labelLinePositionT, {
+                                units: 'meters'
+                            }).geometry.coordinates;
+                            const labelCoordinate3857T = turf.toMercator(labelCoordinate4326T);
+                            const angleT = Math.atan2(labelCoordinate3857T[1] - labelCoordinate3857A[1], labelCoordinate3857T[0] - labelCoordinate3857A[0]);
+                            console.log(labelDef.plotName, angleT * 180 / Math.PI)
+                            if (Math.abs(angleT) > Math.PI / 2) {
+                                labelDef.charsign = -1;
+                            } else {
+                                labelDef.charsign = 1;
+                            }
+                        }
+
+                        const labelLinePositionB = labelLinePositionA + charOffset[0] * labelDef.charsign;
+                        if (labelLinePositionB < 0 || labelLinePositionB > labelLineLength) {
+                            break;
+                        }
+                        const labelCoordinate4326B = turf.along(labelLine, labelLinePositionB, {
+                            units: 'meters'
+                        }).geometry.coordinates;
+                        const labelCoordinate3857B = turf.toMercator(labelCoordinate4326B);
+
+                        const angle = Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
+                        const matrixA = VectorTileGeometryUtil.matrixRotationInstance(-angle);
+                        const matrixB = VectorTileGeometryUtil.matrixTranslationInstance(0, labelDef.vertical);
+                        charCoordinates = VectorTileGeometryUtil.transformPosition3(charCoordinates, VectorTileGeometryUtil.matrixMultiply(matrixA, matrixB));
+
+                        let position4326: Position;
+                        charCoordinates.forEach(polygon => {
+                            polygon.forEach(ring => {
+                                ring.forEach(position => {
+                                    const position3857 = [
+                                        labelCoordinate3857A[0] + position[0],
+                                        labelCoordinate3857A[1] - position[1]
+                                    ];
+                                    position4326 = turf.toWgs84([
+                                        position3857[0],
+                                        position3857[1]
+                                    ]);
+                                    position[0] = position4326[0];
+                                    position[1] = position4326[1];
+                                })
+                            });
                         });
-                    });
 
-                    labelLinePositionA = labelLinePositionB;
-                    labelCoordinate4326A = labelCoordinate4326B;
-                    labelCoordinate3857A = labelCoordinate3857B;
+                        labelLinePositionA = labelLinePositionB;
+                        labelCoordinate4326A = labelCoordinate4326B;
+                        labelCoordinate3857A = labelCoordinate3857B;
 
-                    this.polyData.coordinates.push(...charCoordinates);
+                        this.polyText.coordinates.push(...charCoordinates);
+
+                    }
 
                 }
 
@@ -111,7 +176,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
 
         }
 
-        console.log(`${this.name}, done`);
+        this.polyText = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyText, bboxMap4326);
 
     }
 
@@ -119,10 +184,18 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
 
         console.log(`${this.name}, processing line ...`);
 
-        const coordinates005: Position[][] = this.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+        const coordinates005: Position[][] = this.polyText.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
         this.multiPolyline005.coordinates.push(...coordinates005);
 
-        console.log(`${this.name}, done`);
+        const polyTextBufferPolygons: Polygon[] = [];
+        if (this.polyText.coordinates.length > 0) {
+            const polyTextBuffer = turf.buffer(this.polyText, 8, {
+                units: 'meters'
+            }) as Feature<Polygon | MultiPolygon>;
+            polyTextBufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(polyTextBuffer.geometry));
+        }
+
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polyTextBufferPolygons);
 
     }
 
@@ -131,7 +204,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
         // console.log(`${this.name}, connecting polylines ...`, this.linesByName);
 
         const polygonCount005 = 3;
-        const polygonDelta005 = Pen.getPenWidthMeters(0.10, 25000) * -0.60;
+        const polygonDelta005 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
 
         // TODO :: remove code duplication
         const distances005: number[] = [];
@@ -139,10 +212,12 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
             distances005.push(polygonDelta005);
         }
         console.log(`${this.name}, buffer collect 010 ...`, distances005);
-        const features005 = VectorTileGeometryUtil.bufferCollect2(this.polyData, true, ...distances005);
+        const features005 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances005);
 
         const connected005 = VectorTileGeometryUtil.connectBufferFeatures(features005);
         this.multiPolyline005 = VectorTileGeometryUtil.restructureMultiPolyline(connected005);
+
+
 
         //
         // this.connectPolylines(2);

@@ -1,13 +1,10 @@
 import * as turf from '@turf/turf';
 import { BBox, LineString, MultiLineString, Polygon, Position } from "geojson";
-import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
-import { IVectorTileFeatureFilter } from '../vectortile/IVectorTileFeatureFilter';
-import { IVectorTileKey } from "../vectortile/IVectorTileKey";
-import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
-import { AMapLayer } from "./AMapLayer";
-import { danube___new, danube___old, danube__main, danube_canal, danube_inlet, wien____main } from './Rivers';
-
-
+import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
+import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
+import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
+import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { AMapLayer } from '../AMapLayer';
 
 export class MapLayerWater extends AMapLayer<Polygon> {
 
@@ -18,7 +15,7 @@ export class MapLayerWater extends AMapLayer<Polygon> {
     async openTile(): Promise<void> { }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
-        const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > 100);
+        const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > 100); // TODO :: remove magic number
         this.tileData.push(...polygons);
     }
 
@@ -28,44 +25,52 @@ export class MapLayerWater extends AMapLayer<Polygon> {
 
         console.log(`${this.name}, processing data ...`);
 
-        // turf.simplify(this.multiPolygon!, {
-        //     mutate: true,
-        //     tolerance: 0.000005,
-        //     highQuality: true
-        // });
+        return new Promise((resolve) => { // , reject
+            const workerInstance = new Worker(new URL('./worker_poly_data.ts', import.meta.url), { // let respective layers produce URLs and worker input
+                type: 'module',
+            });
+            workerInstance.onmessage = (e) => {
+                this.polyData = e.data.polyData;
+                resolve();
+            };
+            workerInstance.postMessage({
+                name: this.name,
+                tileData: this.tileData,
+                bboxClp4326
+            });
+        });
 
-        const outin: [number, number] = [3, -3];
-        console.log(`${this.name}, buffer in-out [${outin[0]}, ${outin[1]}] ...`);
-        const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...outin);
-        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
-        turf.cleanCoords(this.polyData);
 
-        console.log(`${this.name}, fill polygons, danube_canal ...`);
-        polygonsA.push(...this.findFillPolygons(danube_canal));
-        // console.log(`${this.name}, fill polygons, danube_inlet ...`);
-        // polygonsA.push(...this.findFillPolygons(danube_inlet));
-        // console.log(`${this.name}, fill polygons, danube__main ...`);
-        // polygonsA.push(...this.findFillPolygons(danube__main));
-        console.log(`${this.name}, fill polygons, wien____main ...`);
-        polygonsA.push(...this.findFillPolygons(wien____main));
+        // const outin: [number, number] = [3, -3];
+        // console.log(`${this.name}, buffer in-out [${outin[0]}, ${outin[1]}] ...`);
+        // const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...outin);
+        // this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+        // turf.cleanCoords(this.polyData);
 
-        // console.log(`${this.name}, stat polygons, danube___old ...`);
-        // polygonsA.push(danube___old);
-        // console.log(`${this.name}, stat polygons, danube___new ...`);
-        // polygonsA.push(danube___new);
+        // console.log(`${this.name}, fill polygons, danube_canal ...`);
+        // polygonsA.push(...this.findFillPolygons(danube_canal));
+        // // console.log(`${this.name}, fill polygons, danube_inlet ...`);
+        // // polygonsA.push(...this.findFillPolygons(danube_inlet));
+        // // console.log(`${this.name}, fill polygons, danube__main ...`);
+        // // polygonsA.push(...this.findFillPolygons(danube__main));
+        // console.log(`${this.name}, fill polygons, wien____main ...`);
+        // polygonsA.push(...this.findFillPolygons(wien____main));
 
-        /**
-         * union of original data, fill-polygons and additional polygons
-         */
-        console.log(`${this.name}, union ...`);
-        const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
-        const polygonsM: Polygon[] = VectorTileGeometryUtil.destructureUnionPolygon(unionPolygon);
-        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
+        // // console.log(`${this.name}, stat polygons, danube___old ...`);
+        // // polygonsA.push(danube___old);
+        // // console.log(`${this.name}, stat polygons, danube___new ...`);
+        // // polygonsA.push(danube___new);
 
-        console.log(`${this.name}, clipping to bboxClp4326 (1) ...`);
-        this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326); // outer ring only, for potential future clipping operations
+        // /**
+        //  * union of original data, fill-polygons and additional polygons
+        //  */
+        // console.log(`${this.name}, union ...`);
+        // const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
+        // const polygonsM: Polygon[] = VectorTileGeometryUtil.destructureUnionPolygon(unionPolygon);
+        // this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
 
-        console.log(`${this.name}, done`);
+        // console.log(`${this.name}, clipping to bboxClp4326 (1) ...`);
+        // this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326); // outer ring only, for potential future clipping operations
 
     }
 

@@ -50,8 +50,6 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
         console.log(`${this.name}, clipping to bboxClp4326 ...`);
         this.multiPolyline04 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline04, bboxClp4326);
 
-        console.log(`${this.name}, done`);
-
     }
 
     async processLine(): Promise<void> {
@@ -60,45 +58,45 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
 
         this.multiPolyline030.coordinates.push(...this.multiPolyline04.coordinates);
 
-        console.log(`${this.name}, done`);
-
     }
 
     async postProcess(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, creating dashes ...`);
 
-        const dashLengthBase = 11;
-        const polylines04A = VectorTileGeometryUtil.destructureMultiPolyline(this.multiPolyline04);
-        const polylines04B = VectorTileGeometryUtil.connectPolylines(polylines04A, 10);
-        const polylines04C: LineString[] = [];
-        polylines04B.forEach(polyline04B => {
-            const feature04 = turf.feature(polyline04B);
-            const length = turf.length(feature04, {
-                units: 'meters'
-            });
-            let dashCount = Math.round(length / dashLengthBase);
-            if (dashCount % 2 === 0) {
-                dashCount++;
-            };
-            const dashLength = length / dashCount;
-            console.log(length, dashCount, dashLength);
-            for (let i = 0; i < dashCount; i++) {
-                if (i % 2 === 0) {
-                    const coordinateA = turf.along(feature04, i * dashLength, {
-                        units: 'meters'
-                    }).geometry.coordinates;
-                    const coordinateB = turf.along(feature04, (i + 1) * dashLength, {
-                        units: 'meters'
-                    }).geometry.coordinates;
-                    polylines04C.push({
-                        type: 'LineString',
-                        coordinates: [coordinateA, coordinateB]
-                    });
-                }
-            }
-        });
-        this.multiPolyline04 = VectorTileGeometryUtil.restructureMultiPolyline(polylines04C);
+        // const dashLengthBase = 11;
+        // const polylines04A = VectorTileGeometryUtil.destructureMultiPolyline(this.multiPolyline04);
+        // const polylines04B = VectorTileGeometryUtil.connectPolylines(polylines04A, 10);
+        // const polylines04C: LineString[] = [];
+        // polylines04B.forEach(polyline04B => {
+        //     const feature04 = turf.feature(polyline04B);
+        //     const length = turf.length(feature04, {
+        //         units: 'meters'
+        //     });
+        //     let dashCount = Math.round(length / dashLengthBase);
+        //     if (dashCount % 2 === 0) {
+        //         dashCount++;
+        //     };
+        //     const dashLength = length / dashCount;
+        //     console.log(length, dashCount, dashLength);
+        //     for (let i = 0; i < dashCount; i++) {
+        //         if (i % 2 === 0) {
+        //             const coordinateA = turf.along(feature04, i * dashLength, {
+        //                 units: 'meters'
+        //             }).geometry.coordinates;
+        //             const coordinateB = turf.along(feature04, (i + 1) * dashLength, {
+        //                 units: 'meters'
+        //             }).geometry.coordinates;
+        //             polylines04C.push({
+        //                 type: 'LineString',
+        //                 coordinates: [coordinateA, coordinateB]
+        //             });
+        //         }
+        //     }
+        // });
+        // this.multiPolyline04 = VectorTileGeometryUtil.restructureMultiPolyline(polylines04C);
+
+        this.multiPolyline04 = VectorTileGeometryUtil.dashMultiPolyline(this.multiPolyline04, [10, 12]);
 
         this.multiPolyline030.coordinates = this.multiPolyline04.coordinates;
 

@@ -14,6 +14,10 @@ export type UnionPolyline = LineString | MultiLineString;
 
 export class VectorTileGeometryUtil {
 
+    static info(): string {
+        return 'info about vector-tile-geometry-util';
+    }
+
     static transformMultiPolygon(polygons: MultiPolygon, matrix: IMatrix2D): MultiPolygon {
         return {
             type: 'MultiPolygon',
@@ -91,11 +95,48 @@ export class VectorTileGeometryUtil {
         ];
     }
 
+    static dashMultiPolyline(multiPolyline: MultiLineString, dashArray: [number, number]): MultiLineString {
+
+        const dashLengthBase = dashArray[0] / 2 + dashArray[1] + dashArray[0] / 2;
+        const polylinesA = VectorTileGeometryUtil.destructureMultiPolyline(multiPolyline);
+        const polylinesB = VectorTileGeometryUtil.connectPolylines(polylinesA, 10);
+        const polylinesC: LineString[] = [];
+        polylinesB.forEach(polylineB => {
+            const feature04 = turf.feature(polylineB);
+            const length = turf.length(feature04, {
+                units: 'meters'
+            });
+            let dashCount = Math.round(length / dashLengthBase);
+            if (dashCount % 2 === 0) {
+                dashCount++;
+            };
+            const dashLength = length / dashCount; // full dash length with 2 semi spaces on the front and aback of the dash
+            const dashLength0 = dashLength * dashArray[0] / dashLengthBase;
+            const dashLength1 = dashLength * dashArray[1] / dashLengthBase;
+            // console.log(dashLength, dashLengthBase, dashLength0, dashArray[0]);
+            // console.log(length, dashCount, dashLength);
+            for (let i = 0; i < dashCount; i++) {
+                const coordinateA = turf.along(feature04, i * dashLength + dashLength0, {
+                    units: 'meters'
+                }).geometry.coordinates;
+                const coordinateB = turf.along(feature04, i * dashLength + dashLength0 + dashLength1, {
+                    units: 'meters'
+                }).geometry.coordinates;
+                polylinesC.push({
+                    type: 'LineString',
+                    coordinates: [coordinateA, coordinateB]
+                });
+            }
+        });
+        return VectorTileGeometryUtil.restructureMultiPolyline(polylinesC);
+
+    }
+
     static clipMultiPolyline(multiPolyline: MultiLineString, bufferFeature: Feature<UnionPolygon>, maxKeepLength: number = 0): MultiLineString {
 
         const remainingLines: LineString[] = [];
 
-        console.log(`clipping ${multiPolyline.coordinates.length} polylines ...`);
+        // console.log(`clipping ${multiPolyline.coordinates.length} polylines ...`);
         multiPolyline.coordinates.forEach(polyline => {
 
             const polylineS: LineString = {
@@ -316,6 +357,10 @@ export class VectorTileGeometryUtil {
         }
         return VectorTileGeometryUtil.destructureUnionPolygon(bufferable);
 
+    }
+
+    static booleanWithin(bbox: BBox, point: Position) {
+        return (point[0] >= bbox[0] && point[0] <= bbox[2] && point[1] >= bbox[1] && point[1] <= bbox[3]);
     }
 
     static bufferCollect2(unionPolygon: UnionPolygon, includeInput: boolean, ...distances: number[]): Feature<LineString>[] {
@@ -684,6 +729,9 @@ export class VectorTileGeometryUtil {
         const polylinesB = VectorTileGeometryUtil.connectPolylines(polylinesA, toleranceMeters);
         const result = VectorTileGeometryUtil.restructureMultiPolyline(polylinesB);
         console.log(`connected polylines (${polylinesA.length} -> ${polylinesB.length}) ...`);
+        // turf.cleanCoords(result, {
+        //     mutate: true
+        // })
         return result;
 
     }
@@ -901,11 +949,9 @@ export class VectorTileGeometryUtil {
 
         }
 
-        console.log(`connecting polylines2, done`);
         return results.map(p => turf.cleanCoords(p, {
             mutate: true
         }));
-
 
     }
 

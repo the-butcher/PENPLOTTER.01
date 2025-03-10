@@ -112,8 +112,6 @@ export class MapLayerRoads extends AMapLayer<LineString> {
         const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
         this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);
 
-        console.log(`${this.name}, done`);
-
     }
 
     async processLine(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
@@ -129,11 +127,13 @@ export class MapLayerRoads extends AMapLayer<LineString> {
             type: 'MultiLineString',
             coordinates: coordinates02
         };
+
         const coordinates34: Position[][] = multiPolygon34.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
         let multiOutline34: MultiLineString = {
             type: 'MultiLineString',
             coordinates: coordinates34
         };
+
         const coordinates56: Position[][] = multiPolygon56.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
         let multiOutline56: MultiLineString = {
             type: 'MultiLineString',
@@ -162,8 +162,6 @@ export class MapLayerRoads extends AMapLayer<LineString> {
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClip(bboxMap4326);
-
-        console.log(`${this.name}, done`);
 
     }
 
