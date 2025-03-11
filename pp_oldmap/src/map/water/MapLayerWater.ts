@@ -5,6 +5,8 @@ import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFil
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
+import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 
 export class MapLayerWater extends AMapLayer<Polygon> {
 
@@ -16,61 +18,33 @@ export class MapLayerWater extends AMapLayer<Polygon> {
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
         const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > 100); // TODO :: remove magic number
-        this.tileData.push(...polygons);
+        polygons.forEach(polygon => {
+            this.tileData.push(turf.feature(polygon));
+        });
     }
 
     async closeTile(): Promise<void> { }
 
-    async processData(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processPoly(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
 
+        const workerInput: IWorkerPolyInput<Polygon> = {
+            name: this.name,
+            tileData: this.tileData,
+            outin: [3, -3],
+            bboxClp4326
+        };
+
         return new Promise((resolve) => { // , reject
-            const workerInstance = new Worker(new URL('./worker_poly_data.ts', import.meta.url), { // let respective layers produce URLs and worker input
-                type: 'module',
-            });
+            const workerInstance = new Worker(new URL('./worker_poly_l_____water.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
-                this.polyData = e.data.polyData;
+                const workerOutput: IWorkerPolyOutput = e.data;
+                this.polyData = workerOutput.polyData;
                 resolve();
             };
-            workerInstance.postMessage({
-                name: this.name,
-                tileData: this.tileData,
-                bboxClp4326
-            });
+            workerInstance.postMessage(workerInput);
         });
-
-
-        // const outin: [number, number] = [3, -3];
-        // console.log(`${this.name}, buffer in-out [${outin[0]}, ${outin[1]}] ...`);
-        // const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...outin);
-        // this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
-        // turf.cleanCoords(this.polyData);
-
-        // console.log(`${this.name}, fill polygons, danube_canal ...`);
-        // polygonsA.push(...this.findFillPolygons(danube_canal));
-        // // console.log(`${this.name}, fill polygons, danube_inlet ...`);
-        // // polygonsA.push(...this.findFillPolygons(danube_inlet));
-        // // console.log(`${this.name}, fill polygons, danube__main ...`);
-        // // polygonsA.push(...this.findFillPolygons(danube__main));
-        // console.log(`${this.name}, fill polygons, wien____main ...`);
-        // polygonsA.push(...this.findFillPolygons(wien____main));
-
-        // // console.log(`${this.name}, stat polygons, danube___old ...`);
-        // // polygonsA.push(danube___old);
-        // // console.log(`${this.name}, stat polygons, danube___new ...`);
-        // // polygonsA.push(danube___new);
-
-        // /**
-        //  * union of original data, fill-polygons and additional polygons
-        //  */
-        // console.log(`${this.name}, union ...`);
-        // const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
-        // const polygonsM: Polygon[] = VectorTileGeometryUtil.destructureUnionPolygon(unionPolygon);
-        // this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
-
-        // console.log(`${this.name}, clipping to bboxClp4326 (1) ...`);
-        // this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326); // outer ring only, for potential future clipping operations
 
     }
 
@@ -260,65 +234,65 @@ export class MapLayerWater extends AMapLayer<Polygon> {
 
     }
 
-    drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
+    // drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
 
-        context.fillStyle = 'rgba(0, 0, 255, 0.10)';
-        context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
-        context.lineWidth = 2;
-        context.font = "24px Consolas";
+    //     context.fillStyle = 'rgba(0, 0, 255, 0.10)';
+    //     context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
+    //     context.lineWidth = 2;
+    //     context.font = "24px Consolas";
 
-        // const rectSize = 4;
-        // const drawPoint = (coordinate: Position, label?: string) => {
-        //     const coordinateCanvas = coordinate4326ToCoordinateCanvas(coordinate);
-        //     context.fillRect(coordinateCanvas[0] - rectSize / 2, coordinateCanvas[1] - rectSize / 2, rectSize, rectSize);
-        //     if (label) {
-        //         context.strokeRect(coordinateCanvas[0] - rectSize / 2, coordinateCanvas[1] - rectSize / 2, rectSize, rectSize);
-        //         context.fillText(label, coordinateCanvas[0] + 2, coordinateCanvas[1] - 2);
-        //     }
-        // }
+    //     // const rectSize = 4;
+    //     // const drawPoint = (coordinate: Position, label?: string) => {
+    //     //     const coordinateCanvas = coordinate4326ToCoordinateCanvas(coordinate);
+    //     //     context.fillRect(coordinateCanvas[0] - rectSize / 2, coordinateCanvas[1] - rectSize / 2, rectSize, rectSize);
+    //     //     if (label) {
+    //     //         context.strokeRect(coordinateCanvas[0] - rectSize / 2, coordinateCanvas[1] - rectSize / 2, rectSize, rectSize);
+    //     //         context.fillText(label, coordinateCanvas[0] + 2, coordinateCanvas[1] - 2);
+    //     //     }
+    //     // }
 
-        const drawRing = (ring: Position[]) => {
-            let isMove = true;
-            ring.forEach(coordinate => {
-                const coordinateCanvas = coordinate4326ToCoordinateCanvas(coordinate);
-                if (isMove) {
-                    context.moveTo(coordinateCanvas[0], coordinateCanvas[1]);
-                } else {
-                    context.lineTo(coordinateCanvas[0], coordinateCanvas[1]);
-                }
-                isMove = false;
-            });
-        }
+    //     const drawRing = (ring: Position[]) => {
+    //         let isMove = true;
+    //         ring.forEach(coordinate => {
+    //             const coordinateCanvas = coordinate4326ToCoordinateCanvas(coordinate);
+    //             if (isMove) {
+    //                 context.moveTo(coordinateCanvas[0], coordinateCanvas[1]);
+    //             } else {
+    //                 context.lineTo(coordinateCanvas[0], coordinateCanvas[1]);
+    //             }
+    //             isMove = false;
+    //         });
+    //     }
 
-        // const drawPolyline = (polyline: Position[]) => {
-        //     context.beginPath();
-        //     drawRing(polyline);
-        //     context.stroke();
-        // }
+    //     // const drawPolyline = (polyline: Position[]) => {
+    //     //     context.beginPath();
+    //     //     drawRing(polyline);
+    //     //     context.stroke();
+    //     // }
 
-        const drawPolygon = (polygon: Position[][]) => {
-            context.beginPath();
-            polygon.forEach(ring => {
-                drawRing(ring);
-            });
-            context.fill();
-            // context.stroke();
-        }
+    //     const drawPolygon = (polygon: Position[][]) => {
+    //         context.beginPath();
+    //         polygon.forEach(ring => {
+    //             drawRing(ring);
+    //         });
+    //         context.fill();
+    //         // context.stroke();
+    //     }
 
-        super.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
+    //     super.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
 
-        this.polyData.coordinates.forEach(polygon => {
-            drawPolygon(polygon);
-        })
+    //     this.polyData.coordinates.forEach(polygon => {
+    //         drawPolygon(polygon);
+    //     })
 
-        // drawPolyline(danube_canal.coordinates);
+    //     // drawPolyline(danube_canal.coordinates);
 
-        // context.fillStyle = 'rgba(255,0,0,0.50)';
-        // const fillPolysC = this.findFillPolygons(danube_canal, drawPoint);
-        // fillPolysC.forEach(fillPolyC => {
-        //     drawPolygon(fillPolyC.coordinates);
-        // })
+    //     // context.fillStyle = 'rgba(255,0,0,0.50)';
+    //     // const fillPolysC = this.findFillPolygons(danube_canal, drawPoint);
+    //     // fillPolysC.forEach(fillPolyC => {
+    //     //     drawPolygon(fillPolyC.coordinates);
+    //     // })
 
-    }
+    // }
 
 }

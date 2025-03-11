@@ -4,13 +4,12 @@ import { IMapLayerProps } from "./IMapLayerProps";
 
 function SvgMapLayerComponent(props: IMapLayerProps) {
 
-    const { id, polylines005, polylines010, polylines030, polylines050, polyData, coordinate4326ToCoordinateCanvas } = { ...props };
+    const { id, polylines005, polylines010, polylines030, polylines050, coordinate4326ToCoordinateCanvas } = { ...props };
 
     const [d005, setD005] = useState<string>('');
     const [d010, setD010] = useState<string>('');
     const [d030, setD030] = useState<string>('');
     const [d050, setD050] = useState<string>('');
-    const [polygonPaths, setPolygonPaths] = useState<JSX.Element[]>([]);
 
     useEffect(() => {
         console.debug('✨ building map layer component');
@@ -40,15 +39,6 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
             return drawRing(polyline, d);
         }
 
-        const drawPolygon = (polygon: Position[][], d: string): string => {
-            for (let r = 0; r < polygon.length; r++) {
-                d += drawRing(polygon[r], d);
-                d += 'Z';
-                break;
-            }
-            return d;
-        }
-
         polylines005.coordinates.forEach(polyline005 => {
             _d005 = drawPolyline(polyline005, _d005);
         });
@@ -62,31 +52,12 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
             _d050 = drawPolyline(polyline050, _d050);
         });
 
-        const _polygonPaths: JSX.Element[] = [];
-        let counter = 0;
-        polyData.coordinates.forEach(polygon => {
-            const dPoly = drawPolygon(polygon, '');
-            _polygonPaths.push(<path
-                key={counter++}
-                style={{
-                    stroke: 'none',
-                    strokeLinecap: 'round',
-                    strokeLinejoin: 'round',
-                    fill: 'rgba(0, 0, 0, 0.5)'
-                }}
-                // eslint-disable-next-line react/no-unknown-property
-                pen-id='pPoly'
-                d={dPoly}
-            />)
-        });
-        setPolygonPaths(_polygonPaths);
-
         setD005(_d005);
         setD010(_d010);
         setD030(_d030);
         setD050(_d050);
 
-    }, [polylines005, polylines010, polylines030, polylines050, polyData]);
+    }, [polylines005, polylines010, polylines030, polylines050]);
 
     const toStrokeWidth = (penWidth: number): number => {
         return penWidth * 12;
@@ -144,7 +115,6 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
                 pen-id='p050'
                 d={d050}
             />
-            {polygonPaths}
         </g>
     );
 }

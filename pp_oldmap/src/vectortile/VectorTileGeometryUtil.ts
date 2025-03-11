@@ -7,7 +7,7 @@ import { IMatrix2D } from "../util/Interfaces";
 import { Uid } from '../util/Uid';
 import { IVectorTileKey } from "./IVectorTileKey";
 import { VectorTileKey } from "./VectorTileKey";
-
+import * as path from 'svg-path-properties';
 
 export type UnionPolygon = Polygon | MultiPolygon;
 export type UnionPolyline = LineString | MultiLineString;
@@ -623,14 +623,20 @@ export class VectorTileGeometryUtil {
 
     static getPolygonChar(d: string): Position[] {
 
-        const svgPathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        svgPathElement.setAttribute('d', d);
+        // const svgPathElement: SVGPathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const svgPathElement = new path.svgPathProperties(d);
+        // svgPathElement.setAttribute('d', d);
 
         const pathLength = svgPathElement.getTotalLength();
         const pathSegmts = Math.ceil(pathLength / 0.2); // TODO :: better segment count, maybe depending on scale
         const segmtLength = pathLength / pathSegmts;
 
-        let pointAtLength: DOMPoint;
+        interface Point {
+            x: number;
+            y: number;
+        }
+
+        let pointAtLength: Point;
         const coordinates: Position[] = [];
         for (let i = 0; i <= pathSegmts; i++) {
             pointAtLength = svgPathElement.getPointAtLength(i * segmtLength);

@@ -52,7 +52,7 @@ export class MapLayerBuildings extends AMapLayer<Polygon> {
 
     }
 
-    async processData(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing data ...`);
 

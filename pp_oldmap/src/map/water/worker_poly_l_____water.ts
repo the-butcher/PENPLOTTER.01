@@ -1,16 +1,16 @@
 import * as turf from '@turf/turf';
-import { BBox, Polygon } from 'geojson';
+import { Polygon } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 
 self.onmessage = (e) => {
 
-    const name: string = e.data.name;
-    const tileData: Polygon[] = e.data.tileData;
-    const bboxClp4326: BBox = e.data.bboxClp4326;
+    const workerInput: IWorkerPolyInput<Polygon> = e.data;
+    const polygonsT: Polygon[] = workerInput.tileData.map(f => f.geometry);
 
-    const outin: [number, number] = [3, -3];
-    console.log(`${name}, buffer in-out [${outin[0]}, ${outin[1]}] ...`);
-    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(tileData), ...outin);
+    console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
+    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(polygonsT), ...workerInput.outin!);
     let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
     turf.cleanCoords(polyData);
 
@@ -31,16 +31,17 @@ self.onmessage = (e) => {
     /**
      * union of original data, fill-polygons and additional polygons
      */
-    console.log(`${name}, union ...`);
+    console.log(`${workerInput.name}, union ...`);
     const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
     const polygonsM: Polygon[] = VectorTileGeometryUtil.destructureUnionPolygon(unionPolygon);
     polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
 
-    console.log(`${name}, clipping to bboxClp4326 (1) ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, bboxClp4326); // outer ring only, for potential future clipping operations
+    console.log(`${workerInput.name}, clipping to bboxClp4326 (1) ...`);
+    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326); // outer ring only, for potential future clipping operations
 
-    self.postMessage({
+    const workerOutput: IWorkerPolyOutput = {
         polyData
-    });
+    };
+    self.postMessage(workerOutput);
 
 }

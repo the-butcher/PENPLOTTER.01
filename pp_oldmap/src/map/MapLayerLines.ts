@@ -26,7 +26,7 @@ export class MapLayerLines extends AMapLayer<LineString> {
 
     async closeTile(): Promise<void> { }
 
-    async processData(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processPoly(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
 

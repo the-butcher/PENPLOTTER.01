@@ -1,26 +1,24 @@
 import * as turf from '@turf/turf';
-import { BBox, GeoJsonObject, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
+import { BBox, Feature, Geometry, MultiLineString, MultiPolygon, Position } from "geojson";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { UnionPolygon, VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { ISkipOptions } from './ISkipOptions';
 
-export type MAP_LAYER_GEOMETRY_TYPES = Polygon | LineString | Point;
-
 export interface ILayerProps {
-    createLayerInstance: () => AMapLayer<MAP_LAYER_GEOMETRY_TYPES>;
+    createLayerInstance: () => AMapLayer<Geometry>;
 }
 
-export abstract class AMapLayer<F extends GeoJsonObject> implements IVectorTileFeatureFilter {
+export abstract class AMapLayer<F extends Geometry> implements IVectorTileFeatureFilter {
 
     readonly name: string;
     readonly filter: IVectorTileFeatureFilter;
 
     /**
-     * this layers raw data, Polygons, LinesStrings or Points
+     * this layer's raw data, Polygons, LinesStrings or Points
      */
-    tileData: F[];
+    tileData: Feature<F>[];
     polyData: MultiPolygon; // polygon (even for line and point layers) describing an area around this layer's features, meant to be ready after the processPoly method has run
     clipData: MultiPolygon; // polygon (even for line and point layers) describing an area around this layer's features, after clipping
 
@@ -67,7 +65,7 @@ export abstract class AMapLayer<F extends GeoJsonObject> implements IVectorTileF
     abstract accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void>;
     abstract closeTile(vectorTileKey: IVectorTileKey): Promise<void>;
 
-    clipToLayerMultipolygon(layer: AMapLayer<MAP_LAYER_GEOMETRY_TYPES>, distance: number, options: ISkipOptions = {
+    clipToLayerMultipolygon(layer: AMapLayer<Geometry>, distance: number, options: ISkipOptions = {
         skip005: false,
         skip010: false,
         skip030: false,
@@ -114,11 +112,12 @@ export abstract class AMapLayer<F extends GeoJsonObject> implements IVectorTileF
     }
 
     /**
-     * meant to run after all data has been acquired
+     * meant to run after all data has been acquired,
+     * build a base set of polygons from tile data
      * @param bboxClp4326
      * @param bboxMap4326
      */
-    abstract processData(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
+    abstract processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
 
     /**
      * build a base set of polylines, ready to be clipped
@@ -133,7 +132,7 @@ export abstract class AMapLayer<F extends GeoJsonObject> implements IVectorTileF
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
 
         context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
-        context.fillStyle = 'rgba(0, 0, 0, 0.20)';
+        context.fillStyle = 'rgba(0, 0, 0, 0.10)';
 
         const drawRing = (ring: Position[]) => {
             let isMove = true;
@@ -165,12 +164,12 @@ export abstract class AMapLayer<F extends GeoJsonObject> implements IVectorTileF
 
         const ratio = 10;
 
-        // this.tileData.forEach(tileGeometry => {
+        // this.tileData.map(f => f.geometry).forEach(tileGeometry => {
         //     if (tileGeometry.type === 'Polygon') {
         //         const tilePolygon = (tileGeometry as unknown) as Polygon;
         //         drawPolygon(tilePolygon.coordinates);
         //     }
-        // })
+        // });
 
         this.polyData.coordinates.forEach(polygon => {
             drawPolygon(polygon);

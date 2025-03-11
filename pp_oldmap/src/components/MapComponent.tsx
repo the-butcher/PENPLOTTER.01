@@ -2,11 +2,11 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Button, List, Stack } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Position } from "geojson";
-import { createRef, useEffect, useState } from "react";
+import { createRef, useEffect, useRef, useState } from "react";
 import { ISkipOptions } from "../map/ISkipOptions";
 import { Map } from "../map/Map";
 import { Maps } from "../map/Maps";
-import { MapLayerWater } from "../map/water/MapLayerWater";
+import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -19,7 +19,8 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerMisc } from "../map/misc/MapLayerMisc";
+import { MapLayerWater } from "../map/water/MapLayerWater";
+import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 
 export interface ILoadableTileKey extends IVectorTileKey {
   vectorTileUrl: IVectorTileUrl;
@@ -30,6 +31,7 @@ function MapComponent() {
 
   const canvasRef = createRef<HTMLCanvasElement>();
   const svgRef = createRef<SVGSVGElement>();
+  const drawToCanvasToRef = useRef<number>(-1);
 
   const [map, setMap] = useState<Map>();
   const [mapLayerProps, setMapLayerProps] = useState<IMapLayerProps[]>([]);
@@ -63,14 +65,6 @@ function MapComponent() {
       //     1451600, 6073150,
       //     1452600, 6074150
       // ],
-      // bbox3857: [ // salzburg klein 1
-      //     1451700, 6072250,
-      //     1452900, 6073200
-      // ],
-      // bbox3857: [ // salzburg kleiner
-      //     1451900, 6072700,
-      //     1452700, 6073200
-      // ],
       // bbox3857: [ // lobau -> issues with small geometries ("holzhäuser" do not show, but are also in a strange resolution in original basemap)
       //     1834537, 6141225,
       //     1836537, 6143225
@@ -87,30 +81,30 @@ function MapComponent() {
               },
             }),
         },
-        // {
-        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label') {
-        //         return true;
-        //       }
-        //       return false;
-        //     }
-        //   }, _mapDef.labelDefs)
-        // },
         {
-          createLayerInstance: () => new MapLayerMisc(Map.LAYER__NAME__GREENAREA, {
+          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              if (vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label') {
+                return true;
+              }
+              return false;
+            }
+          }, _mapDef.labelDefs)
+        },
+        {
+          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX_GREENAREA, Map.SYMBOL_INDEX___LEISURE);
             }
           }, [2, -2], 500)
         },
-        // {
-        //   createLayerInstance: () => new MapLayerMisc(Map.LAYER__NAME_______WOOD, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX______WOOD);
-        //     }
-        //   }, [2, -2], 500)
-        // },
+        {
+          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME_______WOOD, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX______WOOD);
+            }
+          }, [2, -2], 500)
+        },
         // {
         //   createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -340,8 +334,8 @@ function MapComponent() {
     console.log("⚙ updating map (map)", map);
 
     const canvas = canvasRef.current;
-
-    if (canvas && map) {
+    const svg = svgRef.current;
+    if (map && canvas && svg) {
 
       const coordinate3857ToCoordinateCanvas = (coordinate3857: Position): Position => {
         const x = (coordinate3857[0] - map.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_14].resolution;
@@ -358,13 +352,13 @@ function MapComponent() {
       context.fillStyle = '#eeeeee';
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      context.strokeStyle = "black";
-      context.fillStyle = "rgba(0,0,0,0.10)";
+      // context.strokeStyle = "black";
+      // context.fillStyle = "rgba(0, 0, 0, 0.10)";
       context.lineWidth = 1;
       context.lineJoin = "round";
       context.lineCap = "round";
 
-      map.drawToCanvas(context);
+      // map.drawToCanvas(context);
 
       const _mapLayerProps: IMapLayerProps[] = [];
       map.layers.forEach((l) => {
@@ -374,7 +368,6 @@ function MapComponent() {
           polylines010: l.multiPolyline010,
           polylines030: l.multiPolyline030,
           polylines050: l.multiPolyline050,
-          polyData: l.polyData,
           coordinate4326ToCoordinateCanvas,
           status: {
             tile: 'pending',
@@ -428,12 +421,10 @@ function MapComponent() {
       }
 
       const vectorTileUrlBmapv: IVectorTileUrl = {
-        toUrl: (tileKey) =>
-          `https://nbfleischer.int.vertigis.com/bmapv/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`, // https://mapsneu.wien.gv.at/basemapv/bmapvhl/3857/tile
+        toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmapv/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
       };
       const vectorTileUrlBmaph: IVectorTileUrl = {
-        toUrl: (tileKey) =>
-          `https://nbfleischer.int.vertigis.com/bmaph/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`, // https://mapsneu.wien.gv.at/basemapv/bmapvhl/3857/tile
+        toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmaph/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
       };
 
       collectTiles(Map.LOD_16, vectorTileUrlBmapv);
@@ -441,6 +432,7 @@ function MapComponent() {
       collectTiles(Map.LOD_14, vectorTileUrlBmapv);
       collectTiles(Map.LOD_14, vectorTileUrlBmaph);
 
+      // build rectangle props for each loadable tile
       _loadableTileKeys.forEach(_loadableTileKey => {
 
         const drawKeyMin = _loadableTileKey;
@@ -479,6 +471,7 @@ function MapComponent() {
 
     console.debug("⚙ updating map (loadableTileKeys)", loadableTileKeys);
 
+    // check if there are any pending tiles
     const loadableTileKey = loadableTileKeys.find(k => k.status === 'pending');
     if (loadableTileKey) {
 
@@ -499,8 +492,9 @@ function MapComponent() {
         }
       }
     });
-    setMapLayerProps(_mapLayerProps);
 
+    // will update svg display
+    setMapLayerProps(_mapLayerProps);
     updateMapRectangleProps();
 
   }, [loadableTileKeys]);
@@ -509,18 +503,33 @@ function MapComponent() {
 
     console.debug("⚙ updating map (mapLayerProps)", mapLayerProps);
 
+    window.clearTimeout(drawToCanvasToRef.current);
+    drawToCanvasToRef.current = window.setTimeout(() => {
+
+      const canvas = canvasRef.current!;
+      const context = canvas.getContext("2d")!;
+
+      context.fillStyle = '#eeeeee';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.lineWidth = 1;
+      context.lineJoin = "round";
+      context.lineCap = "round";
+
+      map?.drawToCanvas(context);
+
+    }, 500);
+
+    // check if there is more tile loading to be fonw
     const hasPendingTileLayer = mapLayerProps.some(p => p.status.tile !== 'success');
     if (!hasPendingTileLayer) {
 
-      const hasProcessingPolyLayer = mapLayerProps.some(p => p.status.poly === 'working');
-      if (!hasProcessingPolyLayer) {
+      // check if any processing is going on
+      const hasProcessingLayer = mapLayerProps.some(p => (p.status.poly === 'working' || p.status.line === 'working'));
+      if (!hasProcessingLayer) {
 
         const processablePolyLayer = mapLayerProps.find(p => p.status.poly === 'pending');
         if (processablePolyLayer) {
-
-          window.setTimeout(() => {
-            processPolyLayer(processablePolyLayer);
-          }, 10);
 
           const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
           for (let i = 0; i < _mapLayerProps.length; i++) {
@@ -530,12 +539,18 @@ function MapComponent() {
           }
           setMapLayerProps(_mapLayerProps);
 
+          // delayed trigger of processing gives a chance to update map a bit further down
+          window.setTimeout(() => {
+            processPolyLayer(processablePolyLayer);
+          }, 10);
+
         }
 
       }
 
 
     }
+
 
   }, [mapLayerProps]);
 
@@ -544,31 +559,21 @@ function MapComponent() {
     const mapLayer = map?.findLayerByName(processablePolyLayer.id);
     if (mapLayer) {
 
-      mapLayer.processData(map!.getBBoxClp4326(), map!.getBBoxMap4326()).then(() => {
+      mapLayer.processPoly(map!.getBBoxClp4326(), map!.getBBoxMap4326()).then(() => {
 
         const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
         for (let i = 0; i < _mapLayerProps.length; i++) {
           if (_mapLayerProps[i].id === processablePolyLayer.id) {
-
-            const polyData = turf.simplify(mapLayer.polyData, {
-              tolerance: 0.00001,
-              highQuality: true
-            });
-            _mapLayerProps[i].polyData = polyData;
             _mapLayerProps[i].status.poly = 'success';
-
           }
         }
         setMapLayerProps(_mapLayerProps);
-
-        console.log('done processing layer');
 
       });
 
     } else {
       console.warn(`failed to find layer for poly processing`, processablePolyLayer.id);
     }
-
 
   }
 
@@ -592,6 +597,7 @@ function MapComponent() {
     const tileLoader = new VectorTileLoader(loadableTileKey.vectorTileUrl);
     tileLoader.load(loadableTileKey).then(vectorTile => {
 
+      // apply tile data to layers
       map!.layers.forEach(
         async (layer) => await layer.openTile(vectorTile.tileKey)
       );
@@ -608,6 +614,7 @@ function MapComponent() {
         async (layer) => await layer.closeTile(vectorTile.tileKey)
       );
 
+      // set the appropriate loadable tile status to success
       const _loadableTileKeys: ILoadableTileKey[] = [...loadableTileKeys];
       const loadableUrlA = loadableTileKey.vectorTileUrl.toUrl(loadableTileKey);
       for (let i = 0; i < loadableTileKeys.length; i++) {
@@ -655,60 +662,81 @@ function MapComponent() {
   const upscale = 1;
 
   return (
-    <Stack direction={'row'}>
+    <Stack spacing={2} direction={'row'}>
 
-      <List dense={true} sx={{ width: '100%', maxWidth: 300, bgcolor: 'background.paper' }}>
-        {mapLayerProps.map((l) => (
-          <ListMapLayerComponent key={l.id} {...l} />
-        ))}
-      </List>
-
-      {map ? (
-        <canvas
-          ref={canvasRef}
-          style={{
-            backgroundColor: "#eeeeee",
-            width: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
-            height: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
-            display: 'none'
-          }}
-          width={map.tileDim14[0] * VectorTileKey.DIM}
-          height={map.tileDim14[1] * VectorTileKey.DIM}
-        />
-      ) : null}
-
-      {map ? (
-        <svg
-          viewBox={`0, 0, ${map.tileDim14[0] * VectorTileKey.DIM}, ${map.tileDim14[1] * VectorTileKey.DIM}`}
-          ref={svgRef}
-          style={{
-            backgroundColor: "#eeeeee",
-            width: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
-            height: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
-          }}
-        >
-          {mapRectangleProps.map((l) => (
-            <SvgRectangleComponent key={l.id} {...l} />
-          ))}
+      <Stack direction={'column'}>
+        <List dense={true} sx={{ width: '100%', maxWidth: 300, bgcolor: 'background.paper' }}>
           {mapLayerProps.map((l) => (
-            <SvgMapLayerComponent key={l.id} {...l} />
+            <ListMapLayerComponent key={l.id} {...l} />
           ))}
-        </svg>
-      ) : null}
-      <Button
-        sx={{
-          width: "200px",
-          marginLeft: "100px",
+
+        </List>
+        <div
+          style={{
+            flexGrow: 2
+          }}
+        />
+        <Button
+          sx={{
+            padding: '12px'
+          }}
+          component="label"
+          role={undefined}
+          variant="contained"
+          tabIndex={-1}
+          startIcon={<UploadFileIcon />}
+          onClick={exportSVG}
+        >
+          download
+        </Button>
+      </Stack>
+
+      <div
+        style={{
+          display: 'grid'
         }}
-        component="label"
-        role={undefined}
-        variant="contained"
-        tabIndex={-1}
-        startIcon={<UploadFileIcon />}
-        onClick={exportSVG}
       >
-        download
-      </Button>
+
+        {map ? (
+          <canvas
+            ref={canvasRef}
+            style={{
+              backgroundColor: "#eeeeee",
+              minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
+              minHeight: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
+              gridColumn: 1,
+              gridRow: 1
+            }}
+            width={map.tileDim14[0] * VectorTileKey.DIM}
+            height={map.tileDim14[1] * VectorTileKey.DIM}
+          />
+        ) : null}
+
+        {map ? (
+          <svg
+            viewBox={`0, 0, ${map.tileDim14[0] * VectorTileKey.DIM}, ${map.tileDim14[1] * VectorTileKey.DIM}`}
+            ref={svgRef}
+            style={{
+              position: 'relative',
+              minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
+              minHeight: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
+              gridColumn: 1,
+              gridRow: 1
+            }}
+          >
+            {mapRectangleProps.map((l) => (
+              <SvgRectangleComponent key={l.id} {...l} />
+            ))}
+            {mapLayerProps.map((l) => (
+              <SvgMapLayerComponent key={l.id} {...l} />
+            ))}
+          </svg>
+        ) : null}
+
+      </div>
+
+
+
 
     </Stack>
 

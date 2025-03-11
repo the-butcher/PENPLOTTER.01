@@ -34,7 +34,7 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
 
     async closeTile(): Promise<void> { }
 
-    async processData(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processPoly(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
 
@@ -107,7 +107,7 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
 
     drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
 
-        context.fillStyle = 'rgba(0, 0, 0, 0.50)';
+        context.fillStyle = 'rgba(0, 0, 0, 0.10)';
         context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
 
         const drawRing = (ring: Position[]) => {

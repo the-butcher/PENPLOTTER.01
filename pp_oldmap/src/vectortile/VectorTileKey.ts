@@ -124,4 +124,8 @@ export class VectorTileKey {
         }
     };
 
+    static toTileId(vectorTileKey: IVectorTileKey): string {
+        return `${vectorTileKey.lod}/${vectorTileKey.row}/${vectorTileKey.col}`;
+    }
+
 }

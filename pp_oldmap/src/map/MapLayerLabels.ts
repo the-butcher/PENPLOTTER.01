@@ -57,7 +57,7 @@ export class MapLayerLabels extends AMapLayer<Point> {
 
     async closeTile(): Promise<void> { }
 
-    async processData(): Promise<void> { // bboxMap4326: BBox
+    async processPoly(): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing ...`);
 

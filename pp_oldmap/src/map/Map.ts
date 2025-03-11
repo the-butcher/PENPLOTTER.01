@@ -33,6 +33,8 @@ export class Map {
     static readonly LAYER__NAME__ELEVATE_A = "l_elevate_a";
     static readonly LAYER__NAME__ELEVATE_B = "l_elevate_b";
 
+
+
     static readonly SYMBOL_INDEX_GREENAREA = 1; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______WOOD = 3; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______MISC = 5; // on NUTZUNG_L16_20
@@ -231,58 +233,6 @@ export class Map {
 
         }
 
-        const drawTiles = (lod: number) => {
-
-            const minTileKey = this.getMinTileKey(lod);
-            const maxTileKey = this.getMaxTileKey(lod);
-
-            for (let col = minTileKey.col; col <= maxTileKey.col; col++) {
-                for (let row = minTileKey.row; row <= maxTileKey.row; row++) {
-
-                    const drawKeyMin = {
-                        lod,
-                        col,
-                        row,
-                    };
-                    const drawKeyMax = {
-                        lod,
-                        col: col + 1,
-                        row: row + 1,
-                    };
-
-                    const ul3857Pos = VectorTileGeometryUtil.toMercator(drawKeyMin);
-                    const lr3857Pos = VectorTileGeometryUtil.toMercator(drawKeyMax);
-
-                    drawRect([
-                        ul3857Pos[0],
-                        lr3857Pos[1],
-                        lr3857Pos[0],
-                        ul3857Pos[1]
-                    ])
-
-                }
-
-            }
-
-
-        }
-
-        drawTiles(Map.LOD_14);
-        drawTiles(Map.LOD_15);
-        drawTiles(Map.LOD_16);
-
-        context.setLineDash([6]);
-        context.lineWidth = 2;
-
-        context.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-        drawRect(this.bboxClp3857);
-
-        context.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-        drawRect(this.bboxMap3857);
-
-        context.setLineDash([]);
-
-        context.strokeStyle = "green";
         this.layers.forEach((layer) => {
             layer.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
         });

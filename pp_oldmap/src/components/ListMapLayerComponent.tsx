@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { IMapLayerProps } from "./IMapLayerProps";
 import StatusMapLayerComponent from "./StatusMapLayerComponent";
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import PolylineIcon from '@mui/icons-material/Polyline';
 
 function ListMapLayerComponent(props: IMapLayerProps) {
 
@@ -22,10 +23,14 @@ function ListMapLayerComponent(props: IMapLayerProps) {
     return (
         <ListItem>
             <ListItemText
+                sx={{
+                    paddingRight: '12px'
+                }}
                 primary={id}
             />
             <StatusMapLayerComponent status={status.tile} icon={<GridViewIcon />} />
             <StatusMapLayerComponent status={status.poly} icon={<TravelExploreIcon />} />
+            <StatusMapLayerComponent status={status.line} icon={<PolylineIcon />} />
         </ListItem>
 
     );

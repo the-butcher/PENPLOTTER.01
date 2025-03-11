@@ -5,9 +5,11 @@ import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFil
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
+import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 
 
-export class MapLayerMisc extends AMapLayer<Polygon> {
+export class MapLayerPolygon extends AMapLayer<Polygon> {
 
     outin: [number, number];
     minArea: number;
@@ -22,46 +24,39 @@ export class MapLayerMisc extends AMapLayer<Polygon> {
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
         const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > this.minArea);
-        this.tileData.push(...polygons);
+        polygons.forEach(polygon => {
+            this.tileData.push(turf.feature(polygon, {
+                lod: vectorTileKey.lod,
+                col: vectorTileKey.col,
+                row: vectorTileKey.row
+            }));
+        });
     }
 
     async closeTile(): Promise<void> { }
 
-    async processData(bboxClp4326: BBox): Promise<void> {
+    async processPoly(bboxClp4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing data ...`);
 
+        const workerInput: IWorkerPolyInput<Polygon> = {
+            name: this.name,
+            tileData: this.tileData,
+            outin: this.outin,
+            bboxClp4326
+        };
+
         return new Promise((resolve) => { // , reject
-            const workerInstance = new Worker(new URL('./worker_poly_data.ts', import.meta.url), { // let respective layers produce URLs and worker input
+            const workerInstance = new Worker(new URL('./worker_poly_l___polygon.ts', import.meta.url), { // let respective layers produce URLs and worker input
                 type: 'module',
             });
             workerInstance.onmessage = (e) => {
-                this.polyData = e.data.polyData;
+                const workerOutput: IWorkerPolyOutput = e.data;
+                this.polyData = workerOutput.polyData;
                 resolve();
             };
-            workerInstance.postMessage({
-                name: this.name,
-                tileData: this.tileData,
-                outin: this.outin,
-                bboxClp4326
-            });
+            workerInstance.postMessage(workerInput);
         });
-
-        // turf.simplify(this.polyData!, {
-        //     mutate: true,
-        //     tolerance: 0.00001,
-        //     highQuality: true
-        // });
-        // turf.cleanCoords(this.polyData, {
-        //     mutate: true
-        // });
-
-        // console.log(`${this.name}, buffer in-out [${this.outin[0]}, ${this.outin[1]}] ...`);
-        // const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(this.tileData), ...this.outin);
-        // this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
-
-        // console.log(`${this.name}, clipping ...`);
-        // this.polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(this.polyData, bboxClp4326);
 
     }
 
