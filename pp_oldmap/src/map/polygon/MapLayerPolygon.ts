@@ -7,7 +7,7 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { AMapLayer } from '../AMapLayer';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 
 export class MapLayerPolygon extends AMapLayer<Polygon> {
 

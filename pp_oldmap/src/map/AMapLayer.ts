@@ -203,13 +203,13 @@ export abstract class AMapLayer<F extends Geometry> implements IVectorTileFeatur
         this.multiPolyline050 = workerOutput.multiPolyline050 ?? this.multiPolyline050;
     }
 
-    bboxClip(bboxMap4326: BBox): void {
-        // console.log(`${this.name}, bbox-clip ...`);
-        this.multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline005, bboxMap4326);
-        this.multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline010, bboxMap4326);
-        this.multiPolyline030 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline030, bboxMap4326);
-        this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
-    }
+    // bboxClipLayer(bboxMap4326: BBox): void {
+    //     // console.log(`${this.name}, bbox-clip ...`);
+    //     this.multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline005, bboxMap4326);
+    //     this.multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline010, bboxMap4326);
+    //     this.multiPolyline030 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline030, bboxMap4326);
+    //     this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
+    // }
 
     connectPolylines(toleranceMeters: number, options: ISkipOptions = {
         skip005: false,

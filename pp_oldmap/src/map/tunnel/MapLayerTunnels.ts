@@ -95,7 +95,7 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
         this.multiPolyline030.coordinates = this.multiPolyline04.coordinates;
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
-        this.bboxClip(bboxMap4326);
+        this.bboxClipLayer(bboxMap4326);
 
     }
 

@@ -1,7 +1,7 @@
-import { BBox, LineString, Position } from "geojson";
-import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
-import { AMapLayer } from "./AMapLayer";
 import * as turf from '@turf/turf';
+import { BBox, LineString, Position } from "geojson";
+import { IVectorTileFeatureFilter } from "../../vectortile/IVectorTileFeatureFilter";
+import { AMapLayer } from "../AMapLayer";
 
 export class MapLayerFrame extends AMapLayer<LineString> {
 
@@ -84,7 +84,6 @@ export class MapLayerFrame extends AMapLayer<LineString> {
         }
 
     }
-
 
     async postProcess(): Promise<void> {
         // nothing

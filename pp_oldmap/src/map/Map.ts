@@ -1,11 +1,8 @@
-import { BBox, Position } from "geojson";
-import { IVectorTileKey } from "../vectortile/IVectorTileKey";
-import { IVectorTileUrl } from "../vectortile/IVectorTileUrl";
-import { VectorTileKey } from "../vectortile/VectorTileKey";
-import { VectorTileLoader } from "../vectortile/VectorTileLoader";
-import { AMapLayer, ILayerProps, MAP_LAYER_GEOMETRY_TYPES } from "./AMapLayer";
-import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import * as turf from "@turf/turf";
+import { BBox, Geometry, Position } from "geojson";
+import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
+import { VectorTileKey } from "../vectortile/VectorTileKey";
+import { AMapLayer, ILayerProps } from "./AMapLayer";
 import { Pen } from "./Pen";
 
 export interface IMapProps {
@@ -32,8 +29,6 @@ export class Map {
     static readonly LAYER__NAME_____TUNNEL = "l____tunnel";
     static readonly LAYER__NAME__ELEVATE_A = "l_elevate_a";
     static readonly LAYER__NAME__ELEVATE_B = "l_elevate_b";
-
-
 
     static readonly SYMBOL_INDEX_GREENAREA = 1; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______WOOD = 3; // on NUTZUNG_L16_20
@@ -63,7 +58,7 @@ export class Map {
     readonly min3857Pos: Position;
     readonly tileDim14: Position;
 
-    readonly layers: AMapLayer<MAP_LAYER_GEOMETRY_TYPES>[];
+    readonly layers: AMapLayer<Geometry>[];
 
     constructor(props: IMapProps) {
 
@@ -96,7 +91,7 @@ export class Map {
 
     }
 
-    findLayerByName(name: string): AMapLayer<MAP_LAYER_GEOMETRY_TYPES> | undefined {
+    findLayerByName(name: string): AMapLayer<Geometry> | undefined {
         return this.layers.find((l) => l.name === name);
     }
 
@@ -107,43 +102,6 @@ export class Map {
     getMaxTileKey(lod: number) {
         return VectorTileKey.toTileKey([this.bboxClp3857[2], this.bboxClp3857[1]], lod);
     }
-
-    // async load(vectorTileUrl: IVectorTileUrl, lod: number): Promise<void> {
-
-    //     const minTileKey = this.getMinTileKey(lod);
-    //     const maxTileKey = this.getMaxTileKey(lod);
-
-    //     const tileLoader = new VectorTileLoader(vectorTileUrl);
-    //     for (let col = minTileKey.col; col <= maxTileKey.col; col++) {
-    //         for (let row = minTileKey.row; row <= maxTileKey.row; row++) {
-
-    //             const vectorTileKey: IVectorTileKey = {
-    //                 lod,
-    //                 col,
-    //                 row,
-    //             };
-
-    //             try {
-
-    //                 const vectorTile = await tileLoader.load(vectorTileKey);
-    //                 // console.log('got vectorTile', vectorTile);
-
-    //                 vectorTile.layers.forEach((vectorTileLayer) => {
-    //                     vectorTileLayer.features.forEach((vectorTileFeature) => {
-    //                         this.layers.forEach(async (layer) => {
-    //                             if (layer.accepts(vectorTileKey, vectorTileFeature)) {
-    //                                 await layer.accept(vectorTile.tileKey, vectorTileFeature);
-    //                             }
-    //                         });
-    //                     });
-    //                 });
-
-    //             } catch (e) {
-    //                 console.debug("failed to load tile", vectorTileKey, "due to", e);
-    //             }
-    //         }
-    //     }
-    // }
 
     getBBoxClp4326(): BBox {
         const minClp4326 = turf.toWgs84([this.bboxClp3857[0], this.bboxClp3857[1]]);
@@ -157,23 +115,15 @@ export class Map {
         return [minMap4326[0], minMap4326[1], maxMap4326[0], maxMap4326[1]];
     }
 
-    // async processData(): Promise<void> {
+    // async processLineMap(): Promise<void> {
     //     const bboxClp4326 = this.getBBoxClp4326();
     //     const bboxMap4326 = this.getBBoxMap4326();
     //     for (let i = 0; i < this.layers.length; i++) {
-    //         await this.layers[i].processData(bboxClp4326, bboxMap4326);
+    //         await this.layers[i].processLine(bboxClp4326, bboxMap4326);
     //     }
     // }
 
-    async processLine(): Promise<void> {
-        const bboxClp4326 = this.getBBoxClp4326();
-        const bboxMap4326 = this.getBBoxMap4326();
-        for (let i = 0; i < this.layers.length; i++) {
-            await this.layers[i].processLine(bboxClp4326, bboxMap4326);
-        }
-    }
-
-    async postProcess(): Promise<void> {
+    async postProcessMap(): Promise<void> {
         const bboxClp4326 = this.getBBoxClp4326();
         const bboxMap4326 = this.getBBoxMap4326();
         for (let i = 0; i < this.layers.length; i++) {
@@ -196,35 +146,6 @@ export class Map {
         context.setLineDash([]);
         context.strokeStyle = "rgba(0, 0, 1, 0.2)";
         context.lineWidth = 1;
-
-        const drawRect = (bbox3857: BBox) => {
-
-            const mapUL = coordinate3857ToCoordinateCanvas([
-                bbox3857[0],
-                bbox3857[3],
-            ]);
-            const mapUR = coordinate3857ToCoordinateCanvas([
-                bbox3857[2],
-                bbox3857[3],
-            ]);
-            const mapLR = coordinate3857ToCoordinateCanvas([
-                bbox3857[2],
-                bbox3857[1],
-            ]);
-            const mapLL = coordinate3857ToCoordinateCanvas([
-                bbox3857[0],
-                bbox3857[1],
-            ]);
-
-            context.beginPath();
-            context.moveTo(mapUL[0], mapUL[1]);
-            context.lineTo(mapUR[0], mapUR[1]);
-            context.lineTo(mapLR[0], mapLR[1]);
-            context.lineTo(mapLL[0], mapLL[1]);
-            context.lineTo(mapUL[0], mapUL[1]);
-            context.stroke();
-
-        }
 
         this.layers.forEach((layer) => {
             layer.drawToCanvas(context, coordinate4326ToCoordinateCanvas);

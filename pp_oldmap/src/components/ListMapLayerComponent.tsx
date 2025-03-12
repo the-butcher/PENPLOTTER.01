@@ -5,6 +5,8 @@ import { IMapLayerProps } from "./IMapLayerProps";
 import StatusMapLayerComponent from "./StatusMapLayerComponent";
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import PolylineIcon from '@mui/icons-material/Polyline';
+import ContentCutIcon from '@mui/icons-material/ContentCut';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 
 function ListMapLayerComponent(props: IMapLayerProps) {
 
@@ -31,6 +33,8 @@ function ListMapLayerComponent(props: IMapLayerProps) {
             <StatusMapLayerComponent status={status.tile} icon={<GridViewIcon />} />
             <StatusMapLayerComponent status={status.poly} icon={<TravelExploreIcon />} />
             <StatusMapLayerComponent status={status.line} icon={<PolylineIcon />} />
+            <StatusMapLayerComponent status={status.clip} icon={<ContentCutIcon />} />
+            <StatusMapLayerComponent status={status.plot} icon={<EditNoteIcon />} />
         </ListItem>
 
     );

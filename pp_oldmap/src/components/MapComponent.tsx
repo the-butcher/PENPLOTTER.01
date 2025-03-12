@@ -3,10 +3,18 @@ import { Button, List, Stack } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
-import { ISkipOptions } from "../map/ISkipOptions";
+import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
+import { IClipDef } from "../map/clip/IClipDef";
+import { IWorkerClipInput } from "../map/clip/IWorkerClipInput";
+import { MapLayerFrame } from "../map/frame/MapLayerFrame";
+import { MapLayerLines } from "../map/line/MapLayerLines";
 import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 import { Map } from "../map/Map";
 import { Maps } from "../map/Maps";
+import { MapLayerPoints } from "../map/point/MapLayerPoints";
+import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
+import { MapLayerRoads } from "../map/road/MapLayerRoads";
+import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
 import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
@@ -20,13 +28,8 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
-import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
-import { MapLayerLines } from "../map/line/MapLayerLines";
-import { MapLayerRoads } from "../map/road/MapLayerRoads";
-import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
-import { MapLayerPoints } from "../map/point/MapLayerPoints";
-import { MapLayerFrame } from "../map/MapLayerFrame";
+import { IWorkerClipOutput } from "../map/clip/IWorkerClipOutput";
+
 
 export interface ILoadableTileKey extends IVectorTileKey {
   vectorTileUrl: IVectorTileUrl;
@@ -43,6 +46,209 @@ function MapComponent() {
   const [mapLayerProps, setMapLayerProps] = useState<IMapLayerProps[]>([]);
   const [mapRectangleProps, setMapRectangleProps] = useState<ISvgRectangleComponentProps[]>([]);
   const [loadableTileKeys, setLoadableTileKeys] = useState<ILoadableTileKey[]>([]);
+  const [clipDefs] = useState<IClipDef[]>([ // , setClipDefs
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME__GREENAREA,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__GREENAREA,
+      layerNameClip: Map.LAYER__NAME__BUILDINGS,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__GREENAREA,
+      layerNameClip: Map.LAYER__NAME______WATER,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__GREENAREA,
+      layerNameClip: Map.LAYER__NAME______ROADS,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__GREENAREA,
+      layerNameClip: Map.LAYER__NAME_____CHURCH,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__GREENAREA,
+      layerNameClip: Map.LAYER__NAME_____SUMMIT,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME__BUILDINGS,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME______WATER,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME______ROADS,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME_____CHURCH,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME_____SUMMIT,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______WATER,
+      layerNameClip: Map.LAYER__NAME______ROADS,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______WATER,
+      layerNameClip: Map.LAYER__NAME_____TRACKS,
+      distance: 6,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______ROADS,
+      layerNameClip: Map.LAYER__NAME__BUILDINGS,
+      distance: 3,
+      status: 'pending',
+      options: {
+        skip005: true,
+        skip030: true, // single line roads
+      }
+    }, // remove road boundaries where a building boundary is nearby
+    {
+      layerNameDest: Map.LAYER__NAME______ROADS,
+      layerNameClip: Map.LAYER__NAME__BUILDINGS,
+      distance: 8,
+      status: 'pending',
+      options: {
+        skip010: true,
+        skip050: true,
+      }
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______ROADS,
+      layerNameClip: Map.LAYER__NAME_____CHURCH,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______ROADS,
+      layerNameClip: Map.LAYER__NAME_____SUMMIT,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______WATER,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__GREENAREA,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_______WOOD,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__BUILDINGS,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______ROADS,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_____TRACKS,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME_____TUNNEL,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__ELEVATE_A,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending'
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__BUILDINGS,
+      layerNameClip: Map.LAYER__NAME_____CHURCH,
+      distance: 0,
+      status: 'pending',
+      options: {
+        skipMlt: false
+      }
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__BUILDINGS,
+      layerNameClip: Map.LAYER__NAME_____SUMMIT,
+      distance: 0,
+      status: 'pending',
+      options: {
+        skipMlt: false
+      }
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__BUILDINGS,
+      layerNameClip: Map.LAYER__NAME______FRAME,
+      distance: 0,
+      status: 'pending',
+      options: {
+        skipMlt: false
+      }
+    },
+    {
+      layerNameDest: Map.LAYER__NAME______WATER,
+      layerNameClip: Map.LAYER__NAME___RIVER_TX,
+      distance: 0,
+      status: 'pending',
+      options: {
+        skipMlt: false
+      }
+    },
+    {
+      layerNameDest: Map.LAYER__NAME__ELEVATE_A,
+      layerNameClip: Map.LAYER__NAME__ELEVATE_B,
+      distance: 0,
+      status: 'pending'
+    }
+
+  ]);
 
   useEffect(() => {
 
@@ -210,38 +416,7 @@ function MapComponent() {
       ],
     });
 
-    const clip = (layerNameDest: string, layerNameClip: string, distance: number, options?: ISkipOptions) => {
-      const layerDest = _map.findLayerByName(layerNameDest);
-      const layerClip = _map.findLayerByName(layerNameClip);
-      if (layerDest && layerClip) {
-        console.log(`${layerNameDest}, clipping to ${layerNameClip}, ${distance.toFixed(2)}m`);
-        layerDest.clipToLayerMultipolygon(layerClip, distance, options);
-      }
-    };
-
     setMap(_map);
-
-
-
-    // _map.load(vectorTileUrlBmapv, Map.LOD_16).then(() => {
-    //   _map.load(vectorTileUrlBmapv, Map.LOD_15).then(() => {
-    //     _map.load(vectorTileUrlBmapv, Map.LOD_14).then(() => {
-
-    //       _map.load(vectorTileUrlBmaph, Map.LOD_14).then(() => {
-
-    //         for (let i = 0; i < _map.layers.length; i++) {
-    //           _map.layers[i].mapProcessing.tile = 'success';
-    //           _map.layers[i].mapProcessing.poly = 'working';
-    //         }
-    //         setMap(_map);
-
-
-    //         // https://web.dev/articles/es-modules-in-sw?hl=de
-    //         // https://medium.com/@abhi.venkata54/boosting-react-app-performance-with-web-workers-and-offloading-tasks-c45de476b707
-
-    //         // _map.processData().then(() => {
-
-    //         //   _map.processLine().then(() => {
 
     //         //     clip(Map.LAYER__NAME_______WOOD, Map.LAYER__NAME__GREENAREA, 6); // remove duplicates between greenarea and wood
 
@@ -304,21 +479,6 @@ function MapComponent() {
     //         //     });
     //         //     clip(Map.LAYER__NAME__ELEVATE_A, Map.LAYER__NAME__ELEVATE_B, 0); // prebuffered
 
-    //         //     _map.postProcess().then(() => {
-    //         //       setMap(_map);
-    //         //     });
-
-    //         //   });
-
-    //         //   // setMap(_map);
-
-    //         // });
-
-    //       });
-
-    //     });
-    //   });
-    // });
 
   }, []);
 
@@ -327,7 +487,7 @@ function MapComponent() {
    */
   useEffect(() => {
 
-    console.log("⚙ updating map (map)", map);
+    console.debug("⚙ updating map (map)", map);
 
     const canvas = canvasRef.current;
     const svg = svgRef.current;
@@ -499,64 +659,108 @@ function MapComponent() {
 
     console.debug("⚙ updating map (mapLayerProps)", mapLayerProps);
 
-    window.clearTimeout(drawToCanvasToRef.current);
-    drawToCanvasToRef.current = window.setTimeout(() => {
+    if (mapLayerProps.length > 0) {
 
-      const canvas = canvasRef.current!;
-      const context = canvas.getContext("2d")!;
+      window.clearTimeout(drawToCanvasToRef.current);
+      drawToCanvasToRef.current = window.setTimeout(() => {
 
-      context.fillStyle = '#eeeeee';
-      context.fillRect(0, 0, canvas.width, canvas.height);
+        const canvas = canvasRef.current!;
+        const context = canvas.getContext("2d")!;
 
-      context.lineWidth = 1;
-      context.lineJoin = "round";
-      context.lineCap = "round";
+        context.fillStyle = '#eeeeee';
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
-      map?.drawToCanvas(context);
+        context.lineWidth = 1;
+        context.lineJoin = "round";
+        context.lineCap = "round";
 
-    }, 500);
+        map?.drawToCanvas(context);
 
-    // check if there is more tile loading to be fonw
-    const hasPendingTileLayer = mapLayerProps.some(p => p.status.tile !== 'success');
-    if (!hasPendingTileLayer) {
+      }, 500);
 
-      // check if any processing is going on
-      const hasProcessingLayer = mapLayerProps.some(p => (p.status.poly === 'working' || p.status.line === 'working'));
-      if (!hasProcessingLayer) {
+      // check if there is more tile loading to be fonw
+      const hasPendingTileLayer = mapLayerProps.some(p => p.status.tile !== 'success');
+      if (!hasPendingTileLayer) {
 
-        const processablePolyLayer = mapLayerProps.find(p => p.status.poly === 'pending');
-        if (processablePolyLayer) {
+        // check if any processing is going on
+        const hasProcessingLayer = mapLayerProps.some(p => (p.status.poly === 'working' || p.status.line === 'working' || p.status.clip === 'working' || p.status.plot === 'working'));
+        // const hasProcessingClip = clipDefs.some(p => (p.status === 'working'));
+        if (!hasProcessingLayer) { //  && !hasProcessingClip
 
-          const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
-          for (let i = 0; i < _mapLayerProps.length; i++) {
-            if (_mapLayerProps[i].id === processablePolyLayer.id) {
-              _mapLayerProps[i].status.poly = 'working';
-            }
-          }
-          setMapLayerProps(_mapLayerProps);
-
-          // delayed trigger of processing gives a chance to update map a bit further down
-          window.setTimeout(() => {
-            processPolyLayer(processablePolyLayer);
-          }, 10);
-
-        } else {
-
-          const processableLineLayer = mapLayerProps.find(p => p.status.line === 'pending');
-          if (processableLineLayer) {
+          const processablePolyLayer = mapLayerProps.find(p => p.status.poly === 'pending');
+          if (processablePolyLayer) {
 
             const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
             for (let i = 0; i < _mapLayerProps.length; i++) {
-              if (_mapLayerProps[i].id === processableLineLayer.id) {
-                _mapLayerProps[i].status.line = 'working';
+              if (_mapLayerProps[i].id === processablePolyLayer.id) {
+                _mapLayerProps[i].status.poly = 'working';
               }
             }
             setMapLayerProps(_mapLayerProps);
 
             // delayed trigger of processing gives a chance to update map a bit further down
             window.setTimeout(() => {
-              processLineLayer(processableLineLayer);
+              processPolyLayer(processablePolyLayer);
             }, 10);
+
+          } else {
+
+            const processableLineLayer = mapLayerProps.find(p => p.status.line === 'pending');
+            if (processableLineLayer) {
+
+              const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
+              for (let i = 0; i < _mapLayerProps.length; i++) {
+                if (_mapLayerProps[i].id === processableLineLayer.id) {
+                  _mapLayerProps[i].status.line = 'working';
+                }
+              }
+              setMapLayerProps(_mapLayerProps);
+
+              // delayed trigger of processing gives a chance to update map a bit further down
+              window.setTimeout(() => {
+                processLineLayer(processableLineLayer);
+              }, 10);
+
+            } else {
+
+              const processableClip = clipDefs.find(c => c.status === 'pending');
+              if (processableClip) {
+
+                const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
+                for (let i = 0; i < _mapLayerProps.length; i++) {
+                  if (_mapLayerProps[i].id === processableClip.layerNameDest || _mapLayerProps[i].id === processableClip.layerNameClip) {
+                    _mapLayerProps[i].status.clip = 'working';
+                  }
+                }
+                setMapLayerProps(_mapLayerProps);
+
+                processableClip.status = 'working';
+                processClip(processableClip);
+
+              } else {
+
+                const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
+                for (let i = 0; i < _mapLayerProps.length; i++) {
+                  _mapLayerProps[i].status.clip = 'success';
+                }
+
+                const processablePlotLayer = mapLayerProps.find(p => p.status.plot === 'pending');
+                if (processablePlotLayer) {
+
+                  for (let i = 0; i < _mapLayerProps.length; i++) {
+                    if (_mapLayerProps[i].id === processablePlotLayer.id) {
+                      _mapLayerProps[i].status.plot = 'working';
+                    }
+                  }
+                  setMapLayerProps(_mapLayerProps);
+
+                  // TODO :: process plot
+
+                }
+
+              }
+
+            }
 
           }
 
@@ -564,11 +768,58 @@ function MapComponent() {
 
       }
 
+    }
+
+  }, [mapLayerProps]);
+
+  const processClip = (processableClip: IClipDef) => {
+
+    const layerDest = map!.findLayerByName(processableClip.layerNameDest);
+    const layerClip = map!.findLayerByName(processableClip.layerNameClip);
+    if (layerDest && layerClip) {
+
+      console.log(`${processableClip.layerNameDest}, clipping to ${processableClip.layerNameClip}, ${processableClip.distance.toFixed(2)}m`);
+
+      const workerInput: IWorkerClipInput = {
+        multiPolyline005Dest: layerDest.multiPolyline005,
+        multiPolyline010Dest: layerDest.multiPolyline010,
+        multiPolyline030Dest: layerDest.multiPolyline030,
+        multiPolyline050Dest: layerDest.multiPolyline050,
+        polyDataDest: layerDest.polyData,
+        polyDataClip: layerClip.polyData,
+        distance: processableClip.distance,
+        options: processableClip.options
+      };
+
+      const promise = new Promise<void>((resolve) => { // , reject
+        const workerInstance = new Worker(new URL('../map/clip/worker_clip________misc.ts', import.meta.url), { type: 'module' });
+        workerInstance.onmessage = (e) => {
+          const workerOutput: IWorkerClipOutput = e.data;
+          layerDest.multiPolyline005 = workerOutput.multiPolyline005Dest;
+          layerDest.multiPolyline010 = workerOutput.multiPolyline010Dest;
+          layerDest.multiPolyline030 = workerOutput.multiPolyline030Dest;
+          layerDest.multiPolyline050 = workerOutput.multiPolyline050Dest;
+          layerDest.polyData = workerOutput.polyDataDest;
+          resolve();
+        };
+        workerInstance.postMessage(workerInput);
+      });
+
+      promise.then(() => {
+
+        processableClip.status = 'success';
+
+        const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
+        for (let i = 0; i < _mapLayerProps.length; i++) {
+          _mapLayerProps[i].status.clip = 'pending';
+        }
+        setMapLayerProps(_mapLayerProps);
+
+      });
 
     }
 
-
-  }, [mapLayerProps]);
+  }
 
   const processPolyLayer = (processablePolyLayer: IMapLayerProps) => {
 
