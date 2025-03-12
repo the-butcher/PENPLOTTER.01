@@ -1,99 +1,18 @@
 import * as turf from '@turf/turf';
 import { BBox, Feature, Geometry, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
+import * as path from 'svg-path-properties';
 import { IRingDeviation } from '../map/IRingDeviation';
 import { noto_serif_regular } from "../map/NotoSerif";
 import { CODE____LINE_TO, CODE____MOVE_TO, IVectorTileCoordinate } from "../protobuf/vectortile/geometry/IVectorTileCoordinate";
-import { IMatrix2D } from "../util/Interfaces";
 import { Uid } from '../util/Uid';
 import { IVectorTileKey } from "./IVectorTileKey";
 import { VectorTileKey } from "./VectorTileKey";
-import * as path from 'svg-path-properties';
 
 export type UnionPolygon = Polygon | MultiPolygon;
 export type UnionPolyline = LineString | MultiLineString;
 
 export class VectorTileGeometryUtil {
 
-    static info(): string {
-        return 'info about vector-tile-geometry-util';
-    }
-
-    static transformMultiPolygon(polygons: MultiPolygon, matrix: IMatrix2D): MultiPolygon {
-        return {
-            type: 'MultiPolygon',
-            coordinates: VectorTileGeometryUtil.transformPosition3(polygons.coordinates, matrix)
-        }
-    }
-
-    static transformPosition3(positions: Position[][][], matrix: IMatrix2D): Position[][][] {
-        return positions.map(p => VectorTileGeometryUtil.transformPosition2(p, matrix));
-    }
-
-    static transformPosition2(positions: Position[][], matrix: IMatrix2D): Position[][] {
-        return positions.map(p => VectorTileGeometryUtil.transformPosition1(p, matrix));
-    }
-
-    static transformPosition1(positions: Position[], matrix: IMatrix2D): Position[] {
-        return positions.map(p => VectorTileGeometryUtil.transformPosition(p, matrix));
-    }
-
-    /**
-     * https://github.com/Fionoble/transformation-matrix-js/blob/master/src/matrix.js
-     * @param matrixA
-     * @param matrixB
-     * @returns
-     */
-    static matrixMultiply(...matrices: IMatrix2D[]): IMatrix2D {
-        let matrixA = matrices[0];
-        for (let i = 1; i < matrices.length; i++) {
-            const matrixB = matrices[i];
-            matrixA = {
-                a: matrixA.a * matrixB.a + matrixA.c * matrixB.b,
-                b: matrixA.b * matrixB.a + matrixA.d * matrixB.b,
-                c: matrixA.a * matrixB.c + matrixA.c * matrixB.d,
-                d: matrixA.b * matrixB.c + matrixA.d * matrixB.d,
-                e: matrixA.a * matrixB.e + matrixA.c * matrixB.f + matrixA.e,
-                f: matrixA.b * matrixB.e + matrixA.d * matrixB.f + matrixA.f
-            }
-        }
-        return matrixA;
-    }
-
-    static matrixTranslationInstance(x: number, y: number): IMatrix2D {
-        return {
-            a: 1,
-            b: 0,
-            c: 0,
-            d: 1,
-            e: x,
-            f: y
-        }
-    }
-
-    /**
-     * https://github.com/Fionoble/transformation-matrix-js/blob/master/src/matrix.js
-     * @param radians
-     * @returns
-     */
-    static matrixRotationInstance(radians: number): IMatrix2D {
-        const cos = Math.cos(radians), sin = Math.sin(radians);
-        return {
-            a: cos,
-            b: sin,
-            c: -sin,
-            d: cos,
-            e: 0,
-            f: 0
-        }
-    }
-
-
-    static transformPosition(position: Position, transform: IMatrix2D): Position {
-        return [
-            position[0] * transform.a + position[1] * transform.c + transform.e,
-            position[0] * transform.b + position[1] * transform.d + transform.f
-        ];
-    }
 
     static dashMultiPolyline(multiPolyline: MultiLineString, dashArray: [number, number]): MultiLineString {
 

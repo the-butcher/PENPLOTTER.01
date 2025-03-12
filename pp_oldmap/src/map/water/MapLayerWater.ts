@@ -5,6 +5,7 @@ import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFil
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
+import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 
@@ -14,18 +15,18 @@ export class MapLayerWater extends AMapLayer<Polygon> {
         super(name, filter);
     }
 
-    async openTile(): Promise<void> { }
-
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
         const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > 100); // TODO :: remove magic number
         polygons.forEach(polygon => {
-            this.tileData.push(turf.feature(polygon));
+            this.tileData.push(turf.feature(polygon, {
+                lod: vectorTileKey.lod,
+                col: vectorTileKey.col,
+                row: vectorTileKey.row
+            }));
         });
     }
 
-    async closeTile(): Promise<void> { }
-
-    async processPoly(bboxClp4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
 
@@ -33,7 +34,8 @@ export class MapLayerWater extends AMapLayer<Polygon> {
             name: this.name,
             tileData: this.tileData,
             outin: [3, -3],
-            bboxClp4326
+            bboxClp4326,
+            bboxMap4326
         };
 
         return new Promise((resolve) => { // , reject
@@ -52,31 +54,22 @@ export class MapLayerWater extends AMapLayer<Polygon> {
 
         console.log(`${this.name}, processing line ...`);
 
-        /**
-         * create the buffered set of polygons that determine the appearance of the water layer
-         * the result of this operation is the basis for the layer's polylines
-         */
-        let distance = -5;
-        const distances: number[] = [];
-        for (let i = 0; i < 20; i++) {
-            distances.push(distance);
-            distance *= 1.25;
-        }
-        const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(this.polyData, false, ...distances);
-        let multiPolygonB = VectorTileGeometryUtil.restructureMultiPolygon(polygonsB);
+        const workerInput: IWorkerLineInput<Polygon> = {
+            name: this.name,
+            tileData: this.tileData,
+            polyData: this.polyData,
+            bboxClp4326,
+            bboxMap4326
+        };
 
-        console.log(`${this.name}, clipping to bboxClp4326 (2) ...`);
-        multiPolygonB = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonB, bboxClp4326); // with buffered rings
-
-        const coordinates005: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-        this.multiPolyline005.coordinates.push(...coordinates005);
-
-        // first ring is 0.3 for a more distinct water line
-        const coordinates010: Position[][] = this.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-        this.multiPolyline010.coordinates.push(...coordinates010);
-
-        console.log(`${this.name}, clipping to bboxMap4326 ...`);
-        this.bboxClip(bboxMap4326);
+        return new Promise((resolve) => { // , reject
+            const workerInstance = new Worker(new URL('./worker_line_l_____water.ts', import.meta.url), { type: 'module' });
+            workerInstance.onmessage = (e) => {
+                this.applyWorkerOutputLine(e.data);
+                resolve();
+            };
+            workerInstance.postMessage(workerInput);
+        });
 
     }
 

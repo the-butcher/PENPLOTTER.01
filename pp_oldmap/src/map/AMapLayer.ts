@@ -5,6 +5,7 @@ import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
 import { UnionPolygon, VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { ISkipOptions } from './ISkipOptions';
+import { IWorkerLineOutput } from './common/IWorkerLineOutput';
 
 export interface ILayerProps {
     createLayerInstance: () => AMapLayer<Geometry>;
@@ -61,9 +62,7 @@ export abstract class AMapLayer<F extends Geometry> implements IVectorTileFeatur
         return this.filter.accepts(vectorTileKey, vectorTileFeature);
     }
 
-    abstract openTile(vectorTileKey: IVectorTileKey): Promise<void>;
     abstract accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void>;
-    abstract closeTile(vectorTileKey: IVectorTileKey): Promise<void>;
 
     clipToLayerMultipolygon(layer: AMapLayer<Geometry>, distance: number, options: ISkipOptions = {
         skip005: false,
@@ -195,6 +194,13 @@ export abstract class AMapLayer<F extends Geometry> implements IVectorTileFeatur
             drawPolyline(polyline050);
         });
 
+    }
+
+    applyWorkerOutputLine(workerOutput: IWorkerLineOutput) {
+        this.multiPolyline005 = workerOutput.multiPolyline005 ?? this.multiPolyline005;
+        this.multiPolyline010 = workerOutput.multiPolyline010 ?? this.multiPolyline010;
+        this.multiPolyline030 = workerOutput.multiPolyline030 ?? this.multiPolyline030;
+        this.multiPolyline050 = workerOutput.multiPolyline050 ?? this.multiPolyline050;
     }
 
     bboxClip(bboxMap4326: BBox): void {

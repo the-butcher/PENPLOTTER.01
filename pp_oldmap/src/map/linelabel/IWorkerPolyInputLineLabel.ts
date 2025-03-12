@@ -1,9 +1,8 @@
-import { BBox, LineString } from "geojson";
+import { LineString } from "geojson";
 import { IWorkerPolyInput } from "../common/IWorkerPolyInput";
 
 export interface IWorkerPolyInputLineLabel extends IWorkerPolyInput<LineString> {
     labelDefs: ILabelDefLineLabel[];
-    bboxMap4326: BBox;
 }
 
 export interface ILabelDefLineLabel {

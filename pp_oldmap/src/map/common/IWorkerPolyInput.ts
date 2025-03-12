@@ -5,4 +5,5 @@ export interface IWorkerPolyInput<F extends Geometry> {
     tileData: Feature<F>[];
     outin?: [number, number],
     bboxClp4326: BBox;
+    bboxMap4326: BBox;
 }

@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiPolygon, Position } from "geojson";
+import { BBox, LineString, MultiPolygon } from "geojson";
 import { IVectorTileFeature } from "../../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../../vectortile/IVectorTileKey";
@@ -13,6 +13,7 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
+import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
 
 export class MapLayerLineLabel extends AMapLayer<LineString> {
 
@@ -28,14 +29,12 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
         };
     }
 
-    async openTile(): Promise<void> { }
-
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
 
         // console.log(feature.hasValue('_name'), feature);
 
         const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
-        if (feature.hasValue('_name') && feature.hasValue('_label_class', 4)) { //  && feature.hasValue('_label_class', 4, 5)
+        if (feature.hasValue('_name')) { //  && feature.hasValue('_label_class', 4, 5)
 
             let name = feature.getValue('_name')!.getValue()!.toString();
             console.log('name', name, feature.getValue('_label_class'));
@@ -58,8 +57,6 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
         }
 
     }
-
-    async closeTile(): Promise<void> { }
 
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
 
@@ -98,12 +95,27 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
 
     }
 
-    async processLine(): Promise<void> {
+    async processLine(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing line ...`);
 
-        const coordinates005: Position[][] = this.polyText.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-        this.multiPolyline005.coordinates.push(...coordinates005);
+        const workerInput: IWorkerLineInputLineLabel = {
+            name: this.name,
+            tileData: this.tileData,
+            polyData: this.polyData,
+            polyText: this.polyText,
+            bboxClp4326,
+            bboxMap4326
+        };
+
+        return new Promise((resolve) => { // , reject
+            const workerInstance = new Worker(new URL('./worker_line_l_linelabel.ts', import.meta.url), { type: 'module' });
+            workerInstance.onmessage = (e) => {
+                this.applyWorkerOutputLine(e.data);
+                resolve();
+            };
+            workerInstance.postMessage(workerInput);
+        });
 
     }
 

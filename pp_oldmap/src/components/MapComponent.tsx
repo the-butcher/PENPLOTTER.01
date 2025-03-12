@@ -4,9 +4,10 @@ import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
 import { ISkipOptions } from "../map/ISkipOptions";
+import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 import { Map } from "../map/Map";
 import { Maps } from "../map/Maps";
-import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
+import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -19,8 +20,13 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerWater } from "../map/water/MapLayerWater";
-import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
+import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
+import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
+import { MapLayerLines } from "../map/line/MapLayerLines";
+import { MapLayerRoads } from "../map/road/MapLayerRoads";
+import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
+import { MapLayerPoints } from "../map/point/MapLayerPoints";
+import { MapLayerFrame } from "../map/MapLayerFrame";
 
 export interface ILoadableTileKey extends IVectorTileKey {
   vectorTileUrl: IVectorTileUrl;
@@ -42,7 +48,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = Maps.MAP_DEF_____SALZBURG;
+    const _mapDef = Maps.MAP_DEF______HALLEIN;
 
     const _map = new Map({
       // bbox3857: [ // schulschiff (klein)
@@ -105,105 +111,94 @@ function MapComponent() {
             }
           }, [2, -2], 500)
         },
-        // {
-        //   createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
-        //     }
-        //   })
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____TRACKS, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 12, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
-        //       // console.log(vectorTileFeature.getValue('_symbol'));
-        //       // return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12) );
-        //     }
-        //   }, l => l.multiPolyline010)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       // console.log(vectorTileFeature.getValue('_symbol'));
-        //       return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
-        //     }
-        //   }, l => l.multiPolyline010, [12, 4])
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME______ROADS, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       // const isGip = // || vectorTileFeature.layerName === 'GIP_INSIDE_L_GIP';
-        //       return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE');
-        //     }
-        //   })
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
-        //     }
-        //   })
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
-        //         return true
-        //       }
-        //       return false;
-        //     }
-        //   }, l => l.multiPolyline005)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL/label') { //  &&
-        //         return true;
-        //       }
-        //       return false;
-        //     }
-        //   }, [])
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'GIPFEL_L09-20'
-        //     }
-        //   }, MapLayerPoints.createSummitSymbol)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
-        //     }
-        //   }, MapLayerPoints.createChurchSymbol)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return (vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE');
-        //     }
-        //   }, l => l.multiPolyline050)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
-        //     accepts: () => {
-        //       return false;
-        //     }
-        //   })
-        // },
+        {
+          createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____TRACKS, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 12, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
+              // console.log(vectorTileFeature.getValue('_symbol'));
+              // return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12) );
+            }
+          }, l => l.multiPolyline010)
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              // console.log(vectorTileFeature.getValue('_symbol'));
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
+            }
+          }, l => l.multiPolyline010, [12, 4])
+        },
+        {
+          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME______ROADS, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              // const isGip = // || vectorTileFeature.layerName === 'GIP_INSIDE_L_GIP';
+              return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE');
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
+                return true
+              }
+              return false;
+            }
+          }, l => l.multiPolyline005)
+        },
+        {
+          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL/label') { //  &&
+                return true;
+              }
+              return false;
+            }
+          }, [])
+        },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'GIPFEL_L09-20'
+            }
+          }, 'createSummitSymbol')
+        },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
+            }
+          }, 'createChurchSymbol')
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return (vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE');
+            }
+          }, l => l.multiPolyline050)
+        },
+        {
+          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
+            accepts: () => {
+              return false;
+            }
+          })
+        },
 
-        // {
-        //     createLayerInstance: () => new MapLayerLabels(Map.LAYER__NAME_____LABELS, {
-        //         accepts: (vectorTileFeature: IVectorTileFeature) => {
-        //             if (vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label') {
-        //                 return vectorTileFeature.getValue('_label_class')?.getValue() === 7
-        //             } else {
-        //                 return false;
-        //             }
-        //         }
-        //     })
-        // },
         // {
         //     createLayerInstance: () => new MapLayerLabels(Map.LAYER__NAME_____LABELS, {
         //         accepts: (vectorTileFeature: IVectorTileFeature) => {
@@ -211,6 +206,7 @@ function MapComponent() {
         //         }
         //     })
         // },
+
       ],
     });
 
@@ -544,6 +540,26 @@ function MapComponent() {
             processPolyLayer(processablePolyLayer);
           }, 10);
 
+        } else {
+
+          const processableLineLayer = mapLayerProps.find(p => p.status.line === 'pending');
+          if (processableLineLayer) {
+
+            const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
+            for (let i = 0; i < _mapLayerProps.length; i++) {
+              if (_mapLayerProps[i].id === processableLineLayer.id) {
+                _mapLayerProps[i].status.line = 'working';
+              }
+            }
+            setMapLayerProps(_mapLayerProps);
+
+            // delayed trigger of processing gives a chance to update map a bit further down
+            window.setTimeout(() => {
+              processLineLayer(processableLineLayer);
+            }, 10);
+
+          }
+
         }
 
       }
@@ -577,6 +593,29 @@ function MapComponent() {
 
   }
 
+  const processLineLayer = (processableLineLayer: IMapLayerProps) => {
+
+    const mapLayer = map?.findLayerByName(processableLineLayer.id);
+    if (mapLayer) {
+
+      mapLayer.processLine(map!.getBBoxClp4326(), map!.getBBoxMap4326()).then(() => {
+
+        const _mapLayerProps: IMapLayerProps[] = [...mapLayerProps];
+        for (let i = 0; i < _mapLayerProps.length; i++) {
+          if (_mapLayerProps[i].id === processableLineLayer.id) {
+            _mapLayerProps[i].status.line = 'success';
+          }
+        }
+        setMapLayerProps(_mapLayerProps);
+
+      });
+
+    } else {
+      console.warn(`failed to find layer for line processing`, processableLineLayer.id);
+    }
+
+  }
+
   const updateMapRectangleProps = () => {
 
     const _mapRectangleProps: ISvgRectangleComponentProps[] = [...mapRectangleProps];
@@ -598,9 +637,6 @@ function MapComponent() {
     tileLoader.load(loadableTileKey).then(vectorTile => {
 
       // apply tile data to layers
-      map!.layers.forEach(
-        async (layer) => await layer.openTile(vectorTile.tileKey)
-      );
       vectorTile.layers.forEach((vectorTileLayer) => {
         vectorTileLayer.features.forEach((vectorTileFeature) => {
           map!.layers.forEach(async (layer) => {
@@ -610,9 +646,6 @@ function MapComponent() {
           });
         });
       });
-      map!.layers.forEach(
-        async (layer) => await layer.closeTile(vectorTile.tileKey)
-      );
 
       // set the appropriate loadable tile status to success
       const _loadableTileKeys: ILoadableTileKey[] = [...loadableTileKeys];
@@ -629,8 +662,8 @@ function MapComponent() {
 
   }
 
-
   const exportSVG = () => {
+
     // https://stackoverflow.com/questions/60241398/how-to-download-and-svg-element-as-an-svg-file
     const svg = svgRef.current;
 

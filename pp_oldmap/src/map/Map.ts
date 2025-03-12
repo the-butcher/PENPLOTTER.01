@@ -108,49 +108,42 @@ export class Map {
         return VectorTileKey.toTileKey([this.bboxClp3857[2], this.bboxClp3857[1]], lod);
     }
 
-    async load(vectorTileUrl: IVectorTileUrl, lod: number): Promise<void> {
+    // async load(vectorTileUrl: IVectorTileUrl, lod: number): Promise<void> {
 
-        const minTileKey = this.getMinTileKey(lod);
-        const maxTileKey = this.getMaxTileKey(lod);
+    //     const minTileKey = this.getMinTileKey(lod);
+    //     const maxTileKey = this.getMaxTileKey(lod);
 
-        const tileLoader = new VectorTileLoader(vectorTileUrl);
-        for (let col = minTileKey.col; col <= maxTileKey.col; col++) {
-            for (let row = minTileKey.row; row <= maxTileKey.row; row++) {
+    //     const tileLoader = new VectorTileLoader(vectorTileUrl);
+    //     for (let col = minTileKey.col; col <= maxTileKey.col; col++) {
+    //         for (let row = minTileKey.row; row <= maxTileKey.row; row++) {
 
-                const vectorTileKey: IVectorTileKey = {
-                    lod,
-                    col,
-                    row,
-                };
+    //             const vectorTileKey: IVectorTileKey = {
+    //                 lod,
+    //                 col,
+    //                 row,
+    //             };
 
-                try {
+    //             try {
 
-                    const vectorTile = await tileLoader.load(vectorTileKey);
-                    // console.log('got vectorTile', vectorTile);
+    //                 const vectorTile = await tileLoader.load(vectorTileKey);
+    //                 // console.log('got vectorTile', vectorTile);
 
-                    this.layers.forEach(
-                        async (layer) => await layer.openTile(vectorTile.tileKey)
-                    );
+    //                 vectorTile.layers.forEach((vectorTileLayer) => {
+    //                     vectorTileLayer.features.forEach((vectorTileFeature) => {
+    //                         this.layers.forEach(async (layer) => {
+    //                             if (layer.accepts(vectorTileKey, vectorTileFeature)) {
+    //                                 await layer.accept(vectorTile.tileKey, vectorTileFeature);
+    //                             }
+    //                         });
+    //                     });
+    //                 });
 
-                    vectorTile.layers.forEach((vectorTileLayer) => {
-                        vectorTileLayer.features.forEach((vectorTileFeature) => {
-                            this.layers.forEach(async (layer) => {
-                                if (layer.accepts(vectorTileKey, vectorTileFeature)) {
-                                    await layer.accept(vectorTile.tileKey, vectorTileFeature);
-                                }
-                            });
-                        });
-                    });
-
-                    this.layers.forEach(
-                        async (layer) => await layer.closeTile(vectorTile.tileKey)
-                    );
-                } catch (e) {
-                    console.debug("failed to load tile", vectorTileKey, "due to", e);
-                }
-            }
-        }
-    }
+    //             } catch (e) {
+    //                 console.debug("failed to load tile", vectorTileKey, "due to", e);
+    //             }
+    //         }
+    //     }
+    // }
 
     getBBoxClp4326(): BBox {
         const minClp4326 = turf.toWgs84([this.bboxClp3857[0], this.bboxClp3857[1]]);

@@ -7,6 +7,7 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
+import { GeometryUtil } from '../../util/GeometryUtil';
 
 self.onmessage = (e) => {
 
@@ -114,9 +115,9 @@ self.onmessage = (e) => {
                     const labelCoordinate3857B = turf.toMercator(labelCoordinate4326B);
 
                     const angle = Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
-                    const matrixA = VectorTileGeometryUtil.matrixRotationInstance(-angle);
-                    const matrixB = VectorTileGeometryUtil.matrixTranslationInstance(0, labelDef.vertical);
-                    charCoordinates = VectorTileGeometryUtil.transformPosition3(charCoordinates, VectorTileGeometryUtil.matrixMultiply(matrixA, matrixB));
+                    const matrixA = GeometryUtil.matrixRotationInstance(-angle);
+                    const matrixB = GeometryUtil.matrixTranslationInstance(0, labelDef.vertical);
+                    charCoordinates = GeometryUtil.transformPosition3(charCoordinates, GeometryUtil.matrixMultiply(matrixA, matrixB));
 
                     let position4326: Position;
                     charCoordinates.forEach(polygon => {

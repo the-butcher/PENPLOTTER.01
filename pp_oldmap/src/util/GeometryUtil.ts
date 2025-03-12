@@ -10,11 +10,6 @@ export class GeometryUtil {
         }
     }
 
-    static distancePositionPosition(positionA: Position, positionB: Position) {
-        const difX = positionB[0] - positionA[0], difY = positionB[1] - positionA[1];
-        return Math.sqrt(difX * difX + difY * difY);
-    }
-
     static transformPosition3(positions: Position[][][], matrix: IMatrix2D): Position[][][] {
         return positions.map(p => GeometryUtil.transformPosition2(p, matrix));
     }
@@ -32,6 +27,28 @@ export class GeometryUtil {
             position[0] * transform.a + position[1] * transform.c + transform.e,
             position[0] * transform.b + position[1] * transform.d + transform.f
         ];
+    }
+
+    /**
+     * https://github.com/Fionoble/transformation-matrix-js/blob/master/src/matrix.js
+     * @param matrixA
+     * @param matrixB
+     * @returns
+     */
+    static matrixMultiply(...matrices: IMatrix2D[]): IMatrix2D {
+        let matrixA = matrices[0];
+        for (let i = 1; i < matrices.length; i++) {
+            const matrixB = matrices[i];
+            matrixA = {
+                a: matrixA.a * matrixB.a + matrixA.c * matrixB.b,
+                b: matrixA.b * matrixB.a + matrixA.d * matrixB.b,
+                c: matrixA.a * matrixB.c + matrixA.c * matrixB.d,
+                d: matrixA.b * matrixB.c + matrixA.d * matrixB.d,
+                e: matrixA.a * matrixB.e + matrixA.c * matrixB.f + matrixA.e,
+                f: matrixA.b * matrixB.e + matrixA.d * matrixB.f + matrixA.f
+            }
+        }
+        return matrixA;
     }
 
     static matrixTranslationInstance(x: number, y: number): IMatrix2D {
@@ -62,27 +79,7 @@ export class GeometryUtil {
         }
     }
 
-    /**
-     * https://github.com/Fionoble/transformation-matrix-js/blob/master/src/matrix.js
-     * @param matrixA
-     * @param matrixB
-     * @returns
-     */
-    static matrixMultiply(...matrices: IMatrix2D[]): IMatrix2D {
-        let matrixA = matrices[0];
-        for (let i = 1; i < matrices.length; i++) {
-            const matrixB = matrices[i];
-            matrixA = {
-                a: matrixA.a * matrixB.a + matrixA.c * matrixB.b,
-                b: matrixA.b * matrixB.a + matrixA.d * matrixB.b,
-                c: matrixA.a * matrixB.c + matrixA.c * matrixB.d,
-                d: matrixA.b * matrixB.c + matrixA.d * matrixB.d,
-                e: matrixA.a * matrixB.e + matrixA.c * matrixB.f + matrixA.e,
-                f: matrixA.b * matrixB.e + matrixA.d * matrixB.f + matrixA.f
-            }
-        }
-        return matrixA;
-    }
+
 
     static matrixDeterminant(matrix: IMatrix2D): number {
         return matrix.a * matrix.d - matrix.b * matrix.c;

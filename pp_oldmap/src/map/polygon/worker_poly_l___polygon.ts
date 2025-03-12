@@ -2,7 +2,8 @@ import { Polygon } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import * as turf from '@turf/turf';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+
 
 self.onmessage = (e) => {
 
