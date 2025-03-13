@@ -1,18 +1,15 @@
 import * as turf from '@turf/turf';
-import { Feature, LineString, MultiPolygon, Polygon } from 'geojson';
+import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutputTunnel } from './IWorkerPolyOutputTunnel';
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerPolyInput<LineString> = e.data;
+    const workerInput: IWorkerPolyInput<LineString, GeoJsonProperties> = e.data;
 
     let multiPolyline04 = VectorTileGeometryUtil.restructureMultiPolyline(workerInput.tileData.map(f => f.geometry));
-    let polyData: MultiPolygon = {
-        type: 'MultiPolygon',
-        coordinates: []
-    };
+    let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
     if (multiPolyline04.coordinates.length > 0) {
         const linebuffer04 = turf.buffer(multiPolyline04, 2, {

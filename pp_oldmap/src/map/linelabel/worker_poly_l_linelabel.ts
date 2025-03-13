@@ -16,10 +16,7 @@ self.onmessage = (e) => {
     const lineNames = new Set(workerInput.tileData.map(f => f.properties!.name));
     console.log('lineNames', lineNames);
 
-    let polyText: MultiPolygon = {
-        type: 'MultiPolygon',
-        coordinates: []
-    };
+    let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
 
     const labelDefs: ILabelDef[] = workerInput.labelDefs.map(d => {
         const labelDefOmit: Omit<ILabelDefLineLabel, 'idxvalid'> = {
@@ -30,7 +27,7 @@ self.onmessage = (e) => {
             idxvalid: JSONfn.parse(d.idxvalid)
         }
     });
-    console.log('labelDefs', labelDefs);
+    // console.log('labelDefs', labelDefs);
 
 
     lineNames.forEach(lineName => {
@@ -65,7 +62,7 @@ self.onmessage = (e) => {
                 }
 
                 const labelLine = connectedLinesC[a]; // turf.bboxClip(connectedLinesB[a], bboxMap4326).geometry as LineString;
-                console.log('labelLine', labelLine);
+                // console.log('labelLine', labelLine);
                 turf.cleanCoords(labelLine, {
                     mutate: true
                 });
@@ -97,7 +94,7 @@ self.onmessage = (e) => {
                         }).geometry.coordinates;
                         const labelCoordinate3857T = turf.toMercator(labelCoordinate4326T);
                         const angleT = Math.atan2(labelCoordinate3857T[1] - labelCoordinate3857A[1], labelCoordinate3857T[0] - labelCoordinate3857A[0]);
-                        console.log(labelDef.plotName, angleT * 180 / Math.PI)
+                        // console.log(labelDef.plotName, angleT * 180 / Math.PI)
                         if (Math.abs(angleT) > Math.PI / 2) {
                             labelDef.charsign = -1;
                         } else {

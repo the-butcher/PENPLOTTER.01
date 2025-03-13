@@ -8,18 +8,12 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputRoad = e.data;
 
-    let multiPolyline010: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
-    let multiPolyline030: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
+    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline030 = VectorTileGeometryUtil.emptyMultiPolyline();
 
-    const multiPolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons02);
-    const multiPolygon34 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons34);
-    const multiPolygon56 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons56);
+    const multiPolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons02); // highways
+    const multiPolygon34 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons34); // bigger roads
+    const multiPolygon56 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons56); // smaller roads
 
     const coordinates02: Position[][] = multiPolygon02.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
     const multiOutline02: MultiLineString = {

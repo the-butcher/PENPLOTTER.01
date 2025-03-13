@@ -1,16 +1,13 @@
-import { MultiLineString, Polygon, Position } from "geojson";
+import { Polygon, Position } from "geojson";
+import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { IWorkerLineInput } from "../common/IWorkerLineInput";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInput<Polygon> = e.data;
 
-    let multiPolyline010: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
+    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
 
     const coordinates01: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
     multiPolyline010.coordinates.push(...coordinates01);

@@ -1,3 +1,4 @@
+
 export type TMapProcessing = 'pending' | 'working' | 'success';
 
 export interface IMapProcessing {

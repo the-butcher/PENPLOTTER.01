@@ -1,9 +1,10 @@
 import * as turf from "@turf/turf";
-import { BBox, Geometry, Position } from "geojson";
+import { BBox, GeoJsonProperties, Geometry, Position } from "geojson";
 import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { VectorTileKey } from "../vectortile/VectorTileKey";
 import { AMapLayer, ILayerProps } from "./AMapLayer";
 import { Pen } from "./Pen";
+import { IMapLayerProps } from "../components/IMapLayerProps";
 
 export interface IMapProps {
     bbox3857: BBox;
@@ -19,6 +20,7 @@ export class Map {
     static readonly LAYER__NAME__BUILDINGS = "l_buildings";
     static readonly LAYER__NAME_____CHURCH = "l____church";
     static readonly LAYER__NAME_____SUMMIT = "l____summit";
+    static readonly LAYER__NAME_______TOWN = "l______town";
     static readonly LAYER__NAME______FRAME = "l_____frame";
     static readonly LAYER__NAME_____LABELS = "l____labels";
     static readonly LAYER__NAME_____TRACKS = "l____tracks";
@@ -26,6 +28,8 @@ export class Map {
     static readonly LAYER__NAME_____BORDER = "l____border";
     static readonly LAYER__NAME___RIVER_TX = "l__river_tx";
     static readonly LAYER__NAME______ROADS = "l_____roads";
+    static readonly LAYER__NAME_____BRIDGE = "l____bridge";
+    static readonly LAYER__NAME____HIGHWAY = "l___highway";
     static readonly LAYER__NAME_____TUNNEL = "l____tunnel";
     static readonly LAYER__NAME__ELEVATE_A = "l_elevate_a";
     static readonly LAYER__NAME__ELEVATE_B = "l_elevate_b";
@@ -58,7 +62,7 @@ export class Map {
     readonly min3857Pos: Position;
     readonly tileDim14: Position;
 
-    readonly layers: AMapLayer<Geometry>[];
+    readonly layers: AMapLayer<Geometry, GeoJsonProperties>[];
 
     constructor(props: IMapProps) {
 
@@ -91,7 +95,7 @@ export class Map {
 
     }
 
-    findLayerByName(name: string): AMapLayer<Geometry> | undefined {
+    findLayerByName(name: string): AMapLayer<Geometry, GeoJsonProperties> | undefined {
         return this.layers.find((l) => l.name === name);
     }
 
@@ -123,15 +127,15 @@ export class Map {
     //     }
     // }
 
-    async postProcessMap(): Promise<void> {
-        const bboxClp4326 = this.getBBoxClp4326();
-        const bboxMap4326 = this.getBBoxMap4326();
-        for (let i = 0; i < this.layers.length; i++) {
-            await this.layers[i].postProcess(bboxClp4326, bboxMap4326);
-        }
-    }
+    // async postProcessMap(): Promise<void> {
+    //     const bboxClp4326 = this.getBBoxClp4326();
+    //     const bboxMap4326 = this.getBBoxMap4326();
+    //     for (let i = 0; i < this.layers.length; i++) {
+    //         await this.layers[i].postProcess(bboxClp4326, bboxMap4326);
+    //     }
+    // }
 
-    drawToCanvas(context: CanvasRenderingContext2D): void {
+    drawToCanvas(context: CanvasRenderingContext2D, mapLayerProps: IMapLayerProps[]): void {
 
         const coordinate3857ToCoordinateCanvas = (coordinate3857: Position): Position => {
             const x = (coordinate3857[0] - this.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_14].resolution;
@@ -148,7 +152,12 @@ export class Map {
         context.lineWidth = 1;
 
         this.layers.forEach((layer) => {
-            layer.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
+
+            const visible = mapLayerProps.some(p => p.id === layer.name && p.visible);
+            if (visible) {
+                layer.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
+            }
+
         });
 
     }

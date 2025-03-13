@@ -1,40 +1,53 @@
+import FitScreenIcon from '@mui/icons-material/FitScreen';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import GridViewIcon from '@mui/icons-material/GridView';
-import { ListItem, ListItemText } from "@mui/material";
-import { useEffect } from "react";
+import PolylineIcon from '@mui/icons-material/Polyline';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import { Checkbox, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { IMapLayerProps } from "./IMapLayerProps";
 import StatusMapLayerComponent from "./StatusMapLayerComponent";
-import TravelExploreIcon from '@mui/icons-material/TravelExplore';
-import PolylineIcon from '@mui/icons-material/Polyline';
-import ContentCutIcon from '@mui/icons-material/ContentCut';
-import EditNoteIcon from '@mui/icons-material/EditNote';
 
 function ListMapLayerComponent(props: IMapLayerProps) {
 
-    const { id, status } = { ...props };
+    const { id, visible, status, handleVisibilityChange, handleGeoJsonExport } = { ...props };
 
-    useEffect(() => {
-        console.debug('✨ building map layer list component');
-    }, []);
+    // useEffect(() => {
+    //     console.debug('✨ building map layer list component');
+    // }, []);
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        console.log('⚙ updating map layer component (status)', status);
+    //     console.debug('⚙ updating map layer component (visible, status)', visible, status);
 
-    }, [status]);
+    // }, [visible, status]);
 
     return (
         <ListItem>
+            <Checkbox checked={visible} size="small" onChange={(e) => handleVisibilityChange(id, e.target.checked)} />
             <ListItemText
                 sx={{
-                    paddingRight: '12px'
+                    flexGrow: 20
                 }}
-                primary={id}
-            />
-            <StatusMapLayerComponent status={status.tile} icon={<GridViewIcon />} />
-            <StatusMapLayerComponent status={status.poly} icon={<TravelExploreIcon />} />
-            <StatusMapLayerComponent status={status.line} icon={<PolylineIcon />} />
-            <StatusMapLayerComponent status={status.clip} icon={<ContentCutIcon />} />
-            <StatusMapLayerComponent status={status.plot} icon={<EditNoteIcon />} />
+                primary={id} />
+            <ListItemButton
+                sx={{
+                    padding: '3px 12px 3px 3px'
+                }}
+                onClick={() => handleGeoJsonExport(id)}
+            >
+                <FileDownloadIcon
+                    sx={{
+                        color: 'lightblue'
+                    }}
+                    fontSize='small'
+                />
+            </ListItemButton>
+            <StatusMapLayerComponent status={status.tile} icon={<GridViewIcon fontSize='small' />} />
+            <StatusMapLayerComponent status={status.poly} icon={<TravelExploreIcon fontSize='small' />} />
+            <StatusMapLayerComponent status={status.line} icon={<PolylineIcon fontSize='small' />} />
+            <StatusMapLayerComponent status={status.clip} icon={<FitScreenIcon fontSize='small' />} />
+            <StatusMapLayerComponent status={status.plot} icon={<EditNoteIcon fontSize='small' />} />
         </ListItem>
 
     );

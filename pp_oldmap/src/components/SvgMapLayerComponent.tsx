@@ -4,7 +4,7 @@ import { IMapLayerProps } from "./IMapLayerProps";
 
 function SvgMapLayerComponent(props: IMapLayerProps) {
 
-    const { id, polylines005, polylines010, polylines030, polylines050, coordinate4326ToCoordinateCanvas } = { ...props };
+    const { id, visible, polylines005, polylines010, polylines030, polylines050, coordinate4326ToCoordinateCanvas } = { ...props };
 
     const [d005, setD005] = useState<string>('');
     const [d010, setD010] = useState<string>('');
@@ -17,7 +17,7 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
 
     useEffect(() => {
 
-        console.log('⚙ updating map layer component (polylines01, polylines03, polylines05)', polylines010, polylines030, polylines050);
+        console.debug('⚙ updating map layer component (polylines01, polylines03, polylines05)', polylines010, polylines030, polylines050);
 
         let _d005 = '';
         let _d010 = '';
@@ -73,7 +73,8 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
                     strokeWidth: toStrokeWidth(0.05),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
-                    fill: 'none'
+                    fill: 'none',
+                    visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
                 pen-id='p005'
@@ -85,7 +86,8 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
                     strokeWidth: toStrokeWidth(0.1),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
-                    fill: 'none'
+                    fill: 'none',
+                    visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
                 pen-id='p010'
@@ -97,7 +99,8 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
                     strokeWidth: toStrokeWidth(0.2),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
-                    fill: 'none' // 'rgba(0, 0, 0, 0.10)'
+                    fill: 'none',
+                    visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
                 pen-id='p030'
@@ -109,7 +112,8 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
                     strokeWidth: toStrokeWidth(0.5),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
-                    fill: 'none'
+                    fill: 'none',
+                    visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
                 pen-id='p050'

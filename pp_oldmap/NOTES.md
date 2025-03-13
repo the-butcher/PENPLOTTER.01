@@ -1,3 +1,8 @@
+OK symbol filter for line labels
+-- re-implement fill polygons (maybe just use some union geometry and remove code)
+OK allow switching of display to pure map svg display
+PL add some logic (bridges?) to know if a road is passing over i.e. a highway
+
 OK sharper edges around buildings
 OK first insets with a thinner pen
 OK wider buffer steps (2 meters and the 0.5 pen roughen the paper)
@@ -11,15 +16,15 @@ OK water lines narrower
 OK no trees unless better symbology is found
 
 OK streets
--- street double lines with 0.1, highway double lines 0.3
--- street single lines with 0.3
+OK street double lines with 0.1, highway double lines 0.3
+OK street single lines with 0.3
 OK improve self-clip distance and try to join corners, so the pen does not lift at intersections
 
 OK pen change without repeated homing (hopefully better precision across different thicknesses)
 OK introduce some contract in the svg that the client app would understand and consider in sorting and connecting lines
 OK at "pen boundaries" no further commands would be send to machine (which may be homing at that point (?)) and the user would be prompted to change pen and confirm
 
--- drawing "stages" (?)
+OK drawing "stages" (?)
 -- allow i.e. labels to be applied to a drawing state that does not require full rebuild
 -- review all layers for
 -- code duplication

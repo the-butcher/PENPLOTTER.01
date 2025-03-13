@@ -1,11 +1,11 @@
-import { Stack, Step, StepButton, Stepper } from "@mui/material";
+import { Stack } from "@mui/material";
 import MapComponent from "./MapComponent";
 
 function UserInterfaceComponent() {
 
   return (
     <Stack spacing={2} direction={"column"} sx={{}}>
-      <Stepper nonLinear activeStep={0}>
+      {/* <Stepper nonLinear activeStep={0}>
         <Step key={"tiledata"} completed={true}>
           <StepButton color="inherit" onClick={() => { }}>
             {"tile data"}
@@ -31,7 +31,7 @@ function UserInterfaceComponent() {
             {"plot data"}
           </StepButton>
         </Step>
-      </Stepper>
+      </Stepper> */}
       <MapComponent />
     </Stack>
 

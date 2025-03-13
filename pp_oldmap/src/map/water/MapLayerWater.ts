@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiLineString, Polygon, Position } from "geojson";
+import { BBox, GeoJsonProperties, Polygon } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
@@ -9,7 +9,7 @@ import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 
-export class MapLayerWater extends AMapLayer<Polygon> {
+export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
@@ -30,7 +30,7 @@ export class MapLayerWater extends AMapLayer<Polygon> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const workerInput: IWorkerPolyInput<Polygon> = {
+        const workerInput: IWorkerPolyInput<Polygon, GeoJsonProperties> = {
             name: this.name,
             tileData: this.tileData,
             outin: [3, -3],
@@ -43,6 +43,7 @@ export class MapLayerWater extends AMapLayer<Polygon> {
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -66,6 +67,7 @@ export class MapLayerWater extends AMapLayer<Polygon> {
             const workerInstance = new Worker(new URL('./worker_line_l_____water.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -74,158 +76,158 @@ export class MapLayerWater extends AMapLayer<Polygon> {
     }
 
 
-    async postProcess(): Promise<void> {
+    async processPlot(): Promise<void> {
 
         console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(2);
 
     }
 
-    findFillPolygons(river: LineString, drawPoint?: (coordinate: Position, label?: string) => void): Polygon[] {
+    // findFillPolygons(river: LineString, drawPoint?: (coordinate: Position, label?: string) => void): Polygon[] {
 
-        const fillPolygons: Polygon[] = [];
+    //     const fillPolygons: Polygon[] = [];
 
-        // map and sort intersections along line
-        const intersections = turf.lineIntersect(this.polyData!, river).features!;
-        if (intersections.length > 0) {
+    //     // map and sort intersections along line
+    //     const intersections = turf.lineIntersect(this.polyData!, river).features!;
+    //     if (intersections.length > 0) {
 
-            const mappedToLine = intersections.map(i => turf.nearestPointOnLine(river, i));
-            mappedToLine.sort((a, b) => a.properties!.location - b.properties!.location);
+    //         const mappedToLine = intersections.map(i => turf.nearestPointOnLine(river, i));
+    //         mappedToLine.sort((a, b) => a.properties!.location - b.properties!.location);
 
-            const lineCoordinates: Position[][] = [];
-            this.polyData.coordinates.forEach(coordinates => {
-                lineCoordinates.push(coordinates[0]);
-            });
-            const multiLine: MultiLineString = {
-                type: 'MultiLineString',
-                coordinates: lineCoordinates
-            };
+    //         const lineCoordinates: Position[][] = [];
+    //         this.polyData.coordinates.forEach(coordinates => {
+    //             lineCoordinates.push(coordinates[0]);
+    //         });
+    //         const multiLine: MultiLineString = {
+    //             type: 'MultiLineString',
+    //             coordinates: lineCoordinates
+    //         };
 
-            // draw and label the points
-            let featureA = mappedToLine[0];
-            let featureB = mappedToLine[1];
+    //         // draw and label the points
+    //         let featureA = mappedToLine[0];
+    //         let featureB = mappedToLine[1];
 
-            let pointOnPolygonA = turf.nearestPointOnLine(multiLine, featureA.geometry.coordinates);
-            let pointOnPolygonB = turf.nearestPointOnLine(multiLine, featureB.geometry.coordinates);
+    //         let pointOnPolygonA = turf.nearestPointOnLine(multiLine, featureA.geometry.coordinates);
+    //         let pointOnPolygonB = turf.nearestPointOnLine(multiLine, featureB.geometry.coordinates);
 
-            let startIndex = 0;
-            if (pointOnPolygonA.properties.multiFeatureIndex === pointOnPolygonB.properties.multiFeatureIndex) {
-                startIndex = 1;
-            }
+    //         let startIndex = 0;
+    //         if (pointOnPolygonA.properties.multiFeatureIndex === pointOnPolygonB.properties.multiFeatureIndex) {
+    //             startIndex = 1;
+    //         }
 
-            for (let i = startIndex; i < mappedToLine.length - 1; i += 2) { // NOTE :: there is another increment further down in this loop
+    //         for (let i = startIndex; i < mappedToLine.length - 1; i += 2) { // NOTE :: there is another increment further down in this loop
 
-                featureA = mappedToLine[i]; // end of segment
-                featureB = mappedToLine[i + 1]; // start of segment
-                if (i < mappedToLine.length - 3) {
-                    if (mappedToLine[i + 2].properties.location - mappedToLine[i + 1].properties.location < 0.006) {
-                        i += 2;
-                        featureB = mappedToLine[i + 1];
-                    }
-                }
+    //             featureA = mappedToLine[i]; // end of segment
+    //             featureB = mappedToLine[i + 1]; // start of segment
+    //             if (i < mappedToLine.length - 3) {
+    //                 if (mappedToLine[i + 2].properties.location - mappedToLine[i + 1].properties.location < 0.006) {
+    //                     i += 2;
+    //                     featureB = mappedToLine[i + 1];
+    //                 }
+    //             }
 
-                pointOnPolygonA = turf.nearestPointOnLine(multiLine, featureA.geometry.coordinates);
-                pointOnPolygonB = turf.nearestPointOnLine(multiLine, featureB.geometry.coordinates);
+    //             pointOnPolygonA = turf.nearestPointOnLine(multiLine, featureA.geometry.coordinates);
+    //             pointOnPolygonB = turf.nearestPointOnLine(multiLine, featureB.geometry.coordinates);
 
-                if (drawPoint) {
-                    drawPoint(featureA.geometry.coordinates, `${i}`);
-                    drawPoint(featureB.geometry.coordinates, `${i + 1}`);
-                }
+    //             if (drawPoint) {
+    //                 drawPoint(featureA.geometry.coordinates, `${i}`);
+    //                 drawPoint(featureB.geometry.coordinates, `${i + 1}`);
+    //             }
 
-                // context.fillStyle = 'rgba(0,0,0,0.00)';
-                // drawPolygon(polygonA.coordinates);
-                // drawPolygon(polygonB.coordinates);
-                // context.fillStyle = 'rgba(0,0,0,0.75)';
+    //             // context.fillStyle = 'rgba(0,0,0,0.00)';
+    //             // drawPolygon(polygonA.coordinates);
+    //             // drawPolygon(polygonB.coordinates);
+    //             // context.fillStyle = 'rgba(0,0,0,0.75)';
 
-                const findCornerIndex = (direction: number, index: number, polygonA: Polygon, polygonB: Polygon): number => {
+    //             const findCornerIndex = (direction: number, index: number, polygonA: Polygon, polygonB: Polygon): number => {
 
-                    const distanceR = turf.distance(pointOnPolygonA.geometry.coordinates, pointOnPolygonB.geometry.coordinates, {
-                        units: 'meters'
-                    });
-                    // console.log('distanceR', distanceR);
+    //                 const distanceR = turf.distance(pointOnPolygonA.geometry.coordinates, pointOnPolygonB.geometry.coordinates, {
+    //                     units: 'meters'
+    //                 });
+    //                 // console.log('distanceR', distanceR);
 
-                    let pointOnPolygonR = polygonA.coordinates[0][index];
-                    let pointOnPolygonP: Position;
-                    let distanceP: number;
-                    let cornerIndexR = index;
-                    let cornerIndexP: number;
-                    for (let j = 1; j < 100; j++) {
-                        cornerIndexP = index + j * direction + polygonA.coordinates[0].length * 10;
-                        pointOnPolygonP = polygonA.coordinates[0][cornerIndexP % polygonA.coordinates[0].length];
-                        distanceP = turf.pointToPolygonDistance(pointOnPolygonP, polygonB, {
-                            units: 'meters'
-                        });
-                        // console.log('distanceP', j * direction, distanceP);
-                        if (drawPoint) {
-                            drawPoint(pointOnPolygonP);
-                        }
-                        if (distanceP > (distanceR * 1.40)) {
-                            if (pointOnPolygonR) {
-                                if (drawPoint) {
-                                    drawPoint(pointOnPolygonR);
-                                }
-                            }
-                            return cornerIndexR % polygonA.coordinates[0].length;
-                        }
-                        pointOnPolygonR = pointOnPolygonP;
-                        cornerIndexR = cornerIndexP;
+    //                 let pointOnPolygonR = polygonA.coordinates[0][index];
+    //                 let pointOnPolygonP: Position;
+    //                 let distanceP: number;
+    //                 let cornerIndexR = index;
+    //                 let cornerIndexP: number;
+    //                 for (let j = 1; j < 100; j++) {
+    //                     cornerIndexP = index + j * direction + polygonA.coordinates[0].length * 10;
+    //                     pointOnPolygonP = polygonA.coordinates[0][cornerIndexP % polygonA.coordinates[0].length];
+    //                     distanceP = turf.pointToPolygonDistance(pointOnPolygonP, polygonB, {
+    //                         units: 'meters'
+    //                     });
+    //                     // console.log('distanceP', j * direction, distanceP);
+    //                     if (drawPoint) {
+    //                         drawPoint(pointOnPolygonP);
+    //                     }
+    //                     if (distanceP > (distanceR * 1.40)) {
+    //                         if (pointOnPolygonR) {
+    //                             if (drawPoint) {
+    //                                 drawPoint(pointOnPolygonR);
+    //                             }
+    //                         }
+    //                         return cornerIndexR % polygonA.coordinates[0].length;
+    //                     }
+    //                     pointOnPolygonR = pointOnPolygonP;
+    //                     cornerIndexR = cornerIndexP;
 
-                    }
-                    return index;
+    //                 }
+    //                 return index;
 
-                }
+    //             }
 
-                const polygonA: Polygon = {
-                    type: 'Polygon',
-                    coordinates: this.polyData!.coordinates[pointOnPolygonA.properties.multiFeatureIndex]
-                }
-                const polygonB: Polygon = {
-                    type: 'Polygon',
-                    coordinates: this.polyData!.coordinates[pointOnPolygonB.properties.multiFeatureIndex]
-                }
+    //             const polygonA: Polygon = {
+    //                 type: 'Polygon',
+    //                 coordinates: this.polyData!.coordinates[pointOnPolygonA.properties.multiFeatureIndex]
+    //             }
+    //             const polygonB: Polygon = {
+    //                 type: 'Polygon',
+    //                 coordinates: this.polyData!.coordinates[pointOnPolygonB.properties.multiFeatureIndex]
+    //             }
 
-                // console.log('A-');
-                const minIndexA = findCornerIndex(-1, pointOnPolygonA.properties.index, polygonA, polygonB);
-                // console.log('A+');
-                let maxIndexA = findCornerIndex(1, pointOnPolygonA.properties.index, polygonA, polygonB);
-                while (maxIndexA < minIndexA) {
-                    maxIndexA += polygonA.coordinates[0].length;
-                }
-                // console.log('B-');
-                const minIndexB = findCornerIndex(-1, pointOnPolygonB.properties.index, polygonB, polygonA);
-                // console.log('B+');
-                let maxIndexB = findCornerIndex(1, pointOnPolygonB.properties.index, polygonB, polygonA);
-                while (maxIndexB < minIndexB) {
-                    maxIndexB += polygonB.coordinates[0].length;
-                }
+    //             // console.log('A-');
+    //             const minIndexA = findCornerIndex(-1, pointOnPolygonA.properties.index, polygonA, polygonB);
+    //             // console.log('A+');
+    //             let maxIndexA = findCornerIndex(1, pointOnPolygonA.properties.index, polygonA, polygonB);
+    //             while (maxIndexA < minIndexA) {
+    //                 maxIndexA += polygonA.coordinates[0].length;
+    //             }
+    //             // console.log('B-');
+    //             const minIndexB = findCornerIndex(-1, pointOnPolygonB.properties.index, polygonB, polygonA);
+    //             // console.log('B+');
+    //             let maxIndexB = findCornerIndex(1, pointOnPolygonB.properties.index, polygonB, polygonA);
+    //             while (maxIndexB < minIndexB) {
+    //                 maxIndexB += polygonB.coordinates[0].length;
+    //             }
 
-                // console.log(i, ' --> ', minIndexA % polygonA.coordinates[0].length, maxIndexA % polygonA.coordinates[0].length, minIndexB % polygonB.coordinates[0].length, maxIndexB % polygonB.coordinates[0].length);
-                if (minIndexA != maxIndexA && minIndexB != maxIndexB) {
-                    const fillPolygon: Polygon = {
-                        type: 'Polygon',
-                        coordinates: [
-                            []
-                        ]
-                    }
-                    for (let j = minIndexA; j <= maxIndexA; j++) {
-                        fillPolygon.coordinates[0].push(polygonA.coordinates[0][j % polygonA.coordinates[0].length])
-                    }
-                    for (let j = minIndexB; j <= maxIndexB; j++) {
-                        fillPolygon.coordinates[0].push(polygonB.coordinates[0][j % polygonB.coordinates[0].length])
-                    }
-                    fillPolygon.coordinates[0].push(fillPolygon.coordinates[0][0]); // close polygon
-                    fillPolygons.push(fillPolygon);
-                }
+    //             // console.log(i, ' --> ', minIndexA % polygonA.coordinates[0].length, maxIndexA % polygonA.coordinates[0].length, minIndexB % polygonB.coordinates[0].length, maxIndexB % polygonB.coordinates[0].length);
+    //             if (minIndexA != maxIndexA && minIndexB != maxIndexB) {
+    //                 const fillPolygon: Polygon = {
+    //                     type: 'Polygon',
+    //                     coordinates: [
+    //                         []
+    //                     ]
+    //                 }
+    //                 for (let j = minIndexA; j <= maxIndexA; j++) {
+    //                     fillPolygon.coordinates[0].push(polygonA.coordinates[0][j % polygonA.coordinates[0].length])
+    //                 }
+    //                 for (let j = minIndexB; j <= maxIndexB; j++) {
+    //                     fillPolygon.coordinates[0].push(polygonB.coordinates[0][j % polygonB.coordinates[0].length])
+    //                 }
+    //                 fillPolygon.coordinates[0].push(fillPolygon.coordinates[0][0]); // close polygon
+    //                 fillPolygons.push(fillPolygon);
+    //             }
 
-                // break;
+    //             // break;
 
-            }
+    //         }
 
-        }
+    //     }
 
-        return fillPolygons;
+    //     return fillPolygons;
 
-    }
+    // }
 
     // drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
 

@@ -1,7 +1,7 @@
-import { LineString } from "geojson";
+import { GeoJsonProperties, LineString } from "geojson";
 import { IWorkerPolyInput } from "../common/IWorkerPolyInput";
 
-export interface IWorkerPolyInputLineLabel extends IWorkerPolyInput<LineString> {
+export interface IWorkerPolyInputLineLabel extends IWorkerPolyInput<LineString, GeoJsonProperties> {
     labelDefs: ILabelDefLineLabel[];
 }
 

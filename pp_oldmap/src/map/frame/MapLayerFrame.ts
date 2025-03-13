@@ -1,9 +1,9 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, Position } from "geojson";
+import { BBox, GeoJsonProperties, LineString, Position } from "geojson";
 import { IVectorTileFeatureFilter } from "../../vectortile/IVectorTileFeatureFilter";
 import { AMapLayer } from "../AMapLayer";
 
-export class MapLayerFrame extends AMapLayer<LineString> {
+export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
 
     coordinateUL3857: Position = [0, 0];
     coordinateLR3857: Position = [0, 0];
@@ -85,7 +85,7 @@ export class MapLayerFrame extends AMapLayer<LineString> {
 
     }
 
-    async postProcess(): Promise<void> {
+    async processPlot(): Promise<void> {
         // nothing
     }
 

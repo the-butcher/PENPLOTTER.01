@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiPolygon } from "geojson";
+import { BBox, GeoJsonProperties, LineString, MultiPolygon } from "geojson";
 import { IVectorTileFeature } from "../../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../../vectortile/IVectorTileKey";
@@ -15,18 +15,17 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 import * as JSONfn from 'json-fn';
 import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
 
-export class MapLayerLineLabel extends AMapLayer<LineString> {
+export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
     polyText: MultiPolygon;
     labelDefs: ILabelDef[];
+    labelClasses: (string | number)[];
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[]) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[], ...labelClasses: (string | number)[]) {
         super(name, filter);
         this.labelDefs = labelDefs;
-        this.polyText = {
-            type: 'MultiPolygon',
-            coordinates: []
-        };
+        this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+        this.labelClasses = labelClasses;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -34,7 +33,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
         // console.log(feature.hasValue('_name'), feature);
 
         const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
-        if (feature.hasValue('_name')) { //  && feature.hasValue('_label_class', 4, 5)
+        if (feature.hasValue('_name') && feature.hasValue('_label_class', ...this.labelClasses)) { //  && feature.hasValue('_label_class', 4, 5)
 
             let name = feature.getValue('_name')!.getValue()!.toString();
             console.log('name', name, feature.getValue('_label_class'));
@@ -88,6 +87,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
                 const workerOutput: IWorkerPolyOutputLineLabel = e.data;
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -112,6 +112,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
             const workerInstance = new Worker(new URL('./worker_line_l_linelabel.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -119,7 +120,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString> {
 
     }
 
-    async postProcess(): Promise<void> {
+    async processPlot(): Promise<void> {
 
         // console.log(`${this.name}, connecting polylines ...`, this.linesByName);
 

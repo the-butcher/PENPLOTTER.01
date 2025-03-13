@@ -1,6 +1,6 @@
-import { Point } from "geojson";
+import { GeoJsonProperties, Point } from "geojson";
 import { IWorkerPolyInput } from "../common/IWorkerPolyInput";
 
-export interface IWorkerPolyInputPoint extends IWorkerPolyInput<Point> {
+export interface IWorkerPolyInputPoint extends IWorkerPolyInput<Point, GeoJsonProperties> {
     symbolFactory: string;
 }

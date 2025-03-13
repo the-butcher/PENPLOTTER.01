@@ -3,6 +3,7 @@ import { Polygon } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { danube___all, danube___new } from '../Rivers';
 
 self.onmessage = (e) => {
 
@@ -23,10 +24,8 @@ self.onmessage = (e) => {
     // console.log(`${name}, fill polygons, wien____main ...`);
     // polygonsA.push(...this.findFillPolygons(wien____main));
 
-    // console.log(`${this.name}, stat polygons, danube___old ...`);
-    // polygonsA.push(danube___old);
-    // console.log(`${this.name}, stat polygons, danube___new ...`);
-    // polygonsA.push(danube___new);
+    console.log(`${workerInput.name}, stat polygons, danube___old ...`);
+    polygonsA.push(...VectorTileGeometryUtil.destructureMultiPolygon(danube___all));
 
     /**
      * union of original data, fill-polygons and additional polygons

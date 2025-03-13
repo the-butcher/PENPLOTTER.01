@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { Feature, MultiLineString, MultiPolygon, Point, Polygon, Position } from 'geojson';
+import { Feature, MultiPolygon, Point, Polygon, Position } from 'geojson';
 import { GeometryUtil } from '../../util/GeometryUtil';
 import { SymbolUtil } from '../../util/SymbolUtil';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
@@ -24,18 +24,9 @@ self.onmessage = (e) => {
     }
     workerInput.tileData = _tileData;
 
-    const polyText: MultiPolygon = {
-        type: 'MultiPolygon',
-        coordinates: []
-    };
-    let multiPolyline005: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
-    let polyData: MultiPolygon = {
-        type: 'MultiPolygon',
-        coordinates: []
-    };
+    const polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+    let multiPolyline005 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
     // @ts-expect-error text type
     const symbolFactory = SymbolUtil[workerInput.symbolFactory];
@@ -91,7 +82,8 @@ self.onmessage = (e) => {
 
     });
 
-    const bufferDist = 8;
+    const bufferDist = 10;
+
     // buffer around symbols
     let bufferPolygons: Polygon[] = [];
     if (multiPolyline005.coordinates.length > 0) {

@@ -1,4 +1,3 @@
-import { MultiLineString } from "geojson";
 import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerLineInputLine } from "./IWorkerLineInputLine";
@@ -7,10 +6,7 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputLine = e.data;
 
-    let multiPolylineDef: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
+    let multiPolylineDef = VectorTileGeometryUtil.emptyMultiPolyline();
 
     const polylines = workerInput.tileData.map(f => f.geometry);
     const tileDataMult = VectorTileGeometryUtil.restructureMultiPolyline(polylines);

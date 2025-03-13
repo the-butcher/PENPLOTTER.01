@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiLineString, Position } from "geojson";
+import { BBox, GeoJsonProperties, LineString, MultiLineString, Position } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
@@ -9,16 +9,13 @@ import { Map } from '../Map';
 import { IWorkerPolyOutputTunnel } from './IWorkerPolyOutputTunnel';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 
-export class MapLayerTunnels extends AMapLayer<LineString> {
+export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
     multiPolyline04: MultiLineString;
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
-        this.multiPolyline04 = {
-            type: 'MultiLineString',
-            coordinates: []
-        };
+        this.multiPolyline04 = VectorTileGeometryUtil.emptyMultiPolyline();
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -43,7 +40,7 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const workerInput: IWorkerPolyInput<LineString> = {
+        const workerInput: IWorkerPolyInput<LineString, GeoJsonProperties> = {
             name: this.name,
             tileData: this.tileData,
             outin: [3, -3],
@@ -57,23 +54,11 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
                 const workerOutput: IWorkerPolyOutputTunnel = e.data;
                 this.polyData = workerOutput.polyData;
                 this.multiPolyline04 = workerOutput.multiPolyline04;
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
         });
-
-        // this.multiPolyline04 = VectorTileGeometryUtil.restructureMultiPolyline(this.tileData.map(f => f.geometry));
-        // // smaller streets
-        // if (this.multiPolyline04.coordinates.length > 0) {
-        //     const linebuffer04 = turf.buffer(this.multiPolyline04, 2, {
-        //         units: 'meters'
-        //     }) as Feature<Polygon | MultiPolygon>;
-        //     const polygons04 = VectorTileGeometryUtil.destructureUnionPolygon(linebuffer04.geometry);
-        //     this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons04);
-        // }
-
-        // console.log(`${this.name}, clipping to bboxClp4326 ...`);
-        // this.multiPolyline04 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline04, bboxClp4326);
 
     }
 
@@ -87,7 +72,7 @@ export class MapLayerTunnels extends AMapLayer<LineString> {
 
     }
 
-    async postProcess(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processPlot(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, creating dashes ...`);
 

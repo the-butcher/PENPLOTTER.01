@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, MultiPolygon, Point } from "geojson";
+import { BBox, GeoJsonProperties, MultiPolygon, Point } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
@@ -11,27 +11,32 @@ import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
 
 
-export class MapLayerPoints extends AMapLayer<Point> {
+export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     symbolFactory: string;
     polyText: MultiPolygon;
+    labelClasses: (string | number)[];
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, symbolFactory: string) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, symbolFactory: string, ...labelClasses: (string | number)[]) {
         super(name, filter);
         this.symbolFactory = symbolFactory;
-        this.polyText = {
-            type: 'MultiPolygon',
-            coordinates: []
-        };
+        this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+        this.labelClasses = labelClasses;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
 
         const points = VectorTileGeometryUtil.toPoints(vectorTileKey, feature.coordinates);
 
-        let nameVal = feature.getValue('_name1')?.getValue();
-        if (!nameVal) {
-            nameVal = feature.getValue('_name4')?.getValue();
+        let nameVal = feature.getValue('_name')?.getValue();
+        let clasVal = feature.getValue('_label_class')?.getValue();
+        for (let i = 1; i < 30; i++) {
+            nameVal = nameVal ?? feature.getValue(`_name${i}`)?.getValue();
+            clasVal = clasVal ?? feature.getValue(`_label_class${i}`)?.getValue();
+        }
+
+        if (nameVal && !this.labelClasses.some(v => clasVal === v)) {
+            return;
         }
 
         let name: string | undefined;
@@ -39,8 +44,11 @@ export class MapLayerPoints extends AMapLayer<Point> {
             const nameValSplit = nameVal.toString().split(/\n/g);
             if (nameValSplit.length === 2 && nameValSplit[1].endsWith('m')) {
                 name = nameValSplit[1];
+            } else {
+                name = nameVal.toString();
             }
         }
+        // name += '_' + clasVal;
 
         points.forEach(point => {
             this.tileData.push(turf.feature(point, {
@@ -78,6 +86,7 @@ export class MapLayerPoints extends AMapLayer<Point> {
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
                 this.multiPolyline005 = workerOutput.multiPolyline005;
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -90,7 +99,7 @@ export class MapLayerPoints extends AMapLayer<Point> {
     }
 
 
-    async postProcess(): Promise<void> {
+    async processPlot(): Promise<void> {
 
         const polygonCount005 = 3;
         const polygonDelta005 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;

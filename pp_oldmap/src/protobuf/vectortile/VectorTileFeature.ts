@@ -76,7 +76,7 @@ export class VectorTileFeature implements IVectorTileFeature {
      */
     hasValue(key: string, ...value: (string | number)[]): boolean {
         const featureValue = this.getValue(key)?.getValue();
-        if (featureValue) {
+        if (featureValue !== undefined) {
             if (value.length > 0) {
                 return value.some(v => featureValue === v);
             } else {

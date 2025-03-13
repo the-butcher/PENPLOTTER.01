@@ -4,18 +4,16 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { Map } from '../Map';
 import { IWorkerPolyOutputRoad } from './IWorkerPolyOutputRoad';
+import { IRoadProperties } from './IRoadProperties';
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerPolyInput<LineString> = e.data;
+    const workerInput: IWorkerPolyInput<LineString, IRoadProperties> = e.data;
 
-    const filterBySymbolValue = (features: Feature<LineString>[], ...symbols: number[]): MultiLineString => {
-        const result: MultiLineString = {
-            type: 'MultiLineString',
-            coordinates: []
-        }
+    const filterBySymbolValue = (features: Feature<LineString, IRoadProperties>[], ...symbols: number[]): MultiLineString => {
+        const result = VectorTileGeometryUtil.emptyMultiPolyline();
         features.forEach(feature => {
-            const symbol = feature.properties!.symbol;
+            const symbol = feature.properties.symbol;
             if (symbols.some(s => symbol === s)) {
                 result.coordinates.push(feature.geometry.coordinates);
             }
@@ -71,7 +69,7 @@ self.onmessage = (e) => {
         polygons78.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer78.geometry));
     }
 
-    // rebuild multipolygon
+    // rebuild multipolygon for clipping operations agains other layers
     const union08 = VectorTileGeometryUtil.unionPolygons([...polygons02, ...polygons34, ...polygons56, ...polygons78]);
     const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
     const polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);

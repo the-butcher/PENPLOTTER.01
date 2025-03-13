@@ -23,12 +23,12 @@ function StatusMapLayerComponent(props: IStatusProps) {
             sx={{
                 color: status === 'pending' ? 'lightgray' : '#1976d2',
                 // flexGrow: 1,
-                minWidth: '24px',
-                width: '24px'
+                minWidth: '20px',
+                width: '20px'
             }}
         >
             {
-                status === 'working' ? <RefreshIcon
+                status === 'working' ? <RefreshIcon fontSize='small'
                     sx={{
                         animation: "spin 2s linear infinite",
                         "@keyframes spin": {

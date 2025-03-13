@@ -13,6 +13,28 @@ export type UnionPolyline = LineString | MultiLineString;
 
 export class VectorTileGeometryUtil {
 
+    static bboxAtCenter(center: Position, width: number, height: number): BBox {
+        return [
+            center[0] - width / 2,
+            center[1] - height / 2,
+            center[0] + width / 2,
+            center[1] + height / 2
+        ]
+    }
+
+    static emptyMultiPolyline(): MultiLineString {
+        return {
+            type: 'MultiLineString',
+            coordinates: []
+        };
+    }
+
+    static emptyMultiPolygon(): MultiPolygon {
+        return {
+            type: 'MultiPolygon',
+            coordinates: []
+        };
+    }
 
     static dashMultiPolyline(multiPolyline: MultiLineString, dashArray: [number, number]): MultiLineString {
 
@@ -114,10 +136,7 @@ export class VectorTileGeometryUtil {
                 coordinates: [clipped.geometry.coordinates]
             }
         } else {
-            return {
-                type: 'MultiPolygon',
-                coordinates: []
-            }
+            return VectorTileGeometryUtil.emptyMultiPolygon();
         }
 
     }
@@ -134,10 +153,7 @@ export class VectorTileGeometryUtil {
                 coordinates: [clipped.geometry.coordinates]
             }
         } else {
-            return {
-                type: 'MultiLineString',
-                coordinates: []
-            }
+            return VectorTileGeometryUtil.emptyMultiPolyline();
         }
 
     }
@@ -186,11 +202,8 @@ export class VectorTileGeometryUtil {
 
     static unionPolylines(input: LineString[]): UnionPolyline {
 
-        console.log('line union input', input.length);
-        const overlaps: MultiLineString = {
-            type: 'MultiLineString',
-            coordinates: []
-        }
+        // console.log('line union input', input.length);
+        const overlaps = VectorTileGeometryUtil.emptyMultiPolyline();
         if (input.length > 1) {
             for (let i = 0; i < input.length - 1; i++) {
 
@@ -204,7 +217,7 @@ export class VectorTileGeometryUtil {
                         // turf.cleanCoords(input[i], {
                         //     mutate: true
                         // });
-                        console.log('overlapping', i, j);
+                        // console.log('overlapping', i, j);
                         overlaps.coordinates.push(input[i].coordinates);
                         overlaps.coordinates.push(input[j].coordinates);
                         // break;
@@ -465,7 +478,7 @@ export class VectorTileGeometryUtil {
             };
         }
 
-        console.log('char', char);
+        // console.log('char', char);
 
         const glyphData = noto_serif_regular.glyphs[char]?.o;
         const glyphCommands = glyphData.split(' ');
@@ -530,8 +543,6 @@ export class VectorTileGeometryUtil {
 
 
         }
-
-        // console.log('char', char, 'd', d, coordinates);
 
         return {
             type: 'MultiPolygon',
@@ -820,9 +831,8 @@ export class VectorTileGeometryUtil {
 
         }
 
-
         const tracedPolylineIndices: number[] = [];
-        const tracePolylineWithDeviations = (curPolylineIndex: number): Position[] => {
+        const tracePolylineWithDeviations = (curPolylineIndex: number, coordinates: Position[]): void => {
 
             tracedPolylineIndices.push(curPolylineIndex);
 
@@ -831,7 +841,7 @@ export class VectorTileGeometryUtil {
 
             if (polyDeviations.length > 0) {
 
-                const coordinates: Position[] = [];
+                // const coordinates: Position[] = [];
                 let coordIndex = 0;
                 for (let i = 0; i < polyDeviations.length; i++) {
                     // up to the deviation
@@ -841,7 +851,7 @@ export class VectorTileGeometryUtil {
                     // deviation point
                     coordinates.push(polyDeviations[i].deviationProps.point);
                     // around inner polygon
-                    coordinates.push(...tracePolylineWithDeviations(polyDeviations[i].smPolygonIndex!));
+                    tracePolylineWithDeviations(polyDeviations[i].smPolygonIndex!, coordinates);
                     // deviation point
                     coordinates.push(polyDeviations[i].deviationProps.point);
                 }
@@ -849,11 +859,12 @@ export class VectorTileGeometryUtil {
                 for (; coordIndex < bufferLines[curPolylineIndex].geometry.coordinates.length; coordIndex++) {
                     coordinates.push(bufferLines[curPolylineIndex].geometry.coordinates[coordIndex]);
                 }
-                return coordinates;
+                // return coordinates;
 
             } else {
+                coordinates.push(...bufferLines[curPolylineIndex].geometry.coordinates);
                 // no deviation from this polyline
-                return bufferLines[curPolylineIndex].geometry.coordinates;
+                // return bufferLines[curPolylineIndex].geometry.coordinates;
             }
 
         }
@@ -865,7 +876,8 @@ export class VectorTileGeometryUtil {
         for (let bufferFeatureIndex = 0; bufferFeatureIndex < bufferLines.length; bufferFeatureIndex++) {
 
             if (tracedPolylineIndices.indexOf(bufferFeatureIndex) === -1) {
-                const coordinates = tracePolylineWithDeviations(bufferFeatureIndex);
+                const coordinates: Position[] = [];
+                tracePolylineWithDeviations(bufferFeatureIndex, coordinates);
                 results.push({
                     type: 'LineString',
                     coordinates

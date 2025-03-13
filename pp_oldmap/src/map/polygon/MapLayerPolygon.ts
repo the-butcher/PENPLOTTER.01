@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, Polygon } from "geojson";
+import { BBox, GeoJsonProperties, Polygon } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
@@ -7,9 +7,9 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { AMapLayer } from '../AMapLayer';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 
-export class MapLayerPolygon extends AMapLayer<Polygon> {
+export class MapLayerPolygon extends AMapLayer<Polygon, GeoJsonProperties> {
 
     outin: [number, number];
     minArea: number;
@@ -35,7 +35,7 @@ export class MapLayerPolygon extends AMapLayer<Polygon> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const workerInput: IWorkerPolyInput<Polygon> = {
+        const workerInput: IWorkerPolyInput<Polygon, GeoJsonProperties> = {
             name: this.name,
             tileData: this.tileData,
             outin: this.outin,
@@ -50,6 +50,7 @@ export class MapLayerPolygon extends AMapLayer<Polygon> {
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -73,6 +74,7 @@ export class MapLayerPolygon extends AMapLayer<Polygon> {
             const workerInstance = new Worker(new URL('./worker_line_l___polygon.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -80,7 +82,7 @@ export class MapLayerPolygon extends AMapLayer<Polygon> {
 
     }
 
-    async postProcess(): Promise<void> {
+    async processPlot(): Promise<void> {
 
         console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(2);

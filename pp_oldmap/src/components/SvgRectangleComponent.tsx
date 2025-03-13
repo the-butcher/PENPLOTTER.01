@@ -25,7 +25,7 @@ function SvgRectangleComponent(props: ISvgRectangleComponentProps) {
 
     useEffect(() => {
 
-        console.log('⚙ updating map rectangle component (bbox)', bbox);
+        console.debug('⚙ updating map rectangle component (bbox)', bbox);
 
         const coordinateLL = coordinate4326ToCoordinateCanvas([
             bbox[0],

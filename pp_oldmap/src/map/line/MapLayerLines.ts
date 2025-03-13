@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, LineString, MultiLineString } from "geojson";
+import { BBox, GeoJsonProperties, LineString, MultiLineString } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
@@ -11,7 +11,7 @@ import { IWorkerLineInputLine } from './IWorkerLineInputLine';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 
 
-export class MapLayerLines extends AMapLayer<LineString> {
+export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
 
     private getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString;
     private dashArray: [number, number];
@@ -37,7 +37,7 @@ export class MapLayerLines extends AMapLayer<LineString> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const workerInput: IWorkerPolyInput<LineString> = {
+        const workerInput: IWorkerPolyInput<LineString, GeoJsonProperties> = {
             name: this.name,
             tileData: this.tileData,
             outin: [0, 0], // not used
@@ -50,6 +50,7 @@ export class MapLayerLines extends AMapLayer<LineString> {
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -76,6 +77,7 @@ export class MapLayerLines extends AMapLayer<LineString> {
                 const workerOutput: IWorkerLineOutput = e.data;
                 this.applyWorkerOutputLine(workerOutput);
                 this.getDefaultPolylineContainer(this).coordinates.push(...workerOutput.multiPolylineDef!.coordinates);
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.postMessage(workerInput);
@@ -84,7 +86,7 @@ export class MapLayerLines extends AMapLayer<LineString> {
     }
 
 
-    async postProcess(): Promise<void> {
+    async processPlot(): Promise<void> {
 
         console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(2);

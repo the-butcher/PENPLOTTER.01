@@ -1,4 +1,4 @@
-import { MultiLineString, Polygon, Position } from 'geojson';
+import { Polygon, Position } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
@@ -7,14 +7,8 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInput<Polygon> = e.data;
 
-    let multiPolyline005: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
-    let multiPolyline010: MultiLineString = {
-        type: 'MultiLineString',
-        coordinates: []
-    };
+    let multiPolyline005 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
 
     /**
      * create the buffered set of polygons that determine the appearance of the water layer
