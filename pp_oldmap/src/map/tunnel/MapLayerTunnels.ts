@@ -1,13 +1,13 @@
 import * as turf from '@turf/turf';
-import { BBox, GeoJsonProperties, LineString, MultiLineString, Position } from "geojson";
+import { BBox, GeoJsonProperties, LineString, MultiLineString } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
+import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { Map } from '../Map';
 import { IWorkerPolyOutputTunnel } from './IWorkerPolyOutputTunnel';
-import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 
 export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 

@@ -28,6 +28,18 @@ export class MapDefs {
         labelDefs: []
     }
 
+    static MAP_DEF_________1220: IMapDef = {
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1822970,
+            6144431
+        ],
+            4000,
+            3000
+        ),
+        padding: 200,
+        labelDefs: []
+    }
+
     static MAP_DEF____HALLSTATT: IMapDef = {
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
             1519500,
@@ -84,8 +96,8 @@ export class MapDefs {
             1829800, 6146500
         ],
         // bbox3857: [
-        //     1825800, 6144500,
-        //     1827200, 6145500
+        //     1826200, 6144600,
+        //     1826500, 6145000
         // ],
         padding: 200,
         labelDefs: []

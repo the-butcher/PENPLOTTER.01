@@ -24,7 +24,8 @@ export class Map {
     static readonly LAYER__NAME___LOCATION = "l__location";
     static readonly LAYER__NAME______FRAME = "l_____frame";
     static readonly LAYER__NAME_____LABELS = "l____labels";
-    static readonly LAYER__NAME_____TRACKS = "l____tracks";
+    static readonly LAYER__NAME____RAILWAY = "l___railway";
+    static readonly LAYER__NAME_______TRAM = "l______tram";
     static readonly LAYER__NAME__SHIP_LINE = "l_ship_line";
     static readonly LAYER__NAME_____BORDER = "l____border";
     static readonly LAYER__NAME___RIVER_TX = "l__river_tx";

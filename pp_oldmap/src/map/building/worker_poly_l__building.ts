@@ -19,7 +19,7 @@ self.onmessage = (e) => {
         }
         bucketsByTileId[tileId].push(f);
     });
-    console.log('bucketsByTileId', bucketsByTileId);
+    // console.log('bucketsByTileId', bucketsByTileId);
 
     const preUnion: Polygon[] = [];
     const tileIds = Object.keys(bucketsByTileId);

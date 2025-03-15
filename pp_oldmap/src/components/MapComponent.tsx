@@ -3,11 +3,19 @@ import { Button, Checkbox, FormControl, FormControlLabel, List, ListItem, ListIt
 import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
+import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
 import { ClipDefs } from "../map/clip/ClipDefs";
 import { IClipDef } from "../map/clip/IClipDef";
+import { MapLayerFrame } from "../map/frame/MapLayerFrame";
+import { MapLayerLines } from "../map/line/MapLayerLines";
+import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 import { Map } from "../map/Map";
 import { MapDefs } from "../map/MapDefs";
+import { MapLayerPoints } from "../map/point/MapLayerPoints";
+import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
 import { MapLayerRoads } from "../map/road/MapLayerRoads";
+import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
+import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -20,14 +28,6 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerFrame } from "../map/frame/MapLayerFrame";
-import { MapLayerLines } from "../map/line/MapLayerLines";
-import { MapLayerPoints } from "../map/point/MapLayerPoints";
-import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
-import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
-import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
-import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
-import { MapLayerWater } from "../map/water/MapLayerWater";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -61,16 +61,21 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF____OLDDANUBE;
+    // // const f1: Feature<LineString> = { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[16.4050337185907, 48.22778207141378], [16.40684050694569, 48.22638375028658]] } }
+    // const f1: Feature<LineString> = { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[16.4050337185907, 48.228045358244806], [16.407183541550918, 48.22638375028658]] } };
+    // const f2: Feature<Polygon> = { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [[[16.409365359873494, 48.227990770574245], [16.409645622979085, 48.228146324408655], [16.40967343399625, 48.22820057595858], [16.4096513131812, 48.2282559773847], [16.409551455997406, 48.2283011813034], [16.40943095622324, 48.228280390663244], [16.403853027881556, 48.22526419549088], [16.40380122547788, 48.22520919181199], [16.40380691711324, 48.22515198959701], [16.40384306785297, 48.22511553326185], [16.40391204698263, 48.22509065947686], [16.403977631185978, 48.225090430316655], [16.404040224328174, 48.22511059880741], [16.409365359873494, 48.227990770574245]]] } };
+
+    // const p1: MultiLineString = VectorTileGeometryUtil.emptyMultiPolyline();
+    // p1.coordinates.push(f1.geometry.coordinates);
+    // console.log(VectorTileGeometryUtil.clipMultPolyline2(p1, f2));
+
+
+    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
 
     const _map = new Map({
       // bbox3857: [ // schulschiff (klein)
       //     1824000, 6147000,
       //     1825000, 6149000
-      // ],
-      // bbox3857: [ // 20. bezirk
-      //     1825000, 6145000,
-      //     1828000, 6146000
       // ],
       // bbox3857: [ // leopoldsberg
       //     1820635, 6149670,
@@ -121,9 +126,22 @@ function MapComponent() {
           })
         },
         {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____TRACKS, {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____RAILWAY, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 12, 13, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
+              // 9 Hauptnetz
+              // 10, 11 Ergänzungsnetz
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 10, 11)); // 9, 12, 13, 14
+            }
+          }, l => l.multiPolyline010)
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_______TRAM, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              // 12 Zahnradbahn / Schmalspurbahn
+              // 13 Seibahn
+              // 16 Strassenbahn
+              // Naturbestand :: Wien
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 14, 16)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
             }
           }, l => l.multiPolyline010)
         },
@@ -131,6 +149,7 @@ function MapComponent() {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               // console.log(vectorTileFeature.getValue('_symbol'));
+              // 15 Fähre
               return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
             }
           }, l => l.multiPolyline010, [12, 4])
@@ -140,8 +159,8 @@ function MapComponent() {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
               const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
+              // const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4);
               return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-              // return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144');
             }
           })
         },
@@ -150,6 +169,7 @@ function MapComponent() {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
               const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
+              // const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4);
               return vectorTileKey.lod === 15 && isBridge && isCommonRoad;
               // return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144');
             }
@@ -325,7 +345,6 @@ function MapComponent() {
           polylines010: l.multiPolyline010,
           polylines030: l.multiPolyline030,
           polylines050: l.multiPolyline050,
-          polyData: l.polyData,
           coordinate4326ToCoordinateCanvas,
           status: {
             tile: 'pending',

@@ -1,3 +1,7 @@
+-- have some kind of error feedback when a step fails
+-- error in the hainburg extent
+-- create possibility for label (+line-label) injection
+-- river-labels missing in vienna
 -- Point layer creates a freak label on the "Leopoldsberg" extent
 OK Seilbahn
 
@@ -11,8 +15,8 @@ OK first insets with a thinner pen
 OK wider buffer steps (2 meters and the 0.5 pen roughen the paper)
 OK check different speeds to edge sharpness
 
--- labels
--- find out how much information about labels is available in the tiles
+OK labels
+OK find out how much information about labels is available in the tiles
 
 OK water lines narrower
 
@@ -31,11 +35,11 @@ OK drawing "stages" (?)
 -- allow i.e. labels to be applied to a drawing state that does not require full rebuild
 -- review all layers for
 -- code duplication
--- possibility to separate into drawing stages
--- maybe some type of config schema for layers, so some properties can be changed at runtime
--- maybe some type of storage format, so expensive calculations can be preserved
+OK possibility to separate into drawing stages
+NO maybe some type of config schema for layers, so some properties can be changed at runtime
+NO maybe some type of storage format, so expensive calculations can be preserved
 
--- flowing water
+-- flowing water (not used currently)
 https://www.data.gv.at/katalog/en/dataset/bev_digitaleslandschaftsmodellgewsserstichtag25102022/resource/a02af662-98dc-4d45-b986-3b234de1869d#resources
 -- standing water
 https://www.data.gv.at/katalog/dataset/ce50ffa6-5032-4771-90a2-1c48d6a0ac85

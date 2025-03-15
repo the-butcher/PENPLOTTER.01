@@ -20,6 +20,8 @@ self.onmessage = (e) => {
         distances.push(distance);
         distance *= 1.25;
     }
+    // console.log('distances', distances);
+
     const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(workerInput.polyData, false, ...distances);
     let multiPolygonB = VectorTileGeometryUtil.restructureMultiPolygon(polygonsB);
 

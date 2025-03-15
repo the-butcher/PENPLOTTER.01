@@ -117,7 +117,13 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
-            layerNameClip: Map.LAYER__NAME_____TRACKS,
+            layerNameClip: Map.LAYER__NAME____RAILWAY,
+            distance: 6,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME______WATER,
+            layerNameClip: Map.LAYER__NAME_______TRAM,
             distance: 6,
             status: 'pending'
         },
@@ -143,7 +149,7 @@ export class ClipDefs {
             }
         }, // clip highways underneath bridges
         {
-            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameDest: Map.LAYER__NAME____RAILWAY,
             layerNameClip: Map.LAYER__NAME_____BRIDGE,
             distance: 2,
             status: 'pending',
@@ -223,7 +229,13 @@ export class ClipDefs {
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameDest: Map.LAYER__NAME____RAILWAY,
+            layerNameClip: Map.LAYER__NAME______FRAME,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_______TRAM,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
             status: 'pending'
@@ -307,19 +319,37 @@ export class ClipDefs {
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameDest: Map.LAYER__NAME____RAILWAY,
             layerNameClip: Map.LAYER__NAME_____CHURCH,
             distance: 0,
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameDest: Map.LAYER__NAME____RAILWAY,
             layerNameClip: Map.LAYER__NAME_____SUMMIT,
             distance: 0,
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameDest: Map.LAYER__NAME____RAILWAY,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_______TRAM,
+            layerNameClip: Map.LAYER__NAME_____CHURCH,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_______TRAM,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_______TRAM,
             layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
             status: 'pending'

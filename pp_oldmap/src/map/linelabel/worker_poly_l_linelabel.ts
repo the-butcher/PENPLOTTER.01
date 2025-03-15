@@ -28,7 +28,7 @@ self.onmessage = (e) => {
     })
 
     const lineNames = new Set(tileData.map(f => f.properties!.name));
-    console.log('lineNames', lineNames);
+    // console.log('lineNames', lineNames);
 
     let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
 
