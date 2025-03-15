@@ -13,6 +13,8 @@ export type UnionPolyline = LineString | MultiLineString;
 
 export class VectorTileGeometryUtil {
 
+    static readonly DEFAULT_SIMPLIFY_TOLERANCE = 0.00001;
+
     static bboxAtCenter(center: Position, width: number, height: number): BBox {
         return [
             center[0] - width / 2,
@@ -34,6 +36,101 @@ export class VectorTileGeometryUtil {
             type: 'MultiPolygon',
             coordinates: []
         };
+    }
+
+    // static densifyMultiPolyline(multiPolyline: MultiLineString, segmentMeters: number): MultiLineString {
+
+    //     let polylines: LineString[] = VectorTileGeometryUtil.destructureMultiPolyline(multiPolyline);
+    //     polylines = polylines.map(p => this.densifyPolyline(p, segmentMeters));
+    //     return VectorTileGeometryUtil.restructureMultiPolyline(polylines);
+
+    // }
+
+    // static densifyMultiPolygon(multiPolygon: MultiPolygon, segmentMeters: number): MultiPolygon {
+
+    //     let polygons: Polygon[] = VectorTileGeometryUtil.destructureMultiPolygon(multiPolygon);
+    //     polygons = polygons.map(p => this.densifyPolygon(p, segmentMeters));
+    //     return VectorTileGeometryUtil.restructureMultiPolygon(polygons);
+
+    // }
+
+    // static densifyPolyline(polyline: LineString, segmentMeters: number): LineString {
+
+    //     const result: LineString = {
+    //         type: 'LineString',
+    //         coordinates: VectorTileGeometryUtil.densifyCoordinates(polyline.coordinates, segmentMeters)
+    //     };
+    //     return result;
+
+    // }
+
+    // static densifyPolygon(polygon: Polygon, segmentMeters: number): Polygon {
+
+    //     const result: Polygon = {
+    //         type: 'Polygon',
+    //         coordinates: polygon.coordinates.map(p => VectorTileGeometryUtil.densifyCoordinates(p, segmentMeters))
+    //     };
+    //     return result;
+
+    // }
+
+    // static densifyCoordinates(coordinates: Position[], segmentMeters: number): Position[] {
+
+    //     const result: Position[] = [];
+    //     for (let i = 0; i < coordinates.length - 1; i++) {
+    //         result.push(coordinates[i]);
+    //         const segmentLength = turf.distance(coordinates[i], coordinates[i + 1], {
+    //             units: 'meters'
+    //         });
+    //         if (segmentLength > segmentMeters) {
+    //             const x0 = coordinates[i][0];
+    //             const y0 = coordinates[i][1];
+    //             const x1 = coordinates[i + 1][0];
+    //             const y1 = coordinates[i + 1][1];
+    //             const densifyCount = Math.ceil(segmentLength / segmentMeters);
+    //             const xD = (x1 - x0) / densifyCount;
+    //             const yD = (y1 - y0) / densifyCount;
+    //             for (let j = 0; j < densifyCount - 1; j++) {
+    //                 const coordinate = [
+    //                     x0 + xD * j,
+    //                     y0 + yD * j
+    //                 ]
+    //                 result.push(coordinate);
+    //             }
+
+    //         }
+    //     }
+    //     result.push(coordinates[coordinates.length - 1]); // add last coordinate
+    //     return result;
+
+    // }
+
+    static cleanAndSimplify(geometry: Geometry) {
+
+        turf.cleanCoords(geometry, {
+            mutate: true
+        });
+        turf.simplify(geometry, {
+            mutate: true,
+            tolerance: VectorTileGeometryUtil.DEFAULT_SIMPLIFY_TOLERANCE,
+            highQuality: true
+        });
+        turf.cleanCoords(geometry, {
+            mutate: true
+        });
+
+    }
+
+    static cleanEmptyPolygons(multiPolygon: MultiPolygon): MultiPolygon {
+
+        const result = VectorTileGeometryUtil.emptyMultiPolygon();
+        multiPolygon.coordinates.forEach(polygon => {
+            if (polygon.length > 0 && polygon[0].length > 4) { // is there an outer ring having coordinates?
+                result.coordinates.push(polygon);
+            }
+        });
+        return result;
+
     }
 
     static dashMultiPolyline(multiPolyline: MultiLineString, dashArray: [number, number]): MultiLineString {
@@ -73,7 +170,7 @@ export class VectorTileGeometryUtil {
 
     }
 
-    static clipMultiPolyline(multiPolyline: MultiLineString, bufferFeature: Feature<UnionPolygon>, maxKeepLength: number = 0): MultiLineString {
+    static clipMultiPolyline(multiPolyline: MultiLineString, bufferFeature: Feature<UnionPolygon>): MultiLineString {
 
         const remainingLines: LineString[] = [];
 
@@ -84,9 +181,7 @@ export class VectorTileGeometryUtil {
                 type: 'LineString',
                 coordinates: polyline
             };
-            turf.cleanCoords(polylineS, {
-                mutate: true
-            });
+            VectorTileGeometryUtil.cleanAndSimplify(polylineS);
 
             const splitColl = turf.lineSplit(turf.feature(polylineS), bufferFeature);
             if (splitColl.features.length > 0) {
@@ -97,9 +192,7 @@ export class VectorTileGeometryUtil {
                     const length = turf.length(feature);
                     const pofB = turf.along(feature, length / 2);
                     // const pofB = turf.pointOnFeature(feature);
-                    if (turf.booleanWithin(pofB, bufferFeature) && turf.length(feature, {
-                        units: 'meters'
-                    }) > maxKeepLength) {
+                    if (turf.booleanWithin(pofB, bufferFeature)) { //  && turf.length(feature, { units: 'meters' }) > maxKeepLength
                         // dont keep
                     } else {
                         remainingLines.push(feature.geometry);
@@ -110,7 +203,7 @@ export class VectorTileGeometryUtil {
                 const pofB = turf.midpoint(polylineS.coordinates[0], polylineS.coordinates[1]);
                 // could be fully outside or fully inside
                 if (turf.booleanWithin(pofB, bufferFeature!)) {
-                    //
+                    // dont keep
                 } else {
                     remainingLines.push(polylineS);
                 }
@@ -404,7 +497,10 @@ export class VectorTileGeometryUtil {
                     units: 'meters'
                 }) as Feature<Polygon | MultiPolygon>;
                 if (bufferFeature) {
+
                     bufferableGeometry = bufferFeature.geometry;
+                    VectorTileGeometryUtil.cleanAndSimplify(bufferableGeometry);
+
                     if (bufferableGeometry.type === 'MultiPolygon') {
                         bufferableGeometry.coordinates.forEach(coordinates => {
                             polygons.push({
@@ -415,6 +511,7 @@ export class VectorTileGeometryUtil {
                     } else if (bufferableGeometry.type === 'Polygon') {
                         polygons.push(bufferableGeometry);
                     }
+
                 } else {
                     break;
                 }

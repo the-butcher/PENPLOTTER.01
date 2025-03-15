@@ -1,5 +1,5 @@
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { Button, FormControl, FormControlLabel, List, Radio, RadioGroup, Stack } from "@mui/material";
+import { Button, Checkbox, FormControl, FormControlLabel, List, ListItem, ListItemText, Radio, RadioGroup, Stack } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -30,6 +30,7 @@ import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
 import { MapLayerWater } from "../map/water/MapLayerWater";
 
 export type TMapContainer = 'canvas' | 'svg';
+export type TGeomentryType = 'polygon' | 'polyline';
 
 export interface ILoadableTileKey extends IVectorTileKey {
   vectorTileUrl: IVectorTileUrl;
@@ -51,21 +52,21 @@ function MapComponent() {
   const [loadableTileKeys, setLoadableTileKeys] = useState<ILoadableTileKey[]>([]);
   const [clipDefs] = useState<IClipDef[]>(ClipDefs.CLIP_DEFS);
   const [mapContainer, setMapContainer] = useState<TMapContainer>('canvas');
+  const [geometryTypes, setGeometryTypes] = useState<Set<TGeomentryType>>(new Set([
+    'polygon',
+    'polyline'
+  ]));
 
   useEffect(() => {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF_________TEST;
+    const _mapDef = MapDefs.MAP_DEF____OLDDANUBE;
 
     const _map = new Map({
       // bbox3857: [ // schulschiff (klein)
       //     1824000, 6147000,
       //     1825000, 6149000
-      // ],
-      // bbox3857: [ // erster bezirk
-      //     1820500, 6140200,
-      //     1824500, 6143200
       // ],
       // bbox3857: [ // 20. bezirk
       //     1825000, 6145000,
@@ -74,10 +75,6 @@ function MapComponent() {
       // bbox3857: [ // leopoldsberg
       //     1820635, 6149670,
       //     1822635, 6151670
-      // ],
-      // bbox3857: [ // salzburg klein 2
-      //     1451600, 6073150,
-      //     1452600, 6074150
       // ],
       // bbox3857: [ // lobau -> issues with small geometries ("holzhäuser" do not show, but are also in a strange resolution in original basemap)
       //     1834537, 6141225,
@@ -126,7 +123,7 @@ function MapComponent() {
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____TRACKS, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 12, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 12, 13, 14)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
             }
           }, l => l.multiPolyline010)
         },
@@ -200,21 +197,21 @@ function MapComponent() {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'GIPFEL_L09-20'
             }
-          }, 'createSummitSymbol', 4)
+          }, 'createSummitSymbol', _mapDef.labelDefs)
         },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_______TOWN, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG'; // || vectorTileFeature.layerName === 'GEONAMEN_P_GEONAMEN'
-        //     }
-        //   }, 'createTownSymbol', 1)
-        // },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+            }
+          }, 'createTownSymbol', _mapDef.labelDefs)
+        },
         {
           createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
             }
-          }, 'createChurchSymbol')
+          }, 'createChurchSymbol', _mapDef.labelDefs)
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
@@ -237,6 +234,17 @@ function MapComponent() {
     setMap(_map);
 
   }, []);
+
+  const handleGeometryTypeChange = (geometryType: TGeomentryType, checked: boolean) => {
+    const _geometryTypes = new Set(geometryTypes);
+    if (checked) {
+      _geometryTypes.add(geometryType);
+    } else {
+      _geometryTypes.delete(geometryType);
+    }
+    setGeometryTypes(_geometryTypes);
+
+  }
 
   const handleContainerChange = (_mapContainer: TMapContainer) => {
 
@@ -317,6 +325,7 @@ function MapComponent() {
           polylines010: l.multiPolyline010,
           polylines030: l.multiPolyline030,
           polylines050: l.multiPolyline050,
+          polyData: l.polyData,
           coordinate4326ToCoordinateCanvas,
           status: {
             tile: 'pending',
@@ -484,7 +493,7 @@ function MapComponent() {
         context.lineCap = "round";
 
         if (mapContainer === 'canvas') {
-          map?.drawToCanvas(context, mapLayerProps);
+          map?.drawToCanvas(context, mapLayerProps, geometryTypes);
         }
 
       }, 100);
@@ -555,7 +564,7 @@ function MapComponent() {
 
     }
 
-  }, [mapLayerProps]);
+  }, [mapLayerProps, geometryTypes]);
 
   const processClip = (processableClip: IClipDef) => {
 
@@ -839,6 +848,28 @@ function MapComponent() {
             onChange={(e) => handleContainerChange(e.target.value as TMapContainer)}
           >
             <FormControlLabel value="canvas" control={<Radio size={'small'} />} label="canvas" checked={mapContainer === 'canvas'} />
+            {
+              mapContainer === 'canvas' ? <List dense={true} sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                <ListItem>
+                  <Checkbox checked={geometryTypes.has('polygon')} size="small" onChange={(e) => handleGeometryTypeChange('polygon', e.target.checked)} />
+                  <ListItemText
+                    sx={{
+                      flexGrow: 20
+                    }}
+                    primary={'polygon'} />
+                </ListItem>
+                <ListItem>
+                  <Checkbox checked={geometryTypes.has('polyline')} size="small" onChange={(e) => handleGeometryTypeChange('polyline', e.target.checked)} />
+                  <ListItemText
+                    sx={{
+                      flexGrow: 20
+                    }}
+                    primary={'polyline'} />
+                </ListItem>
+              </List> : null
+            }
+
+
             <FormControlLabel value="svg" control={<Radio size={'small'} />} label="svg" checked={mapContainer === 'svg'} />
           </RadioGroup>
         </FormControl>

@@ -9,19 +9,21 @@ import { Map } from '../Map';
 import { Pen } from '../Pen';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
+import { ILabelDef } from '../ILabelDef';
+import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 
 
 export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     symbolFactory: string;
     polyText: MultiPolygon;
-    labelClasses: (string | number)[];
+    labelDefs: ILabelDef[];
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, symbolFactory: string, ...labelClasses: (string | number)[]) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, symbolFactory: string, labelDefs: ILabelDef[]) {
         super(name, filter);
         this.symbolFactory = symbolFactory;
+        this.labelDefs = labelDefs;
         this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
-        this.labelClasses = labelClasses;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -35,9 +37,9 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
             clasVal = clasVal ?? feature.getValue(`_label_class${i}`)?.getValue();
         }
 
-        if (nameVal && !this.labelClasses.some(v => clasVal === v)) {
-            return;
-        }
+        // if (nameVal && !this.labelClasses.some(v => clasVal === v)) {
+        //     return;
+        // }
 
         let name: string | undefined;
         if (nameVal) {
@@ -48,7 +50,18 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 name = nameVal.toString();
             }
         }
-        // name += '_' + clasVal;
+
+        for (let i = 0; i < this.labelDefs.length; i++) {
+            if (this.labelDefs[i].tileName === name) {
+                name = this.labelDefs[i].plotName;
+            }
+        }
+
+        console.log(`${this.name}, _name '${name}', _label_class '${clasVal}' ...`);
+
+        if (nameVal && !name) {
+            return; // ignore label AND point
+        }
 
         points.forEach(point => {
             this.tileData.push(turf.feature(point, {
@@ -70,13 +83,25 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
         console.log(`${this.name}, processing data ...`);
 
+        const labelDefsWorkerInput: ILabelDefPointLabel[] = this.labelDefs.map(d => {
+            const labelDefOmit: Omit<ILabelDef, 'idxvalid'> = {
+                ...d
+            };
+            return {
+                ...labelDefOmit,
+                idxvalid: undefined
+            }
+        });
+        console.log('labelDefsWorkerInput', labelDefsWorkerInput);
+
         const workerInput: IWorkerPolyInputPoint = {
             name: this.name,
             tileData: this.tileData,
             outin: [0, 0],
             bboxClp4326,
             bboxMap4326,
-            symbolFactory: this.symbolFactory
+            symbolFactory: this.symbolFactory,
+            labelDefs: labelDefsWorkerInput
         };
 
         return new Promise((resolve) => { // , reject

@@ -5,6 +5,7 @@ import { VectorTileKey } from "../vectortile/VectorTileKey";
 import { AMapLayer, ILayerProps } from "./AMapLayer";
 import { Pen } from "./Pen";
 import { IMapLayerProps } from "../components/IMapLayerProps";
+import { TGeomentryType } from "../components/MapComponent";
 
 export interface IMapProps {
     bbox3857: BBox;
@@ -20,7 +21,7 @@ export class Map {
     static readonly LAYER__NAME__BUILDINGS = "l_buildings";
     static readonly LAYER__NAME_____CHURCH = "l____church";
     static readonly LAYER__NAME_____SUMMIT = "l____summit";
-    static readonly LAYER__NAME_______TOWN = "l______town";
+    static readonly LAYER__NAME___LOCATION = "l__location";
     static readonly LAYER__NAME______FRAME = "l_____frame";
     static readonly LAYER__NAME_____LABELS = "l____labels";
     static readonly LAYER__NAME_____TRACKS = "l____tracks";
@@ -77,8 +78,9 @@ export class Map {
 
 
         console.log("map width", mapWidth, "m", (mapWidth * 100) / Map.SCALE, `cm @ 1:${Map.SCALE.toLocaleString()}`);
+        const lod = 14;
         [0.05, 0.1, 0.3, 0.5].forEach((penDiameterMM) => {
-            console.log("pen width", penDiameterMM, "mm", Pen.getPenWidthMeters(penDiameterMM, Map.SCALE).toFixed(2).padStart(6, " "), "m", Pen.getPenWidthPixels(penDiameterMM, Map.SCALE, 15).toFixed(2).padStart(6, " "), `px @ 1:${Map.SCALE.toLocaleString()} @ lod[15]`);
+            console.log("pen width", penDiameterMM, "mm", Pen.getPenWidthMeters(penDiameterMM, Map.SCALE).toFixed(2).padStart(6, " "), "m", Pen.getPenWidthPixels(penDiameterMM, Map.SCALE, lod).toFixed(2).padStart(6, " "), `px @ 1:${Map.SCALE.toLocaleString()} @ lod[${lod}]`);
         });
 
         const minTileKey14 = this.getMinTileKey(Map.LOD_14);
@@ -135,7 +137,7 @@ export class Map {
     //     }
     // }
 
-    drawToCanvas(context: CanvasRenderingContext2D, mapLayerProps: IMapLayerProps[]): void {
+    drawToCanvas(context: CanvasRenderingContext2D, mapLayerProps: IMapLayerProps[], geometryTypes: Set<TGeomentryType>): void {
 
         const coordinate3857ToCoordinateCanvas = (coordinate3857: Position): Position => {
             const x = (coordinate3857[0] - this.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_14].resolution;
@@ -155,7 +157,7 @@ export class Map {
 
             const visible = mapLayerProps.some(p => p.id === layer.name && p.visible);
             if (visible) {
-                layer.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
+                layer.drawToCanvas(context, coordinate4326ToCoordinateCanvas, geometryTypes);
             }
 
         });

@@ -1,19 +1,33 @@
 import * as turf from '@turf/turf';
-import { Feature, MultiPolygon, Polygon, Position } from "geojson";
+import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon, Position } from "geojson";
 import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { ILabelDef } from "../ILabelDef";
-import { ILabelDefLineLabel, IWorkerPolyInputLineLabel } from "./IWorkerPolyInputLineLabel";
+import { IWorkerPolyInputLineLabel } from "./IWorkerPolyInputLineLabel";
 import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
 import { GeometryUtil } from '../../util/GeometryUtil';
+import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerPolyInputLineLabel = e.data;
 
-    const lineNames = new Set(workerInput.tileData.map(f => f.properties!.name));
+    const tileData: Feature<LineString, GeoJsonProperties>[] = [];
+    workerInput.tileData.forEach(t => {
+        const clipped = turf.bboxClip(t.geometry, workerInput.bboxMap4326);
+        if (clipped.geometry.type === 'MultiLineString') {
+            const clippedPolylines = VectorTileGeometryUtil.destructureMultiPolyline(clipped.geometry);
+            clippedPolylines.forEach(clippedPolyline => {
+                tileData.push(turf.feature(clippedPolyline, t.properties));
+            })
+        } else if (clipped.geometry.type === 'LineString') {
+            tileData.push(turf.feature(clipped.geometry, t.properties));
+        }
+    })
+
+    const lineNames = new Set(tileData.map(f => f.properties!.name));
     console.log('lineNames', lineNames);
 
     let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
@@ -27,12 +41,10 @@ self.onmessage = (e) => {
             idxvalid: JSONfn.parse(d.idxvalid)
         }
     });
-    // console.log('labelDefs', labelDefs);
-
 
     lineNames.forEach(lineName => {
 
-        const namedLines = workerInput.tileData.filter(f => f.properties!.name === lineName).map(f => f.geometry);
+        const namedLines = tileData.filter(f => f.properties!.name === lineName).map(f => f.geometry);
         const connectedLinesA = VectorTileGeometryUtil.restructureMultiPolyline(namedLines);
         const connectedLinesB = VectorTileGeometryUtil.connectMultiPolyline(connectedLinesA, 5);
         const connectedLinesC = VectorTileGeometryUtil.destructureMultiPolyline(connectedLinesB);
@@ -40,6 +52,8 @@ self.onmessage = (e) => {
         if (connectedLinesC.length > 0) {
 
             for (let a = 0; a < connectedLinesC.length; a++) {
+
+                let polyName = VectorTileGeometryUtil.emptyMultiPolygon();
 
                 let labelDef: ILabelDef = {
                     tileName: lineName,
@@ -104,6 +118,7 @@ self.onmessage = (e) => {
 
                     const labelLinePositionB = labelLinePositionA + charOffset[0] * labelDef.charsign;
                     if (labelLinePositionB < 0 || labelLinePositionB > labelLineLength) {
+                        polyName = VectorTileGeometryUtil.emptyMultiPolygon(); // abort and clear this text
                         break;
                     }
                     const labelCoordinate4326B = turf.along(labelLine, labelLinePositionB, {
@@ -138,9 +153,11 @@ self.onmessage = (e) => {
                     labelCoordinate4326A = labelCoordinate4326B;
                     labelCoordinate3857A = labelCoordinate3857B;
 
-                    polyText.coordinates.push(...charCoordinates);
+                    polyName.coordinates.push(...charCoordinates);
 
                 }
+
+                polyText.coordinates.push(...polyName.coordinates);
 
             }
 

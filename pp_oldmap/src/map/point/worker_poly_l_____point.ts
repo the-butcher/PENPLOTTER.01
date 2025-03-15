@@ -5,6 +5,8 @@ import { SymbolUtil } from '../../util/SymbolUtil';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
+import { ILabelDefPointLabel } from './ILabelDefPointLabel';
+import { MapDefs } from '../MapDefs';
 
 self.onmessage = (e) => {
 
@@ -34,13 +36,31 @@ self.onmessage = (e) => {
     workerInput.tileData.forEach(point => {
         if (VectorTileGeometryUtil.booleanWithin(workerInput.bboxMap4326, point.geometry.coordinates)) {
 
-            multiPolyline005.coordinates.push(symbolFactory(point.geometry.coordinates));
+            const symbolCoordinates = symbolFactory(point.geometry.coordinates);
+            if (symbolCoordinates.length > 0) {
+                multiPolyline005.coordinates.push(symbolFactory(point.geometry.coordinates));
+            }
 
             const name: string = point.properties!.name;
             if (name) {
 
+                let labelDef: ILabelDefPointLabel = {
+                    tileName: name,
+                    plotName: name,
+                    distance: 12.00,
+                    vertical: -12.00,
+                    charsign: 0,
+                    txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION
+                };
+                for (let i = 0; i < workerInput.labelDefs.length; i++) {
+                    if (workerInput.labelDefs[i].plotName === name) {
+                        labelDef = workerInput.labelDefs[i];
+                        break;
+                    }
+                }
+
                 const labelCoordinate3857A = turf.toMercator(point.geometry.coordinates);
-                const scale = 0.03;
+                const scale = labelDef.txtscale;
                 const chars = Array.from(name);
                 const zeroOffset: Position = [0, 0];
                 let charOffset: Position = [0, 0];
@@ -51,7 +71,7 @@ self.onmessage = (e) => {
 
                     const angle = 0; //Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
                     const matrixA = GeometryUtil.matrixRotationInstance(-angle);
-                    const matrixB = GeometryUtil.matrixTranslationInstance(12, -12);
+                    const matrixB = GeometryUtil.matrixTranslationInstance(labelDef.distance, labelDef.vertical);
                     charCoordinates = GeometryUtil.transformPosition3(charCoordinates, GeometryUtil.matrixMultiply(matrixA, matrixB));
 
                     let position4326: Position;

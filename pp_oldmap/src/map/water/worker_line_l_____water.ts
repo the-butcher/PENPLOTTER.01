@@ -37,6 +37,9 @@ self.onmessage = (e) => {
     multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline005, workerInput.bboxMap4326);
     multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline010, workerInput.bboxMap4326);
 
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline005);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
+
     const workerOutput: IWorkerLineOutput = {
         multiPolyline005,
         multiPolyline010

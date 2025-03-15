@@ -1,5 +1,5 @@
-import * as turf from '@turf/turf';
 import { BBox, Feature, GeoJsonProperties, Geometry, MultiLineString, MultiPolygon, Position } from "geojson";
+import { TGeomentryType } from '../components/MapComponent';
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -100,7 +100,7 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
     abstract processPlot(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void>;
 
-    drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
+    drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position, geometryTypes: Set<TGeomentryType>): void {
 
         context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
         context.fillStyle = 'rgba(0, 0, 0, 0.10)';
@@ -142,29 +142,34 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
         //     }
         // });
 
-        this.polyData.coordinates.forEach(polygon => {
-            drawPolygon(polygon);
-        });
+        if (geometryTypes.has('polygon')) {
+            this.polyData.coordinates.forEach(polygon => {
+                drawPolygon(polygon);
+            });
+        }
 
-        context.lineWidth = 0.05 * ratio;
-        this.multiPolyline005.coordinates.forEach(polyline005 => {
-            drawPolyline(polyline005);
-        });
 
-        context.lineWidth = 0.10 * ratio;
-        this.multiPolyline010.coordinates.forEach(polyline010 => {
-            drawPolyline(polyline010);
-        });
+        if (geometryTypes.has('polyline')) {
+            context.lineWidth = 0.05 * ratio;
+            this.multiPolyline005.coordinates.forEach(polyline005 => {
+                drawPolyline(polyline005);
+            });
 
-        context.lineWidth = 0.20 * ratio;
-        this.multiPolyline030.coordinates.forEach(polyline030 => {
-            drawPolyline(polyline030);
-        });
+            context.lineWidth = 0.10 * ratio;
+            this.multiPolyline010.coordinates.forEach(polyline010 => {
+                drawPolyline(polyline010);
+            });
 
-        context.lineWidth = 0.50 * ratio;
-        this.multiPolyline050.coordinates.forEach(polyline050 => {
-            drawPolyline(polyline050);
-        });
+            context.lineWidth = 0.20 * ratio;
+            this.multiPolyline030.coordinates.forEach(polyline030 => {
+                drawPolyline(polyline030);
+            });
+
+            context.lineWidth = 0.50 * ratio;
+            this.multiPolyline050.coordinates.forEach(polyline050 => {
+                drawPolyline(polyline050);
+            });
+        }
 
     }
 
@@ -207,21 +212,26 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
     cleanCoords() {
         console.log(`${this.name}, cleaning coords ...`);
-        turf.cleanCoords(this.multiPolyline005, {
-            mutate: true
-        });
-        turf.cleanCoords(this.multiPolyline010, {
-            mutate: true
-        });
-        turf.cleanCoords(this.multiPolyline030, {
-            mutate: true
-        });
-        turf.cleanCoords(this.multiPolyline050, {
-            mutate: true
-        });
-        turf.cleanCoords(this.polyData, {
-            mutate: true
-        });
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline005);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline010);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline030);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline050);
+        VectorTileGeometryUtil.cleanAndSimplify(this.polyData);
+        // turf.cleanCoords(this.multiPolyline005, {
+        //     mutate: true
+        // });
+        // turf.cleanCoords(this.multiPolyline010, {
+        //     mutate: true
+        // });
+        // turf.cleanCoords(this.multiPolyline030, {
+        //     mutate: true
+        // });
+        // turf.cleanCoords(this.multiPolyline050, {
+        //     mutate: true
+        // });
+        // turf.cleanCoords(this.polyData, {
+        //     mutate: true
+        // });
     }
 
 }

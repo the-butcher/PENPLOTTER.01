@@ -59,20 +59,22 @@ export class SymbolUtil {
 
     static createTownSymbol = (coordinate4326: Position): Position[] => {
 
-        const baseRadius = 8;
-        const startRadius = - Math.PI / 2;
-        const endRadius = startRadius + Math.PI * 2;
+        // const baseRadius = 8;
+        // const startRadius = - Math.PI / 2;
+        // const endRadius = startRadius + Math.PI * 2;
 
-        const coordinate3857 = turf.toMercator(coordinate4326);
+        // const coordinate3857 = turf.toMercator(coordinate4326);
 
-        const treeCoordinates3857: Position[] = [];
-        for (let i = startRadius; i <= endRadius; i += Math.PI / 8) {
-            treeCoordinates3857.push([
-                coordinate3857[0] + Math.cos(i) * baseRadius,
-                coordinate3857[1] - Math.sin(i) * baseRadius
-            ]);
-        }
-        return treeCoordinates3857.map(treeCoordinate3857 => turf.toWgs84(treeCoordinate3857));
+        // const treeCoordinates3857: Position[] = [];
+        // for (let i = startRadius; i <= endRadius; i += Math.PI / 8) {
+        //     treeCoordinates3857.push([
+        //         coordinate3857[0] + Math.cos(i) * baseRadius,
+        //         coordinate3857[1] - Math.sin(i) * baseRadius
+        //     ]);
+        // }
+        // return treeCoordinates3857.map(treeCoordinate3857 => turf.toWgs84(treeCoordinate3857));
+
+        return [];
 
     }
 

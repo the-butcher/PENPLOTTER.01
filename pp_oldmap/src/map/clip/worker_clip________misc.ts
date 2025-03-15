@@ -19,26 +19,21 @@ self.onmessage = (e) => {
         const bufferResult = turf.buffer(polyDataClip, workerInput.distance, {
             units: 'meters'
         });
-        turf.simplify(bufferResult!, {
-            mutate: true,
-            tolerance: 0.00001,
-            highQuality: true
-        });
-        turf.cleanCoords(bufferResult, {
-            mutate: true
-        });
+        const bufferResultGeometry = bufferResult!.geometry;
+        VectorTileGeometryUtil.cleanAndSimplify(bufferResultGeometry);
+        bufferResult!.geometry = bufferResultGeometry;
 
         if (!workerInput.options?.skip005) {
-            workerInput.multiPolyline005Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline005Dest, bufferResult!, workerInput.distance);
+            workerInput.multiPolyline005Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline005Dest, bufferResult!);
         }
         if (!workerInput.options?.skip010) {
-            workerInput.multiPolyline010Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline010Dest, bufferResult!, workerInput.distance);
+            workerInput.multiPolyline010Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline010Dest, bufferResult!);
         }
         if (!workerInput.options?.skip030) {
-            workerInput.multiPolyline030Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline030Dest, bufferResult!, workerInput.distance);
+            workerInput.multiPolyline030Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline030Dest, bufferResult!);
         }
         if (!workerInput.options?.skip050) {
-            workerInput.multiPolyline050Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline050Dest, bufferResult!, workerInput.distance);
+            workerInput.multiPolyline050Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline050Dest, bufferResult!);
         }
         if (!workerInput.options?.skipMlt) {
 

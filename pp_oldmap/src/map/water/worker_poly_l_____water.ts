@@ -1,42 +1,32 @@
-import * as turf from '@turf/turf';
-import { Polygon } from 'geojson';
+import { GeoJsonProperties, Polygon } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
-import { danube___all, danube___new } from '../Rivers';
+import { danube___all } from '../Rivers';
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerPolyInput<Polygon> = e.data;
+    const workerInput: IWorkerPolyInput<Polygon, GeoJsonProperties> = e.data;
+
     const polygonsT: Polygon[] = workerInput.tileData.map(f => f.geometry);
+
+    console.log(`${workerInput.name}, stat polygons, danube___old ...`);
+    polygonsT.push(...VectorTileGeometryUtil.destructureMultiPolygon(danube___all));
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
     const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(polygonsT), ...workerInput.outin!);
     let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
-    turf.cleanCoords(polyData);
-
-    // console.log(`${this.name}, fill polygons, danube_canal ...`);
-    // polygonsA.push(...this.findFillPolygons(danube_canal));
-    // console.log(`${this.name}, fill polygons, danube_inlet ...`);
-    // polygonsA.push(...this.findFillPolygons(danube_inlet));
-    // console.log(`${this.name}, fill polygons, danube__main ...`);
-    // polygonsA.push(...this.findFillPolygons(danube__main));
-    // console.log(`${name}, fill polygons, wien____main ...`);
-    // polygonsA.push(...this.findFillPolygons(wien____main));
-
-    console.log(`${workerInput.name}, stat polygons, danube___old ...`);
-    polygonsA.push(...VectorTileGeometryUtil.destructureMultiPolygon(danube___all));
-
-    /**
-     * union of original data, fill-polygons and additional polygons
-     */
-    console.log(`${workerInput.name}, union ...`);
-    const unionPolygon = VectorTileGeometryUtil.unionPolygons(polygonsA);
-    const polygonsM: Polygon[] = VectorTileGeometryUtil.destructureUnionPolygon(unionPolygon);
-    polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsM);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (1) ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326); // outer ring only, for potential future clipping operations
+
+    // another very small in-out removes artifacts at the bounding box edges
+    const inoutA: number[] = [-0.11, 0.11];
+    console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
+    const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
+    polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
+
+    VectorTileGeometryUtil.cleanAndSimplify(polyData);
 
     const workerOutput: IWorkerPolyOutput = {
         polyData

@@ -70,9 +70,15 @@ self.onmessage = (e) => {
     }
 
     // rebuild multipolygon for clipping operations agains other layers
-    const union08 = VectorTileGeometryUtil.unionPolygons([...polygons02, ...polygons34, ...polygons56, ...polygons78]);
+    const union08 = VectorTileGeometryUtil.unionPolygons([...polygons02, ...polygons34, ...polygons56, ...polygons78]); // ...polygons02, ...polygons34, ...polygons56, ...polygons78
     const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
-    const polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);
+    let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);
+
+    console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
+    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...workerInput.outin!);
+    polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+
+    VectorTileGeometryUtil.cleanAndSimplify(polyData);
 
     const workerOutput: IWorkerPolyOutputRoad = {
         polyData,

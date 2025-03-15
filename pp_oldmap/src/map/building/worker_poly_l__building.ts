@@ -1,15 +1,15 @@
 import * as turf from '@turf/turf';
-import { Feature, MultiPolygon, Polygon } from 'geojson';
+import { Feature, GeoJsonProperties, MultiPolygon, Polygon } from 'geojson';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { VectorTileKey } from '../../vectortile/VectorTileKey';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 import { MapLayerBuildings } from './MapLayerBuildings';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerPolyInput<Polygon> = e.data;
+    const workerInput: IWorkerPolyInput<Polygon, GeoJsonProperties> = e.data;
 
     const bucketsByTileId: { [K: string]: Feature<Polygon>[] } = {};
     workerInput.tileData.forEach(f => {
@@ -44,13 +44,15 @@ self.onmessage = (e) => {
     });
 
     let polyData: MultiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(preUnion);
-
-    turf.simplify(polyData, {
-        mutate: true,
-        tolerance: 0.000012,
-        highQuality: true
-    });
-    turf.cleanCoords(polyData);
+    VectorTileGeometryUtil.cleanAndSimplify(polyData);
+    // turf.simplify(polyData, {
+    //     mutate: true,
+    //     tolerance: VectorTileGeometryUtil.DEFAULT_SIMPLIFY_TOLERANCE,
+    //     highQuality: true
+    // });
+    // turf.cleanCoords(polyData, {
+    //     mutate: true
+    // });
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);

@@ -59,7 +59,7 @@ export class MapLayerRoads extends AMapLayer<LineString, IRoadProperties> {
         const workerInput: IWorkerPolyInput<LineString, IRoadProperties> = {
             name: this.name,
             tileData: this.tileData,
-            outin: [3, -3],
+            outin: [10, -4], // implicit 6m buffer
             bboxClp4326,
             bboxMap4326
         };

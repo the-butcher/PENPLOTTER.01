@@ -3,21 +3,60 @@ import { IMapDef } from "./IMapDef"
 
 export class MapDefs {
 
+    static DEFAULT_TEXT_SCALE_LOCATION = 0.030;
+    static DEFAULT_TEXT_SCALE____WATER = 0.035;
 
     static MAP_DEF_________TEST: IMapDef = {
-        // bbox3857: VectorTileGeometryUtil.bboxAtCenter([
-        //     1834000,
-        //     6138000
+        bbox3857: [ // lobau -> issues with small geometries ("holzhäuser" do not show, but are also in a strange resolution in original basemap)
+            1832600, 6139900,
+            1836600, 6142900
+        ],
+        // bbox3857: [ // leopoldsberg
+        //     1820635, 6149670,
+        //     1822635, 6151670
         // ],
-        //     5000,
-        //     10000
-        // ),
+        padding: 200,
+        labelDefs: []
+    }
+
+    static MAP_DEF_________1010: IMapDef = {
         bbox3857: [ // erster bezirk
             1820500, 6140200,
             1824500, 6143200
         ],
         padding: 200,
         labelDefs: []
+    }
+
+    static MAP_DEF____HALLSTATT: IMapDef = {
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1519500,
+            6033700
+        ],
+            4000,
+            3000
+        ),
+        padding: 1000,
+        labelDefs: [
+            {
+                tileName: 'Hallstätter See',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Traun',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            }
+        ]
     }
 
     static MAP_DEF_____HAINBURG: IMapDef = {
@@ -33,50 +72,21 @@ export class MapDefs {
                 distance: 0.25,
                 vertical: 8,
                 charsign: -1,
-                txtscale: 0.035,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
                 idxvalid: (index: number) => index === 1
             },
         ]
     }
 
-    static MAP_DEF_DANUBE_CANAL: IMapDef = {
-        bbox3857: [
-            1823000, 6141000,
-            1825000, 6143000
-        ],
-        padding: 200,
-        labelDefs: [
-            {
-                tileName: 'Wienfluss',
-                plotName: 'Wienfluss',
-                distance: 0.27,
-                vertical: 11,
-                charsign: -1,
-                txtscale: 0.022,
-                idxvalid: (index: number) => {
-                    return index === 2;
-                }
-            },
-            {
-                tileName: 'Donaukanal',
-                plotName: 'Donaukanal',
-                distance: 0.50,
-                vertical: 11,
-                charsign: -1,
-                txtscale: 0.022,
-                idxvalid: (index: number) => {
-                    // console.log('index', index);
-                    return index === 5;
-                }
-            }
-        ]
-    }
-
     static MAP_DEF____OLDDANUBE: IMapDef = {
         bbox3857: [
-            1828000, 6144000,
-            1830000, 6146000
+            1825800, 6143500,
+            1829800, 6146500
         ],
+        // bbox3857: [
+        //     1825800, 6144500,
+        //     1827200, 6145500
+        // ],
         padding: 200,
         labelDefs: []
     }
@@ -87,7 +97,44 @@ export class MapDefs {
             1498000, 6065000
         ],
         padding: 1200,
-        labelDefs: []
+        labelDefs: [
+            {
+                tileName: 'Markt',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Auer',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Pointhäusl',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'St. Wolfgang',
+                plotName: 'St. Wolfgang',
+                distance: 100,
+                vertical: -30,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => false
+            }
+        ]
     }
 
     static MAP_DEF______BLUNTAU: IMapDef = {
@@ -120,7 +167,7 @@ export class MapDefs {
                 distance: 0.45,
                 vertical: 23,
                 charsign: -1,
-                txtscale: 0.035,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
                 idxvalid: () => true
             }
         ]
@@ -134,32 +181,41 @@ export class MapDefs {
         padding: 200,
         labelDefs: [
             {
+                tileName: 'Hallein',
+                plotName: 'Hallein',
+                distance: 40,
+                vertical: -12,
+                charsign: 1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Mitterau',
+                plotName: 'Mitterau',
+                distance: -150,
+                vertical: 20,
+                charsign: 1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => false
+            },
+            {
                 tileName: 'Salzach',
                 plotName: 'Salzach',
-                distance: 0.35,
-                vertical: 25,
+                distance: 0.08,
+                vertical: 0,
                 charsign: -1,
-                txtscale: 0.04,
-                idxvalid: (index: number) => index === 1
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                idxvalid: () => true
             },
-            // {
-            //     tileName: 'Kleine Salzach',
-            //     plotName: 'Kleine Salzach',
-            //     distance: 0.305,
-            //     vertical: 12,
-            //     charsign: 1,
-            //     txtscale: 0.022,
-            //     idxvalid: () => true
-            // },
-            // {
-            //     tileName: 'Oberalm',
-            //     plotName: 'Oberalm',
-            //     distance: 0.02,
-            //     vertical: 8,
-            //     charsign: 1,
-            //     txtscale: 0.022,
-            //     idxvalid: () => true
-            // },
+            {
+                tileName: 'Leprosenhauskapelle',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            }
         ]
     }
 
@@ -171,23 +227,41 @@ export class MapDefs {
         padding: 200,
         labelDefs: [
             {
-                tileName: 'Salzach',
-                plotName: 'Salzach',
-                distance: 0.55,
-                vertical: 25,
-                charsign: -1,
-                txtscale: 0.04,
-                idxvalid: () => true
+                tileName: 'Bad Vigaun',
+                plotName: 'Bad Vigaun',
+                distance: 40,
+                vertical: -12,
+                charsign: 1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => false
             },
             {
-                tileName: 'Taugl Tennengau',
-                plotName: 'Taugl',
-                distance: 0.42,
-                vertical: 25,
-                charsign: -1,
-                txtscale: 0.04,
-                idxvalid: () => true
-            }
+                tileName: 'Langwies',
+                plotName: 'Langwies',
+                distance: 40,
+                vertical: -90,
+                charsign: 1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Vigaun',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Salzach',
+                plotName: 'Salzach',
+                distance: 0.50,
+                vertical: 18,
+                charsign: 1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                idxvalid: (index: number) => index === 1
+            },
         ]
     }
 

@@ -84,40 +84,4 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
     }
 
-    drawToCanvas(context: CanvasRenderingContext2D, coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position): void {
-
-        context.fillStyle = 'rgba(0, 0, 0, 0.10)';
-        context.strokeStyle = 'rgba(0, 0, 0, 0.50)';
-
-        const drawRing = (ring: Position[]) => {
-            let isMove = true;
-            ring.forEach(coordinate => {
-                const coordinateCanvas = coordinate4326ToCoordinateCanvas(coordinate);
-                if (isMove) {
-                    context.moveTo(coordinateCanvas[0], coordinateCanvas[1]);
-                } else {
-                    context.lineTo(coordinateCanvas[0], coordinateCanvas[1]);
-                }
-                isMove = false;
-            });
-        }
-
-        const drawPolygon = (polygon: Position[][]) => {
-            context.beginPath();
-            polygon.forEach(ring => {
-                // console.log('ring', ring);
-                drawRing(ring);
-            });
-            context.fill();
-            // context.stroke();
-        }
-
-        super.drawToCanvas(context, coordinate4326ToCoordinateCanvas);
-
-        this.polyData.coordinates.forEach(polygon => {
-            drawPolygon(polygon);
-        })
-
-    }
-
 }

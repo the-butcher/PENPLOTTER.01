@@ -1,7 +1,10 @@
+-- Point layer creates a freak label on the "Leopoldsberg" extent
+OK Seilbahn
+
 OK symbol filter for line labels
--- re-implement fill polygons (maybe just use some union geometry and remove code)
+OK re-implement fill polygons (maybe just use some union geometry and remove code)
 OK allow switching of display to pure map svg display
-PL add some logic (bridges?) to know if a road is passing over i.e. a highway
+OK add some logic (bridges?) to know if a road is passing over i.e. a highway
 
 OK sharper edges around buildings
 OK first insets with a thinner pen

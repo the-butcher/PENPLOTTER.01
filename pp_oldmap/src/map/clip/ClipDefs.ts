@@ -28,13 +28,13 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 6,
+            distance: 2,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME____HIGHWAY,
-            distance: 6,
+            distance: 2,
             status: 'pending'
         },
         {
@@ -51,7 +51,7 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
-            layerNameClip: Map.LAYER__NAME_______TOWN,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
             status: 'pending'
         },
@@ -73,13 +73,13 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_______WOOD,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 6,
+            distance: 2,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME_______WOOD,
             layerNameClip: Map.LAYER__NAME____HIGHWAY,
-            distance: 6,
+            distance: 2,
             status: 'pending'
         },
         {
@@ -96,7 +96,7 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME_______WOOD,
-            layerNameClip: Map.LAYER__NAME_______TOWN,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
             status: 'pending'
         },
@@ -106,13 +106,13 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 6,
+            distance: 2,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME____HIGHWAY,
-            distance: 6,
+            distance: 2,
             status: 'pending'
         },
         {
@@ -124,27 +124,51 @@ export class ClipDefs {
         /////////////////////////////////////////////
         // ROADS
         /////////////////////////////////////////////
+        // {
+        //     layerNameDest: Map.LAYER__NAME______WATER,
+        //     layerNameClip: Map.LAYER__NAME_____BRIDGE, //
+        //     distance: 0,
+        //     status: 'pending',
+        //     options: {
+        //         skipMlt: false
+        //     }
+        // },
         {
             layerNameDest: Map.LAYER__NAME____HIGHWAY,
             layerNameClip: Map.LAYER__NAME_____BRIDGE,
-            distance: 8,
+            distance: 2,
             status: 'pending',
             options: {
                 skipMlt: false
             }
         }, // clip highways underneath bridges
         {
+            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameClip: Map.LAYER__NAME_____BRIDGE,
+            distance: 2,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        }, // clip tracks underneath bridges
+        {
             layerNameDest: Map.LAYER__NAME_____BRIDGE,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 8,
+            distance: 2,
             status: 'pending'
         }, // remove bridges
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME____HIGHWAY,
-            distance: 7,
+            distance: 1,
             status: 'pending'
         }, // remove roads underneath highways
+        {
+            layerNameDest: Map.LAYER__NAME______ROADS,
+            layerNameClip: Map.LAYER__NAME____HIGHWAY,
+            distance: 1,
+            status: 'pending'
+        }, // remove roads underneath tracks (this may be a problem in urban areas)
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
@@ -239,7 +263,7 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME__BUILDINGS,
-            layerNameClip: Map.LAYER__NAME_______TOWN,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
             status: 'pending',
             options: {
@@ -260,7 +284,61 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
-            layerNameClip: Map.LAYER__NAME_______TOWN,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HIGHWAY,
+            layerNameClip: Map.LAYER__NAME_____CHURCH,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HIGHWAY,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HIGHWAY,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameClip: Map.LAYER__NAME_____CHURCH,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_____TRACKS,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME______WATER,
+            layerNameClip: Map.LAYER__NAME_____CHURCH,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME______WATER,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME______WATER,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
             status: 'pending'
         },

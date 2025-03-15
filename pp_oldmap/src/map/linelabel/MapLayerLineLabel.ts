@@ -8,12 +8,13 @@ import { AMapLayer } from "../AMapLayer";
 import { ILabelDef } from '../ILabelDef';
 import { Map } from '../Map';
 import { Pen } from "../Pen";
-import { ILabelDefLineLabel, IWorkerPolyInputLineLabel } from './IWorkerPolyInputLineLabel';
+import { IWorkerPolyInputLineLabel } from './IWorkerPolyInputLineLabel';
 import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
 import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
+import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -36,7 +37,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
         if (feature.hasValue('_name') && feature.hasValue('_label_class', ...this.labelClasses)) { //  && feature.hasValue('_label_class', 4, 5)
 
             let name = feature.getValue('_name')!.getValue()!.toString();
-            console.log('name', name, feature.getValue('_label_class'));
+            console.log(`${this.name}, _name '${name}', _label_class '${feature.getValue('_label_class')?.getValue()}' ...`);
 
             for (let i = 0; i < this.labelDefs.length; i++) {
                 if (this.labelDefs[i].tileName === name) {
@@ -60,7 +61,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
-        console.log('this.tileData', this.tileData);
+        // console.log('this.tileData', this.tileData);
 
         // https://dev.to/localazy/how-to-pass-function-to-web-workers-4ee1
         const labelDefsWorkerInput: ILabelDefLineLabel[] = this.labelDefs.map(d => {

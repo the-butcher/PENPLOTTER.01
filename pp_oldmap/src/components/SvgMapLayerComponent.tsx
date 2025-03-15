@@ -60,7 +60,7 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
     }, [polylines005, polylines010, polylines030, polylines050]);
 
     const toStrokeWidth = (penWidth: number): number => {
-        return penWidth * 12;
+        return penWidth * 6;
         // return 0.2;
     }
     const stroke = 'rgba(0, 0, 0, 1)';
