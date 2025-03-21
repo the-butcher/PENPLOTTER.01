@@ -1,5 +1,6 @@
 
 import RefreshIcon from '@mui/icons-material/Refresh';
+import WarningIcon from '@mui/icons-material/Warning';
 import { ListItemIcon } from "@mui/material";
 import { useEffect } from "react";
 import { TMapProcessing } from "./IMapProcessing";
@@ -39,6 +40,10 @@ function StatusMapLayerComponent(props: IStatusProps) {
                                 transform: "rotate(360deg)",
                             },
                         },
+                    }}
+                /> : status === 'failure' ? <WarningIcon fontSize='small'
+                    sx={{
+                        color: 'orange'
                     }}
                 /> : icon
             }

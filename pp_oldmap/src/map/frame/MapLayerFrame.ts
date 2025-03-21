@@ -54,33 +54,41 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
 
     async processLine(): Promise<void> {
 
+        const coordinates: Position[][] = [
+            [
+                turf.toWgs84([
+                    this.coordinateUL3857[0] + this.radius,
+                    this.coordinateUL3857[1]
+                ]),
+                turf.toWgs84(this.coordinateUL3857),
+                turf.toWgs84([
+                    this.coordinateUL3857[0],
+                    this.coordinateUL3857[1] - this.radius
+                ])
+            ],
+            [
+                turf.toWgs84([
+                    this.coordinateLR3857[0] - this.radius,
+                    this.coordinateLR3857[1]
+                ]),
+                turf.toWgs84(this.coordinateLR3857),
+                turf.toWgs84([
+                    this.coordinateLR3857[0],
+                    this.coordinateLR3857[1] + this.radius
+                ])
+            ]
+        ]
+
+        // UL and RL corner markers
+        this.multiPolyline010 = {
+            type: 'MultiLineString',
+            coordinates
+        }
+
         // UL and RL corner markers
         this.multiPolyline030 = {
             type: 'MultiLineString',
-            coordinates: [
-                [
-                    turf.toWgs84([
-                        this.coordinateUL3857[0] + this.radius,
-                        this.coordinateUL3857[1]
-                    ]),
-                    turf.toWgs84(this.coordinateUL3857),
-                    turf.toWgs84([
-                        this.coordinateUL3857[0],
-                        this.coordinateUL3857[1] - this.radius
-                    ])
-                ],
-                [
-                    turf.toWgs84([
-                        this.coordinateLR3857[0] - this.radius,
-                        this.coordinateLR3857[1]
-                    ]),
-                    turf.toWgs84(this.coordinateLR3857),
-                    turf.toWgs84([
-                        this.coordinateLR3857[0],
-                        this.coordinateLR3857[1] + this.radius
-                    ])
-                ]
-            ]
+            coordinates
         }
 
     }

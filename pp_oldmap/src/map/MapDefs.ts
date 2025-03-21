@@ -28,7 +28,7 @@ export class MapDefs {
         labelDefs: []
     }
 
-    static MAP_DEF_________1220: IMapDef = {
+    static MAP_DEF_________1200: IMapDef = {
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
             1822970,
             6144431
@@ -81,26 +81,53 @@ export class MapDefs {
             {
                 tileName: 'Donau',
                 plotName: 'Donau',
-                distance: 0.25,
+                distance: 0.15,
                 vertical: 8,
-                charsign: -1,
+                charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
                 idxvalid: (index: number) => index === 1
             },
+            {
+                tileName: 'Hainburg an der Donau',
+                plotName: 'Hainburg',
+                distance: 350,
+                vertical: -160,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => true
+            }
         ]
     }
 
     static MAP_DEF____OLDDANUBE: IMapDef = {
-        bbox3857: [
-            1825800, 6143500,
-            1829800, 6146500
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1827800,
+            6145270
         ],
-        // bbox3857: [
-        //     1826200, 6144600,
-        //     1826500, 6145000
-        // ],
+            4000,
+            2828
+        ),
         padding: 200,
-        labelDefs: []
+        labelDefs: [
+            {
+                tileName: 'Donau',
+                plotName: 'Donau',
+                distance: 0.15,
+                vertical: 20,
+                charsign: -1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Neue Donau',
+                plotName: 'Neue Donau',
+                distance: 0.15,
+                vertical: 20,
+                charsign: -1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                idxvalid: () => true
+            },
+        ]
     }
 
     static MAP_DEF_____WOLFGANG: IMapDef = {
@@ -159,10 +186,13 @@ export class MapDefs {
     }
 
     static MAP_DEF_____SALZBURG: IMapDef = {
-        bbox3857: [
-            1450600, 6072150,
-            1454600, 6075150
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1452600,
+            6073600
         ],
+            4000,
+            2828
+        ),
         // bbox3857: [ // salzburg kleiner
         //     1451900, 6072700,
         //     1452700, 6073200
@@ -180,22 +210,38 @@ export class MapDefs {
                 vertical: 23,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
-                idxvalid: () => true
+                idxvalid: (index: number) => index === 1
+            },
+            {
+                tileName: 'Sankt Sebastianfriedhof',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
             }
         ]
     }
 
     static MAP_DEF______HALLEIN: IMapDef = {
-        bbox3857: [
-            1455600, 6052700,
-            1459600, 6055700
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1457650,
+            6054200
         ],
+            4000,
+            2828
+        ),
+        // bbox3857: [
+        //     1455650, 6052700,
+        //     1459650, 6055700
+        // ],
         padding: 200,
         labelDefs: [
             {
                 tileName: 'Hallein',
                 plotName: 'Hallein',
-                distance: 40,
+                distance: 50,
                 vertical: -12,
                 charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
@@ -213,9 +259,9 @@ export class MapDefs {
             {
                 tileName: 'Salzach',
                 plotName: 'Salzach',
-                distance: 0.08,
-                vertical: 0,
-                charsign: -1,
+                distance: 0.060,
+                vertical: -5,
+                charsign: -1.1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
                 idxvalid: () => true
             },
@@ -232,10 +278,13 @@ export class MapDefs {
     }
 
     static MAP_DEF_______VIGAUN: IMapDef = {
-        bbox3857: [
-            1459800, 6049460,
-            1463800, 6052460
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1461800,
+            6050920
         ],
+            4000,
+            2828
+        ),
         padding: 200,
         labelDefs: [
             {
@@ -266,10 +315,28 @@ export class MapDefs {
                 idxvalid: () => false
             },
             {
+                tileName: 'Wirtstaller',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Samhofkapelle',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
                 tileName: 'Salzach',
                 plotName: 'Salzach',
-                distance: 0.50,
-                vertical: 18,
+                distance: 0.25,
+                vertical: 24,
                 charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
                 idxvalid: (index: number) => index === 1

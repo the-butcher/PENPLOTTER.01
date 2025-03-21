@@ -64,7 +64,7 @@ export class MapLayerRoads extends AMapLayer<LineString, IRoadProperties> {
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l______road.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutputRoad = e.data;
@@ -79,6 +79,10 @@ export class MapLayerRoads extends AMapLayer<LineString, IRoadProperties> {
                 this.polygons78 = workerOutput.polygons78;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });
@@ -102,12 +106,16 @@ export class MapLayerRoads extends AMapLayer<LineString, IRoadProperties> {
             multiPolyline78: this.multiPolyline78
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_line_l______road.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

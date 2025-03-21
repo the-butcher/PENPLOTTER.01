@@ -45,14 +45,6 @@ self.onmessage = (e) => {
 
     let polyData: MultiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(preUnion);
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
-    // turf.simplify(polyData, {
-    //     mutate: true,
-    //     tolerance: VectorTileGeometryUtil.DEFAULT_SIMPLIFY_TOLERANCE,
-    //     highQuality: true
-    // });
-    // turf.cleanCoords(polyData, {
-    //     mutate: true
-    // });
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
@@ -123,6 +115,8 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
     polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
+
+    VectorTileGeometryUtil.cleanAndSimplify(polyData);
 
     const workerOutput: IWorkerPolyOutput = {
         polyData

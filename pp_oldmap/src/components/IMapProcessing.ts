@@ -1,5 +1,5 @@
 
-export type TMapProcessing = 'pending' | 'working' | 'success';
+export type TMapProcessing = 'pending' | 'working' | 'success' | 'failure';
 
 export interface IMapProcessing {
     tile: TMapProcessing;

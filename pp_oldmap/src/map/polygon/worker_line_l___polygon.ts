@@ -15,6 +15,8 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
     multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline010, workerInput.bboxMap4326);
 
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
+
     const workerOutput: IWorkerLineOutput = {
         multiPolyline010
     };

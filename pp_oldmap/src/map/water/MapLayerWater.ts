@@ -38,13 +38,17 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l_____water.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });
@@ -63,12 +67,16 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_line_l_____water.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

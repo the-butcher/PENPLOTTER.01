@@ -1,4 +1,3 @@
-import * as turf from '@turf/turf';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerPlotInput } from '../common/IWorkerPlotInput';
@@ -11,8 +10,8 @@ self.onmessage = (e) => {
 
     const polygonCount010 = 3;
     const polygonCount030 = 50;
-    const polygonDelta010 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
-    const polygonDelta030 = Pen.getPenWidthMeters(0.20, Map.SCALE) * -0.60;
+    const polygonDelta010 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.75;
+    const polygonDelta030 = Pen.getPenWidthMeters(0.20, Map.SCALE) * -0.75;
 
     // thinner rings for better edge precision
     const distances010: number[] = [];
@@ -35,12 +34,8 @@ self.onmessage = (e) => {
     const connected030 = VectorTileGeometryUtil.connectBufferFeatures(features030);
     const multiPolyline030 = VectorTileGeometryUtil.restructureMultiPolyline(connected030);
 
-    turf.cleanCoords(multiPolyline010, {
-        mutate: true
-    });
-    turf.cleanCoords(multiPolyline030, {
-        mutate: true
-    });
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline030);
 
     const workerOutput: IWorkerLineOutput = {
         multiPolyline010,

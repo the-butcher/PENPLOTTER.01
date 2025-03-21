@@ -224,7 +224,7 @@ function RootApp() {
     paperExtent: {
       xMin: 0,
       yMin: 0,
-      xMax: 176, // 200
+      xMax: 200, // 200
       yMax: 148  // 148
     },
     connectSort: true,
@@ -234,7 +234,7 @@ function RootApp() {
   const [cnfASvgProperties, setCnfASvgProperties] = useState<ICnfASvgProperties>(cnfASvgPropertiesRef.current);
 
   const cnfBSvgPropertiesRef = useRef<ICnfBSvgProperties>({
-    penMaxSpeed: 30,
+    penMaxSpeed: 20,
     penIds: [],
     penId: ObjectUtil.createId(),
     handleCnfBSvgProperties

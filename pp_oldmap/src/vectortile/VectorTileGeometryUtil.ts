@@ -13,7 +13,7 @@ export type UnionPolyline = LineString | MultiLineString;
 
 export class VectorTileGeometryUtil {
 
-    static readonly DEFAULT_SIMPLIFY_TOLERANCE = 0.00001;
+    static readonly DEFAULT_SIMPLIFY_TOLERANCE = 0.000005;
 
     static bboxAtCenter(center: Position, width: number, height: number): BBox {
         return [

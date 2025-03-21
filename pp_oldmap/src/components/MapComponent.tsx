@@ -73,10 +73,6 @@ function MapComponent() {
     const _mapDef = MapDefs.MAP_DEF______HALLEIN;
 
     const _map = new Map({
-      // bbox3857: [ // schulschiff (klein)
-      //     1824000, 6147000,
-      //     1825000, 6149000
-      // ],
       // bbox3857: [ // leopoldsberg
       //     1820635, 6149670,
       //     1822635, 6151670
@@ -102,7 +98,7 @@ function MapComponent() {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
             }
-          }, _mapDef.labelDefs, 6, 7)
+          }, _mapDef.labelDefs, 6, 7) // 2,
         },
         {
           createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
@@ -130,7 +126,7 @@ function MapComponent() {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               // 9 Hauptnetz
               // 10, 11 Ergänzungsnetz
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 10, 11)); // 9, 12, 13, 14
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 10, 11, 14)); // 9, 12, 13, 14
             }
           }, l => l.multiPolyline010)
         },
@@ -138,12 +134,12 @@ function MapComponent() {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_______TRAM, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               // 12 Zahnradbahn / Schmalspurbahn
-              // 13 Seibahn
+              // 13 Seilbahn
               // 16 Strassenbahn
               // Naturbestand :: Wien
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 14, 16)) || vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS);
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
             }
-          }, l => l.multiPolyline010)
+          }, l => l.multiPolyline005)
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
@@ -235,10 +231,15 @@ function MapComponent() {
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return (vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE');
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
+                console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
+                return true;
+              } else {
+                return false;
+              }
             }
-          }, l => l.multiPolyline050)
+          }, l => l.multiPolyline050, [0, 0], -15)
         },
         {
           createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
@@ -675,6 +676,19 @@ function MapComponent() {
         for (let i = 0; i < _mapLayerProps.length; i++) {
           if (_mapLayerProps[i].id === processablePolyLayer.id) {
             _mapLayerProps[i].status.poly = 'success';
+          }
+        }
+        mapLayerPropsRef.current = _mapLayerProps;
+        setMapLayerProps(mapLayerPropsRef.current);
+
+      }).catch((e) => {
+
+        console.warn(e);
+
+        const _mapLayerProps = cloneMapLayerProps();
+        for (let i = 0; i < _mapLayerProps.length; i++) {
+          if (_mapLayerProps[i].id === processablePolyLayer.id) {
+            _mapLayerProps[i].status.poly = 'failure';
           }
         }
         mapLayerPropsRef.current = _mapLayerProps;

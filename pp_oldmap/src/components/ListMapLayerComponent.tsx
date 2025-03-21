@@ -1,4 +1,4 @@
-import FitScreenIcon from '@mui/icons-material/FitScreen';
+import ContentCutIcon from '@mui/icons-material/ContentCut';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import GridViewIcon from '@mui/icons-material/GridView';
@@ -46,7 +46,7 @@ function ListMapLayerComponent(props: IMapLayerProps) {
             <StatusMapLayerComponent status={status.tile} icon={<GridViewIcon fontSize='small' />} />
             <StatusMapLayerComponent status={status.poly} icon={<TravelExploreIcon fontSize='small' />} />
             <StatusMapLayerComponent status={status.line} icon={<PolylineIcon fontSize='small' />} />
-            <StatusMapLayerComponent status={status.clip} icon={<FitScreenIcon fontSize='small' />} />
+            <StatusMapLayerComponent status={status.clip} icon={<ContentCutIcon fontSize='small' />} />
             <StatusMapLayerComponent status={status.plot} icon={<EditNoteIcon fontSize='small' />} />
         </ListItem>
 

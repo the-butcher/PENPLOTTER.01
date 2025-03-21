@@ -23,6 +23,8 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
+    VectorTileGeometryUtil.cleanAndSimplify(polyData);
+
     const workerOutput: IWorkerPolyOutput = {
         polyData
     };

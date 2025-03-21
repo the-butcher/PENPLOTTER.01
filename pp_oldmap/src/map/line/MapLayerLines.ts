@@ -15,11 +15,13 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
 
     private getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString;
     private dashArray: [number, number];
+    private offset: number;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0]) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0], offset: number = 0) {
         super(name, filter);
         this.getDefaultPolylineContainer = getDefaultPolylineContainer;
         this.dashArray = dashArray;
+        this.offset = offset;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -45,13 +47,17 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l______line.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });
@@ -67,11 +73,12 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
             tileData: this.tileData,
             polyData: this.polyData,
             dashArray: this.dashArray,
+            offset: this.offset,
             bboxClp4326,
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_line_l______line.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerLineOutput = e.data;
@@ -79,6 +86,10 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
                 this.getDefaultPolylineContainer(this).coordinates.push(...workerOutput.multiPolylineDef!.coordinates);
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

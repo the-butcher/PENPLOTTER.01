@@ -41,7 +41,7 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l__building.ts', import.meta.url), { // let respective layers produce URLs and worker input
                 type: 'module',
             });
@@ -50,6 +50,10 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
                 this.polyData = workerOutput.polyData;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });
@@ -68,7 +72,7 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
             polyText: VectorTileGeometryUtil.emptyMultiPolygon()
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_plot_l__building.ts', import.meta.url), { // let respective layers produce URLs and worker input
                 type: 'module',
             });
@@ -76,6 +80,10 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
                 this.applyWorkerOutputLine(e.data);
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

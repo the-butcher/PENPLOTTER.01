@@ -65,7 +65,7 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
             options: options
         };
 
-        return new Promise<void>((resolve) => { // , reject
+        return new Promise<void>((resolve, reject) => {
             const workerInstance = new Worker(new URL('../map/clip/worker_clip________misc.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerClipOutput = e.data;
@@ -76,6 +76,10 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
                 this.polyData = workerOutput.polyDataDest;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

@@ -104,7 +104,7 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
             labelDefs: labelDefsWorkerInput
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l_____point.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutputPoint = e.data;
@@ -113,6 +113,10 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 this.multiPolyline005 = workerOutput.multiPolyline005;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

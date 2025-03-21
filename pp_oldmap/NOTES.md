@@ -1,7 +1,7 @@
 -- have some kind of error feedback when a step fails
--- error in the hainburg extent
+OK error in the hainburg extent (changed cleanAndSimplify code)
 -- create possibility for label (+line-label) injection
--- river-labels missing in vienna
+OK river-labels missing in vienna (added label-class 2)
 -- Point layer creates a freak label on the "Leopoldsberg" extent
 OK Seilbahn
 

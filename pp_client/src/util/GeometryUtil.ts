@@ -8,8 +8,6 @@ export class GeometryUtil {
     static BT___BUFF_MAX = 512;
 
     static PEN___MIN_MMS = 1;
-    // static PEN___MAX_MMS = 30; // max speed for draw movements (mm/s)
-    // static PEN___MAX_ACC = 90; // acceleration for draw movements (mm/s²)
 
     static PEN_____WIDTH = 0.1; // mm
     static IMAGE___SCALE = 4;

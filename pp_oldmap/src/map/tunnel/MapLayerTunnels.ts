@@ -48,7 +48,7 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l____tunnel.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutputTunnel = e.data;
@@ -56,6 +56,10 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
                 this.multiPolyline04 = workerOutput.multiPolyline04;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });

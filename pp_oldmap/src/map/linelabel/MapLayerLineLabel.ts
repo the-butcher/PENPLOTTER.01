@@ -82,7 +82,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_poly_l_linelabel.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutputLineLabel = e.data;
@@ -90,6 +90,10 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                 this.polyText = workerOutput.polyText;
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });
@@ -109,12 +113,16 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
             bboxMap4326
         };
 
-        return new Promise((resolve) => { // , reject
+        return new Promise((resolve, reject) => {
             const workerInstance = new Worker(new URL('./worker_line_l_linelabel.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
                 workerInstance.terminate();
                 resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
             };
             workerInstance.postMessage(workerInput);
         });
