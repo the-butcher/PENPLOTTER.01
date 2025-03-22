@@ -4,9 +4,9 @@
  * jumpers on the a/b drivers are set to high/high/low, corresponding to 1/8 microstep
  *
  */
-Motor Motors::motorA('A', MOTOR___STEPS_MM, MOTOR_A_STEP_PIN, MOTOR_A_DRCT_PIN, LOW, HIGH, 0);
-Motor Motors::motorB('B', MOTOR___STEPS_MM, MOTOR_B_STEP_PIN, MOTOR_B_DRCT_PIN, LOW, HIGH, 0);
-Motor Motors::motorZ('Z', MOTOR_Z_STEPS_MM, MOTOR_Z_STEP_PIN, MOTOR_Z_DRCT_PIN, LOW, HIGH, 0);
+Motor Motors::motorA('A', MOTOR___STEPS_MM, MOTOR_A_STEP_PIN, MOTOR_A_DRCT_PIN, MOTOR_A_MICR_PIN, LOW, HIGH, 0);
+Motor Motors::motorB('B', MOTOR___STEPS_MM, MOTOR_B_STEP_PIN, MOTOR_B_DRCT_PIN, MOTOR_B_MICR_PIN, LOW, HIGH, 0);
+Motor Motors::motorZ('Z', MOTOR_Z_STEPS_MM, MOTOR_Z_STEP_PIN, MOTOR_Z_DRCT_PIN, MOTOR_Z_MICR_PIN, LOW, HIGH, 0);
 
 bool Motors::begin() {
     pinMode(MOTOR_ENABLE_PIN, OUTPUT);
@@ -14,5 +14,5 @@ bool Motors::begin() {
 }
 
 coord_corexy_t Motors::getCurCorexy() {
-    return {Motors::motorA.cntrCur, Motors::motorB.cntrCur, Motors::motorZ.cntrCur};
+    return {Motors::motorA.getCntrCur(), Motors::motorB.getCntrCur(), Motors::motorZ.getCntrCur()};
 }

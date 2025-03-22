@@ -15,11 +15,6 @@ typedef struct {
 
 class Motor {
    private:
-   public:
-    Motor(char id, uint32_t stepsMm, uint8_t stepPin, uint8_t drctPin, PinStatus pinStatusFwd, PinStatus pinStatusBwd, int32_t cntrCur);
-
-    char id;
-
     /**
      * steps per mm
      */
@@ -27,10 +22,16 @@ class Motor {
 
     uint8_t stepPin;
     uint8_t drctPin;
+    uint8_t micrPin;
     motor_direction__t drctFwd;
     motor_direction__t drctBwd;
     motor_direction__t drctCur;
     int32_t cntrCur;  // current step count
+
+   public:
+    Motor(char id, uint32_t stepsMm, uint8_t stepPin, uint8_t drctPin, uint8_t micrPin, PinStatus pinStatusFwd, PinStatus pinStatusBwd, int32_t cntrCur);
+
+    char id;
 
     /**
      * set everything needed to have a functional motor
@@ -49,6 +50,9 @@ class Motor {
      * - increment the step counter with the appropriate value
      */
     void pulse();
+
+    void setCntrCur(int32_t cntrCur);
+    int32_t getCntrCur();
 };
 
 #endif

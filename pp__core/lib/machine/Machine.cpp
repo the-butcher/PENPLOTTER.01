@@ -72,8 +72,8 @@ void Machine::reset(float x, float y) {
     curCorexy = Coords::planarToCorexy(curPlanar);
 
     // apply counters to motors A and B
-    Motors::motorA.cntrCur = curCorexy.a;
-    Motors::motorB.cntrCur = curCorexy.b;
+    Motors::motorA.setCntrCur(curCorexy.a);
+    Motors::motorB.setCntrCur(curCorexy.b);
 }
 
 void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
@@ -106,7 +106,7 @@ void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
             if (!Machine::homedZ) {
                 Machine::yield();
                 Machine::homedZ = true;
-                Motors::motorZ.cntrCur = 0;
+                Motors::motorZ.setCntrCur(0);
             } else {
                 // TODO :: maybe implement another threshold as yield criteria
             }
@@ -230,13 +230,11 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         // duration to reach destination (each block needs to have linear acceleration or constant speed)
         Machine::microsTotal = lenPlanar * 2 * MICROSECONDS_PER_SECOND / (vi + vo);  // total microseconds
 
-        // TODO :: from vi and vo calculate fi (entry-frequency) and fo (exit-frequency)
-
         // Serial.print("durSecond: ");
         // Serial.println(String(durSecond, 4));
 
         // TODO :: introduce alternative finer resolution
-        // this may require calculating 5 frequencies, discarding frequencies too high, then using the highest remaining frequency
+        // TODO :: let each motor provide a direction instance for the given corexy vector (absolute steps, norm or micr step, direction), then decide which direction should be primary
 
         // set up primary and secondary axes and axis specific values for bresenham algorithm
         // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#:~:text=Bresenham's%20line%20algorithm%20is%20a,straight%20line%20between%20two%20points.
@@ -271,6 +269,11 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         // // for comparison: one cycle at 4000hertz take 250 microseconds
         // Serial.print("accept(): ");
         // Serial.println(String(microsB - microsA));
+
+        // distance / velocity = seconds
+        // frequency = steps / seconds (?), i.e.[10 steps, 10 seconds => 1 / second], [100 steps, 10 seconds => 10 / second]
+        // frequency = steps * (1 / seconds)
+        // frequency = steps * velocity / distance
 
         // helper values for adjusting frequencies later on
         Machine::frqI = abs(Machine::dPrim) * vi / lenPlanar;
