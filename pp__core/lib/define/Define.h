@@ -2,12 +2,15 @@
 
 #define MOTOR_A_STEP_PIN 2
 #define MOTOR_A_DRCT_PIN 5
+#define MOTOT_A_MICR_PIN 18
 
 #define MOTOR_B_STEP_PIN 3
 #define MOTOR_B_DRCT_PIN 6
+#define MOTOT_B_MICR_PIN 19
 
 #define MOTOR_Z_STEP_PIN 4
 #define MOTOR_Z_DRCT_PIN 7
+#define MOTOT_Z_MICR_PIN -1
 
 #define MOTOR___STEPS_MM 80
 #define MOTOR_Z_STEPS_MM 60
@@ -19,7 +22,10 @@
 #define MACHINE_DIM____X 297
 #define MACHINE_DIM____Y 420
 #define MACHINE_DIM____Z -8
-#define MACHINE_HOME_MMS 20
+#define MACHINE_HOME_VXY 20
+#define MACHINE_HOME_V_Z 5
+
+#define VALUE______RESET 9999.0
 
 #define COMMAND_SERVICE___UUID "791320d5-7f0a-4b58-89f6-cc2031479da4"
 #define COMMAND_BUFF_SIZE_UUID "067c3c93-eb63-4905-b292-478642f8ae99"

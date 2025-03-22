@@ -86,15 +86,19 @@ bool Btle::getBuffVals() {
             block_planar_t blockPlanar;
             for (uint16_t newValueIndex = 0; newValueIndex < COMMAND_BUFF_VALS_SIZE * sizeof(block_planar_t); newValueIndex += sizeof(block_planar_t)) {
                 deserializeData(newValue, newValueIndex, blockPlanar);
-                if (blockPlanar.z == 9999.0) {
-                    // Serial.print("resetting to coordinate, x:");
-                    // Serial.print(String(blockPlanar.x, 3));
-                    // Serial.print(", y: ");
-                    // Serial.println(String(blockPlanar.y, 3));
-                    Machine::reset(blockPlanar.x, blockPlanar.y);
-                } else {
-                    Coords::addBlock(blockPlanar);
-                }
+                // if (blockPlanar.z == 9999.0) {
+
+                //     // Serial.print("resetting to coordinate, x:");
+                //     // Serial.print(String(blockPlanar.x, 3));
+                //     // Serial.print(", y: ");
+                //     // Serial.println(String(blockPlanar.y, 3));
+                //     Machine::reset(blockPlanar.x, blockPlanar.y);
+                //     Machine::homedZ = false;
+                //     Coords::addBlock({0.0, 0.0, 10.0, MACHINE_HOME_VXY, MACHINE_HOME_VXY});  // move along z-axis until z-switch is pressed
+
+                // } else {
+                Coords::addBlock(blockPlanar);
+                // }
             }
 
             Btle::setBuffSize();  // update buffer size after reading

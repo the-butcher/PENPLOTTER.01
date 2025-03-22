@@ -1,8 +1,12 @@
 #include <Motors.h>
 
-Motor Motors::motorA('A', MOTOR___STEPS_MM, MOTOR_A_STEP_PIN, MOTOR_A_DRCT_PIN, LOW, HIGH, 0);  // MOTOR_A_CNTR_CUR
-Motor Motors::motorB('B', MOTOR___STEPS_MM, MOTOR_B_STEP_PIN, MOTOR_B_DRCT_PIN, LOW, HIGH, 0);  // MOTOR_B_CNTR_CUR
-Motor Motors::motorZ('Z', MOTOR_Z_STEPS_MM, MOTOR_Z_STEP_PIN, MOTOR_Z_DRCT_PIN, LOW, HIGH, 0);  // MOTOR_Z_CNTR_CUR
+/**
+ * jumpers on the a/b drivers are set to high/high/low, corresponding to 1/8 microstep
+ *
+ */
+Motor Motors::motorA('A', MOTOR___STEPS_MM, MOTOR_A_STEP_PIN, MOTOR_A_DRCT_PIN, LOW, HIGH, 0);
+Motor Motors::motorB('B', MOTOR___STEPS_MM, MOTOR_B_STEP_PIN, MOTOR_B_DRCT_PIN, LOW, HIGH, 0);
+Motor Motors::motorZ('Z', MOTOR_Z_STEPS_MM, MOTOR_Z_STEP_PIN, MOTOR_Z_DRCT_PIN, LOW, HIGH, 0);
 
 bool Motors::begin() {
     pinMode(MOTOR_ENABLE_PIN, OUTPUT);

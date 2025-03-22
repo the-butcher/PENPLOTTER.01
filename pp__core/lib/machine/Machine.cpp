@@ -169,6 +169,18 @@ void Machine::updateFrequency(float frequency) {
  */
 bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
 
+    if (dstPlanar.z == VALUE______RESET) {
+
+        Machine::reset(dstPlanar.x, dstPlanar.y);
+        Machine::homedZ = false;
+
+        // will cause up movement until z-switch is pressed
+        dstPlanar.x = 0;
+        dstPlanar.y = 0;
+        dstPlanar.z = 10;
+        vi = MACHINE_HOME_V_Z;
+        vo = MACHINE_HOME_V_Z;
+    }
     // long microsA = micros();
 
     // TODO :: better strategy for trimming coordinates, i.e. find the intersection between target and machine bounds
@@ -187,8 +199,8 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
 
     // TODO :: check if this case still occurs and handle in another way
     if (vi == 0 && vo == 0) {
-        vi = MACHINE_HOME_MMS;
-        vo = MACHINE_HOME_MMS;
+        vi = MACHINE_HOME_VXY;
+        vo = MACHINE_HOME_VXY;
     }
 
     // corexy source coordinate
@@ -227,6 +239,7 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         // this may require calculating 5 frequencies, discarding frequencies too high, then using the highest remaining frequency
 
         // set up primary and secondary axes and axis specific values for bresenham algorithm
+        // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#:~:text=Bresenham's%20line%20algorithm%20is%20a,straight%20line%20between%20two%20points.
         if (Coords::hasMaximumAVal(vecCorexy)) {
             Machine::motorPrim = &Motors::motorA;
             Machine::motorSec1 = &Motors::motorB;
@@ -259,6 +272,7 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         // Serial.print("accept(): ");
         // Serial.println(String(microsB - microsA));
 
+        // helper values for adjusting frequencies later on
         Machine::frqI = abs(Machine::dPrim) * vi / lenPlanar;
         Machine::frqO = abs(Machine::dPrim) * vo / lenPlanar;
         Machine::frqA2 = (Machine::frqO - Machine::frqI) * 2000000.0 / Machine::microsTotal;

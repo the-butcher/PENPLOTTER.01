@@ -19,11 +19,12 @@ class Motor {
     Motor(char id, uint32_t stepsMm, uint8_t stepPin, uint8_t drctPin, PinStatus pinStatusFwd, PinStatus pinStatusBwd, int32_t cntrCur);
 
     char id;
-    uint8_t stepsMm;  // (steps-per-revolution * millistepping (half, quarter, ...)) / mm-belt-per-revolution, i.e. (400steps * 4quarterstep) / (20t * 2mm) = 40
 
     /**
      * steps per mm
      */
+    uint8_t stepsMm;  // (steps-per-revolution * millistepping (half, quarter, ...)) / mm-belt-per-revolution, i.e. (400steps * 4quarterstep) / (20t * 2mm) = 40
+
     uint8_t stepPin;
     uint8_t drctPin;
     motor_direction__t drctFwd;

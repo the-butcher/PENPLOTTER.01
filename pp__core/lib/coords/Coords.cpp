@@ -5,11 +5,11 @@ uint32_t Coords::nextBlockIndex = 0;
 uint32_t Coords::blockIndex = 0;
 
 bool Coords::begin() {
-    Coords::blockBuffer[Coords::blockIndex++] = {0.0, 0.0, 10.0, MACHINE_HOME_MMS, MACHINE_HOME_MMS};               // move until z-swtich touched, z-homing the machine and accepting the z-home coordinate as 0.0
-    Coords::blockBuffer[Coords::blockIndex++] = {-MACHINE_DIM____X, 0.0, 0.0, MACHINE_HOME_MMS, MACHINE_HOME_MMS};  // move until x-switch touched, x-homing the machine and accepting the limit x-coordinate as -10.0
-    Coords::blockBuffer[Coords::blockIndex++] = {0.0, 0.0, 0.0, MACHINE_HOME_MMS, MACHINE_HOME_MMS};                // backup x to 0.0
-    Coords::blockBuffer[Coords::blockIndex++] = {0.0, -MACHINE_DIM____Y, 0.0, MACHINE_HOME_MMS, MACHINE_HOME_MMS};  // move until y-swtich touched, y-homing the machine and accepting the limit x-coordinate as -10.0
-    Coords::blockBuffer[Coords::blockIndex++] = {0.0, 0.0, 0.0, MACHINE_HOME_MMS, MACHINE_HOME_MMS};                // backup y to 0.0, the machine will now be at x0.0, y0.0 with a lifted pen at z0.0
+    Coords::addBlock({0.0, 0.0, 10.0, MACHINE_HOME_V_Z, MACHINE_HOME_V_Z});               // move until z-swtich touched, z-homing the machine and accepting the z-home coordinate as 0.0
+    Coords::addBlock({-MACHINE_DIM____X, 0.0, 0.0, MACHINE_HOME_VXY, MACHINE_HOME_VXY});  // move until x-switch touched, x-homing the machine and accepting the limit x-coordinate as -10.0
+    Coords::addBlock({0.0, 0.0, 0.0, MACHINE_HOME_VXY, MACHINE_HOME_VXY});                // backup x to 0.0
+    Coords::addBlock({0.0, -MACHINE_DIM____Y, 0.0, MACHINE_HOME_VXY, MACHINE_HOME_VXY});  // move until y-swtich touched, y-homing the machine and accepting the limit y-coordinate as -20.0
+    Coords::addBlock({0.0, 0.0, 0.0, MACHINE_HOME_VXY, MACHINE_HOME_VXY});                // backup y to 0.0, the machine will now be at x0.0, y0.0 with a lifted pen at z0.0
 }
 
 bool Coords::hasNextBlock() {
