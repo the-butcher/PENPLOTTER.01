@@ -18,6 +18,8 @@ export const CHARACTERISTIC_BUFF_SIZE = '067c3c93-eb63-4905-b292-478642f8ae99';
 export const CHARACTERISTIC_BUFF_VALS = 'd3116fb9-adc1-4fc4-9cb4-ceb48925fa1b';
 export const CHARACTERISTIC__POSITION = "b7e24055-35c2-418e-be2e-b690a11cf3fa";
 
+export type GATT_OPERATION_TYPE = 'buffsize' | 'position' | 'blockbytes' | 'none';
+
 function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties) {
 
     const { lines, device, handleConnBleProperties, handlePenDone } = props;
@@ -38,7 +40,11 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     const [buffCoords, setBuffCoords] = useState<IBlockPlanar[]>([]);
     const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(0);
 
+    const blockBytesRef = useRef<Uint8Array<ArrayBufferLike>>();
+
     const positionCallbackRef = useRef<(position: IBlockPlanar) => void>();
+
+    const timeoutMillis = 500;
 
     const penDistances: number[] = [
         0.1,
@@ -47,9 +53,10 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     ];
     const [penDistance, setPenDistance] = useState<number>(penDistances[0]);
 
-    const gattOperationPendingRef = useRef<boolean>(false);
+    const gattOperationPendingRef = useRef<GATT_OPERATION_TYPE>('none');
     const readBuffSizeTo = useRef<number>(-1);
     const readPositionTo = useRef<number>(-1);
+    const writeBlockBytesTo = useRef<number>(-1);
 
     const abortPen = () => {
         setBuffCoords([]);
@@ -60,6 +67,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     // const movePenDistance = 0.1;
 
+    const ADJUST_PEN_SPEED = 5;
+
     const movePenTo = (movePosition: IBlockPlanar) => {
 
         console.log('moving pen to', movePosition)
@@ -67,8 +76,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
         for (let i = 0; i < GeometryUtil.BT___BUFF_BLK; i++) {
             _buffCoords.push({
                 ...movePosition,
-                vi: 5,
-                vo: 5
+                vi: movePosition.vi > 0 ? Math.min(movePosition.vi, 20) : 1,
+                vo: movePosition.vo > 0 ? Math.min(movePosition.vo, 20) : 1
             });
         }
         // console.log('moving pen to', _buffCoords)
@@ -78,7 +87,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     const resetAtPosition = () => {
 
-        const resetPposition: IBlockPlanar = {
+        const resetPosition: IBlockPlanar = {
             x: 0,
             y: 0,
             z: GeometryUtil.Z_VALUE_RESET,
@@ -86,14 +95,14 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             vo: 0
         };
 
-        const _buffCoords: IBlockPlanar[] = [resetPposition];
+        const _buffCoords: IBlockPlanar[] = [resetPosition];
         for (let i = 1; i < GeometryUtil.BT___BUFF_BLK; i++) {
             _buffCoords.push({
                 x: 0,
                 y: 0,
                 z: GeometryUtil.Z_VALUE_PEN_U,
-                vi: 0,
-                vo: 0
+                vi: 5,
+                vo: 5
             });
         }
         setBuffCoords(_buffCoords);
@@ -111,6 +120,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                     x: 0,
                     y: 0,
                     z: 0,
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 });
             }
         };
@@ -127,6 +138,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 movePenTo({
                     ..._position,
                     y: _position.y - penDistance,
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 });
             }
         };
@@ -143,6 +156,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 movePenTo({
                     ..._position,
                     y: _position.y + penDistance,
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 });
             }
         };
@@ -159,6 +174,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 movePenTo({
                     ..._position,
                     x: _position.x - penDistance,
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 });
             }
         };
@@ -175,6 +192,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 movePenTo({
                     ..._position,
                     x: _position.x + penDistance,
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 });
             }
         };
@@ -191,6 +210,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 movePenTo({
                     ..._position,
                     z: Math.min(GeometryUtil.Z_VALUE_PEN_U, _position.z + penDistance),
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 });
             }
         };
@@ -209,6 +230,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 movePenTo({
                     ..._position,
                     z: Math.max(GeometryUtil.Z_VALUE_PEN_D, _position.z - penDistance),
+                    vi: ADJUST_PEN_SPEED,
+                    vo: ADJUST_PEN_SPEED
                 })
             }
         };
@@ -325,11 +348,11 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         if (positionCharacteristic) {
 
-            if (!gattOperationPendingRef.current) {
+            if (gattOperationPendingRef.current === 'none') {
 
-                gattOperationPendingRef.current = true;
+                gattOperationPendingRef.current = 'position';
                 positionCharacteristic.readValue().then(data => {
-                    gattOperationPendingRef.current = false;
+                    gattOperationPendingRef.current = 'none';
                     const position = BlockUtil.parseBlockBytes(data);
                     console.log('got new position', position);
                     setPosition(position);
@@ -340,7 +363,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 window.clearTimeout(readPositionTo.current);
                 readPositionTo.current = window.setTimeout(() => {
                     readPosition();
-                }, 250);
+                }, timeoutMillis);
 
             }
 
@@ -352,15 +375,19 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     const readBuffSize = () => {
 
+        console.log('read buff size (1)');
+
         if (buffSizeCharacteristic) {
 
-            if (!gattOperationPendingRef.current) {
+            console.log('read buff size (2)');
 
-                gattOperationPendingRef.current = true;
+            if (gattOperationPendingRef.current === 'none') {
 
+                console.log('read buff size (3)');
+
+                gattOperationPendingRef.current = 'buffsize';
                 buffSizeCharacteristic.readValue().then(value => {
-
-                    gattOperationPendingRef.current = false;
+                    gattOperationPendingRef.current = 'none';
 
                     const _buffSize = value.getUint32(0, true);
                     // console.log('_buffSize', _buffSize);
@@ -381,8 +408,44 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             window.clearTimeout(readBuffSizeTo.current);
             readBuffSizeTo.current = window.setTimeout(() => {
                 readBuffSize();
-            }, 250);
+            }, timeoutMillis * 2);
 
+        }
+
+    }
+
+    const writeBlockBytes = () => {
+
+        if (buffValsCharacteristic) {
+
+            if (gattOperationPendingRef.current === 'none') {
+
+                gattOperationPendingRef.current = 'blockbytes';
+                buffValsCharacteristic!.writeValue(blockBytesRef.current!).then(() => {
+                    gattOperationPendingRef.current = 'none';
+
+                    blockBytesRef.current = undefined;
+
+                }).catch((e: unknown) => {
+                    window.clearTimeout(readBuffSizeTo.current);
+                    handleConnBleProperties({
+                        // device implicitly undefined
+                        message: 'failed to write block bytes',
+                    });
+                    console.error(e);
+                });
+
+            } else {
+
+                window.clearTimeout(writeBlockBytesTo.current);
+                writeBlockBytesTo.current = window.setTimeout(() => {
+                    writeBlockBytes();
+                }, timeoutMillis);
+
+            }
+
+        } else {
+            throw (new Error("failed to write block bytes due to undefined buffValsCharacteristic"));
         }
 
     }
@@ -404,9 +467,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.log('⚙ updating BluetoothSenderComponent (buffSize)', buffSize);
 
-        if (!gattOperationPendingRef.current && buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4) { // if there is more blocks that can be sent and we are not waiting for other blocks to be sent
+        if (!blockBytesRef.current && buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4) {
 
-            gattOperationPendingRef.current = true;
+            blockBytesRef.current = new Uint8Array(); // assign,something right awys, so another buff size read does not get the opportunity to rewrite
 
             const _blockCoordsSplice = buffCoords.splice(0, GeometryUtil.BT___BUFF_BLK);
             // fill to GeometryUtil.BT___BUFF_BLK entries in case the splice command provided less than GeometryUtil.BT___BUFF_BLK (happens at the end of file)
@@ -420,38 +483,18 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 });
             };
 
-            if (buffValsCharacteristic) {
-
-                // console.log('buffValsRef.current', blockCoordsSpliceRef.current);
-                const blockBytes = BlockUtil.createBlockBytes(_blockCoordsSplice);
-
-                // console.log('before sending blockBytes, ...');
-                buffValsCharacteristic?.writeValue(blockBytes).then(() => {
-
-                    gattOperationPendingRef.current = false;
-
-                }).catch((e: unknown) => {
-                    window.clearTimeout(readBuffSizeTo.current);
-                    handleConnBleProperties({
-                        // device implicitly undefined
-                        message: 'failed to write commands',
-                    });
-                    console.error(e);
-                });
-
-            }
+            blockBytesRef.current = BlockUtil.createBlockBytes(_blockCoordsSplice);
+            writeBlockBytes();
 
         } else if (buffCoords.length === 0 && buffSize === GeometryUtil.BT___BUFF_MAX) {
             handlePenDone();
-            // buffSkipRef.current++;
-            // console.log("sending condition not fulfilled", buffCoords.length, buffSize, blockSendPendingRef.current)
         }
 
     }, [buffSize, buffCoords]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating BluetoothSenderComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic, positionCharacteristic);
+        console.log('⚙ updating BluetoothSenderComponent (characteristics)', buffSizeCharacteristic, buffValsCharacteristic, positionCharacteristic);
 
         if (buffSizeCharacteristic && buffValsCharacteristic && positionCharacteristic) {
 

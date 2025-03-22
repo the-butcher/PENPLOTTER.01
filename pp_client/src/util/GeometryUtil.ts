@@ -5,7 +5,7 @@ import { ObjectUtil } from "./ObjectUtil";
 export class GeometryUtil {
 
     static BT___BUFF_BLK = 24; // bluetooth buffer size
-    static BT___BUFF_MAX = 512;
+    static BT___BUFF_MAX = 512; // device buffer size
 
     static PEN___MIN_MMS = 1;
 
@@ -14,7 +14,7 @@ export class GeometryUtil {
     static IMAGE_PADDING = 2;
     static CONN___PREFIX = 'conn';
     static Z_VALUE_PEN_U = 0.0; // pen position when up (mm)
-    static Z_VALUE_PEN_D = -8.0; // pen position when down (mm)
+    static Z_VALUE_PEN_D = -7.0; // pen position when down (mm)
     static Z_VALUE_RESET = 9999; // z-value indicating reset
 
 
@@ -39,7 +39,7 @@ export class GeometryUtil {
                 const segmentId = linepaths[i].segments[0].id;
                 penId = linepaths[i].penId;
                 const segmentLength2D = GeometryUtil.getDistance2D(coordA2D, coordB2D);
-                const extraLift = Math.min(semiLift, segmentLength2D / 6);
+                const extraLift = Math.min(semiLift, segmentLength2D / 4);
 
                 coordA3D = {
                     ...coordA2D,
