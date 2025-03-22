@@ -2,11 +2,11 @@
 
 #define MOTOR_A_STEP_PIN 2
 #define MOTOR_A_DRCT_PIN 5
-#define MOTOR_A_MICR_PIN 18
+#define MOTOR_A_MICR_PIN 19
 
 #define MOTOR_B_STEP_PIN 3
 #define MOTOR_B_DRCT_PIN 6
-#define MOTOR_B_MICR_PIN 19
+#define MOTOR_B_MICR_PIN 18
 
 #define MOTOR_Z_STEP_PIN 4
 #define MOTOR_Z_DRCT_PIN 7

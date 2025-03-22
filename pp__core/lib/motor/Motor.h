@@ -3,14 +3,21 @@
 
 #include <Arduino.h>
 
-typedef enum {
-    MOTOR___DRCT_FWD,
-    MOTOR___DRCT_BWD
-} motor_direction__e;
+// typedef enum {
+//     MOTOR___DRCT_FWD,
+//     MOTOR___DRCT_BWD
+// } motor_direction__e;
+
+// typedef enum {
+//     MOTOR___MICR__ON,
+//     MOTOR___MICR_OFF
+// } motor_microstep__e;
 
 typedef struct {
-    PinStatus pinStatus;
-    int8_t cntrInc;
+    PinStatus drctVal;  // status to be set on the direction pin
+    PinStatus micrVal;  // status to be set on the microstep pin
+    int8_t cntrInc;     // primary counter increment
+    uint8_t micrInc;    // secondary counter increment
 } motor_direction__t;
 
 class Motor {
@@ -23,15 +30,19 @@ class Motor {
     uint8_t stepPin;
     uint8_t drctPin;
     uint8_t micrPin;
-    motor_direction__t drctFwd;
-    motor_direction__t drctBwd;
     motor_direction__t drctCur;
     int32_t cntrCur;  // current step count
+    int8_t micrCur;   // current micro step count
 
    public:
-    Motor(char id, uint32_t stepsMm, uint8_t stepPin, uint8_t drctPin, uint8_t micrPin, PinStatus pinStatusFwd, PinStatus pinStatusBwd, int32_t cntrCur);
+    Motor(char id, uint8_t stepsMm, uint8_t micrMlt, uint8_t stepPin, uint8_t drctPin, uint8_t micrPin);
 
     char id;
+
+    uint8_t micrMlt;
+
+    // motor_direction__t drctFwd;
+    // motor_direction__t drctBwd;
 
     /**
      * set everything needed to have a functional motor
@@ -40,7 +51,7 @@ class Motor {
      */
     bool begin();
 
-    void setDirection(motor_direction__e drctCur);
+    void setDirection(motor_direction__t drctCur);
 
     /**
      * send a single motor pulse

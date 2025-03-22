@@ -41,10 +41,10 @@ coord_corexy_t Coords::toCorexyVector(coord_corexy_t& srcCorexy, coord_corexy_t&
     return {dstCorexy.a - srcCorexy.a, dstCorexy.b - srcCorexy.b, dstCorexy.z - srcCorexy.z};
 }
 
-bool Coords::hasMaximumAVal(coord_corexy_t& coordCorexy) {
-    return abs(coordCorexy.a) >= max(abs(coordCorexy.b), abs(coordCorexy.z));
-}
+// bool Coords::hasMaximumAVal(coord_corexy_t& coordCorexy) {
+//     return abs(coordCorexy.a) >= max(abs(coordCorexy.b), abs(coordCorexy.z));
+// }
 
-bool Coords::hasMaximumBVal(coord_corexy_t& coordCorexy) {
-    return abs(coordCorexy.b) >= max(abs(coordCorexy.a), abs(coordCorexy.z));
-}
+// bool Coords::hasMaximumBVal(coord_corexy_t& coordCorexy) {
+//     return abs(coordCorexy.b) >= max(abs(coordCorexy.a), abs(coordCorexy.z));
+// }

@@ -140,6 +140,7 @@ void Machine::pulse(timer_callback_args_t __attribute((unused)) * p_args) {
             } else {
                 Machine::yield();
             }
+            // Machine::yield();
 
         } else {
             // uint64_t microsDelta = micros() - Machine::microsEntry;  // microseconds since entry
@@ -233,32 +234,73 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         // Serial.print("durSecond: ");
         // Serial.println(String(durSecond, 4));
 
-        // TODO :: introduce alternative finer resolution
-        // TODO :: let each motor provide a direction instance for the given corexy vector (absolute steps, norm or micr step, direction), then decide which direction should be primary
+        motor_direction__t motorDirectionA = {LOW, LOW, 1, Motors::motorA.micrMlt};
+        motor_direction__t motorDirectionB = {LOW, LOW, 1, Motors::motorB.micrMlt};
+        motor_direction__t motorDirectionZ = {LOW, LOW, 1, Motors::motorZ.micrMlt};
+
+        if (vecCorexy.a < 0) {
+            motorDirectionA.cntrInc = -1;
+            motorDirectionA.drctVal = HIGH;
+        }
+        if (vecCorexy.b < 0) {
+            motorDirectionB.cntrInc = -1;
+            motorDirectionB.drctVal = HIGH;
+        }
+        if (vecCorexy.z < 0) {
+            motorDirectionZ.cntrInc = -1;
+            motorDirectionZ.drctVal = HIGH;
+        }
+
+        uint32_t stepsA = abs(vecCorexy.a);
+        uint32_t stepsB = abs(vecCorexy.b);
+        uint32_t stepsZ = abs(vecCorexy.z);
+
+        float maxVMult = max(vi, vo) / lenPlanar;
+        float frqA = stepsA * maxVMult;
+        float frqB = stepsB * maxVMult;
+        float frqMax = 3000;
+
+        // Serial.print(String(frqA, 1));
+        // Serial.print(", ");
+        // Serial.println(String(frqB, 1));
+
+        if (frqA > 0 && frqA < frqMax / motorDirectionA.micrInc) {
+            stepsA = stepsA * motorDirectionA.micrInc;
+            motorDirectionA.micrInc = 1;
+            motorDirectionA.micrVal = HIGH;
+        }
+        if (frqB > 0 && frqB < frqMax / motorDirectionB.micrInc) {
+            stepsB = stepsB * motorDirectionB.micrInc;
+            motorDirectionB.micrInc = 1;
+            motorDirectionB.micrVal = HIGH;
+        }
+
+        // motorDirectionA.micrVal = HIGH;
+        // motorDirectionB.micrVal = HIGH;
 
         // set up primary and secondary axes and axis specific values for bresenham algorithm
         // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#:~:text=Bresenham's%20line%20algorithm%20is%20a,straight%20line%20between%20two%20points.
-        if (Coords::hasMaximumAVal(vecCorexy)) {
+        if (stepsA >= max(stepsB, stepsZ)) {
             Machine::motorPrim = &Motors::motorA;
             Machine::motorSec1 = &Motors::motorB;
             Machine::motorSec2 = &Motors::motorZ;
-            Machine::dPrim = abs(vecCorexy.a);
-            Machine::dSec1 = abs(vecCorexy.b);
-            Machine::dSec2 = abs(vecCorexy.z);
-        } else if (Coords::hasMaximumBVal(vecCorexy)) {
+            Machine::dPrim = stepsA;
+            Machine::dSec1 = stepsB;
+            Machine::dSec2 = stepsZ;
+        } else if (stepsB >= max(stepsA, stepsZ)) {
             Machine::motorPrim = &Motors::motorB;
             Machine::motorSec1 = &Motors::motorA;
             Machine::motorSec2 = &Motors::motorZ;
-            Machine::dPrim = abs(vecCorexy.b);
-            Machine::dSec1 = abs(vecCorexy.a);
-            Machine::dSec2 = abs(vecCorexy.z);
+            Machine::dPrim = stepsB;
+            Machine::dSec1 = stepsA;
+            Machine::dSec2 = stepsZ;
         } else {
             Machine::motorPrim = &Motors::motorZ;
             Machine::motorSec1 = &Motors::motorA;
             Machine::motorSec2 = &Motors::motorB;
-            Machine::dPrim = abs(vecCorexy.z);
-            Machine::dSec1 = abs(vecCorexy.a);
-            Machine::dSec2 = abs(vecCorexy.b);
+            Machine::dPrim = stepsZ;
+            Machine::dSec1 = stepsA;
+            Machine::dSec2 = stepsB;
         }
 
         // ---> up to 60 micros here
@@ -276,8 +318,8 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         // frequency = steps * velocity / distance
 
         // helper values for adjusting frequencies later on
-        Machine::frqI = abs(Machine::dPrim) * vi / lenPlanar;
-        Machine::frqO = abs(Machine::dPrim) * vo / lenPlanar;
+        Machine::frqI = Machine::dPrim * vi / lenPlanar;
+        Machine::frqO = Machine::dPrim * vo / lenPlanar;
         Machine::frqA2 = (Machine::frqO - Machine::frqI) * 2000000.0 / Machine::microsTotal;
         Machine::frqII = Machine::frqI * Machine::frqI;
 
@@ -302,9 +344,9 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
         Machine::eSec2 = 2 * Machine::dSec2 - Machine::dPrim;
 
         // point the motors in the proper direction
-        Motors::motorA.setDirection(vecCorexy.a >= 0 ? MOTOR___DRCT_FWD : MOTOR___DRCT_BWD);
-        Motors::motorB.setDirection(vecCorexy.b >= 0 ? MOTOR___DRCT_FWD : MOTOR___DRCT_BWD);
-        Motors::motorZ.setDirection(vecCorexy.z >= 0 ? MOTOR___DRCT_FWD : MOTOR___DRCT_BWD);
+        Motors::motorA.setDirection(motorDirectionA);
+        Motors::motorB.setDirection(motorDirectionB);
+        Motors::motorZ.setDirection(motorDirectionZ);
 
         Machine::microsEntry = micros();
 

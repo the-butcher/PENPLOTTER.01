@@ -21,9 +21,9 @@ void test_motor_config_z(void) {
     TEST_ASSERT_EQUAL(MOTOR_Z_DRCT_PIN, Motors::motorZ.drctPin);
     TEST_ASSERT_EQUAL(MOTOR_Z_STEPS_MM, Motors::motorZ.stepsMm);
     TEST_ASSERT_EQUAL(MOTOR_Z_CNTR_CUR, Motors::motorZ.cntrCur);
-    TEST_ASSERT_EQUAL(LOW, Motors::motorZ.drctFwd.pinStatus);
+    TEST_ASSERT_EQUAL(LOW, Motors::motorZ.drctFwd.drctVal);
     TEST_ASSERT_EQUAL(1, Motors::motorZ.drctFwd.cntrInc);
-    TEST_ASSERT_EQUAL(HIGH, Motors::motorZ.drctBwd.pinStatus);
+    TEST_ASSERT_EQUAL(HIGH, Motors::motorZ.drctBwd.drctVal);
     TEST_ASSERT_EQUAL(-1, Motors::motorZ.drctBwd.cntrInc);
 }
 
@@ -36,9 +36,9 @@ void test_motor_config_b(void) {
     TEST_ASSERT_EQUAL(MOTOR_B_DRCT_PIN, Motors::motorB.drctPin);
     TEST_ASSERT_EQUAL(MOTOR___STEPS_MM, Motors::motorB.stepsMm);
     TEST_ASSERT_EQUAL(MOTOR_B_CNTR_CUR, Motors::motorB.cntrCur);
-    TEST_ASSERT_EQUAL(HIGH, Motors::motorB.drctFwd.pinStatus);
+    TEST_ASSERT_EQUAL(HIGH, Motors::motorB.drctFwd.drctVal);
     TEST_ASSERT_EQUAL(1, Motors::motorB.drctFwd.cntrInc);
-    TEST_ASSERT_EQUAL(LOW, Motors::motorB.drctBwd.pinStatus);
+    TEST_ASSERT_EQUAL(LOW, Motors::motorB.drctBwd.drctVal);
     TEST_ASSERT_EQUAL(-1, Motors::motorB.drctBwd.cntrInc);
 }
 
@@ -51,9 +51,9 @@ void test_motor_config_a(void) {
     TEST_ASSERT_EQUAL(MOTOR_A_DRCT_PIN, Motors::motorA.drctPin);
     TEST_ASSERT_EQUAL(MOTOR___STEPS_MM, Motors::motorA.stepsMm);
     TEST_ASSERT_EQUAL(MOTOR_A_CNTR_CUR, Motors::motorA.cntrCur);
-    TEST_ASSERT_EQUAL(HIGH, Motors::motorA.drctFwd.pinStatus);
+    TEST_ASSERT_EQUAL(HIGH, Motors::motorA.drctFwd.drctVal);
     TEST_ASSERT_EQUAL(1, Motors::motorA.drctFwd.cntrInc);
-    TEST_ASSERT_EQUAL(LOW, Motors::motorA.drctBwd.pinStatus);
+    TEST_ASSERT_EQUAL(LOW, Motors::motorA.drctBwd.drctVal);
     TEST_ASSERT_EQUAL(-1, Motors::motorA.drctBwd.cntrInc);
 }
 
