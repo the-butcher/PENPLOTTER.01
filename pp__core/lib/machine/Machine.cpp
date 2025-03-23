@@ -275,9 +275,6 @@ bool Machine::accept(coord_planar_t dstPlanar, float vi, float vo) {
             motorDirectionB.micrVal = HIGH;
         }
 
-        // motorDirectionA.micrVal = HIGH;
-        // motorDirectionB.micrVal = HIGH;
-
         // set up primary and secondary axes and axis specific values for bresenham algorithm
         // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#:~:text=Bresenham's%20line%20algorithm%20is%20a,straight%20line%20between%20two%20points.
         if (stepsA >= max(stepsB, stepsZ)) {

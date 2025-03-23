@@ -56,9 +56,6 @@ class Coords {
     static coord_planar_t corexyToPlanar(coord_corexy_t& coordCorexy);
 
     static coord_corexy_t toCorexyVector(coord_corexy_t& srcCorexy, coord_corexy_t& dstCorexy);
-
-    // static bool hasMaximumAVal(coord_corexy_t& coordCorexy);
-    // static bool hasMaximumBVal(coord_corexy_t& coordCorexy);
 };
 
 #endif

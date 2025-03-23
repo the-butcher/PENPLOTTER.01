@@ -37,7 +37,7 @@ void Motor::pulse() {
     delayMicroseconds(1);
     digitalWrite(this->stepPin, LOW);
     this->micrCur += this->drctCur.micrInc;
-    if (this->micrCur == this->micrMlt) {
+    if (this->micrCur >= this->micrMlt) {
         this->micrCur = 0;
         this->cntrCur += this->drctCur.cntrInc;
     }
@@ -47,6 +47,7 @@ void Motor::pulse() {
 
 void Motor::setCntrCur(int32_t cntrCur) {
     this->cntrCur = cntrCur;
+    this->micrCur = 0;
 }
 
 int32_t Motor::getCntrCur() {
