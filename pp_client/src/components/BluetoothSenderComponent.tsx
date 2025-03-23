@@ -375,15 +375,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     const readBuffSize = () => {
 
-        console.log('read buff size (1)');
-
         if (buffSizeCharacteristic) {
 
-            console.log('read buff size (2)');
-
             if (gattOperationPendingRef.current === 'none') {
-
-                console.log('read buff size (3)');
 
                 gattOperationPendingRef.current = 'buffsize';
                 buffSizeCharacteristic.readValue().then(value => {
@@ -482,6 +476,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                     vo: 0
                 });
             };
+
+            console.log('_blockCoordsSplice', _blockCoordsSplice);
 
             blockBytesRef.current = BlockUtil.createBlockBytes(_blockCoordsSplice);
             writeBlockBytes();
