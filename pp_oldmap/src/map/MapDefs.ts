@@ -43,13 +43,22 @@ export class MapDefs {
     static MAP_DEF____HALLSTATT: IMapDef = {
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
             1519500,
-            6033700
+            6033850
         ],
             4000,
-            3000
+            2828
         ),
         padding: 1000,
         labelDefs: [
+            {
+                tileName: 'Hallstatt',
+                plotName: 'Hallstatt',
+                distance: 170,
+                vertical: 120,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => true
+            },
             {
                 tileName: 'Hallstätter See',
                 plotName: '',
@@ -72,10 +81,13 @@ export class MapDefs {
     }
 
     static MAP_DEF_____HAINBURG: IMapDef = {
-        bbox3857: [
-            1883950, 6130000,
-            1887950, 6133000
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1885950,
+            6131500
         ],
+            4000,
+            2828
+        ),
         padding: 200,
         labelDefs: [
             {
@@ -83,7 +95,7 @@ export class MapDefs {
                 plotName: 'Donau',
                 distance: 0.15,
                 vertical: 8,
-                charsign: 1,
+                charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
                 idxvalid: (index: number) => index === 1
             },

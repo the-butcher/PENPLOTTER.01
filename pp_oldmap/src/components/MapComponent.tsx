@@ -70,7 +70,7 @@ function MapComponent() {
     // console.log(VectorTileGeometryUtil.clipMultPolyline2(p1, f2));
 
 
-    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
+    const _mapDef = MapDefs.MAP_DEF_____HAINBURG;
 
     const _map = new Map({
       // bbox3857: [ // leopoldsberg
@@ -191,7 +191,7 @@ function MapComponent() {
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
+              if (vectorTileKey.lod > 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
                 return true
               }
               return false;
@@ -411,6 +411,9 @@ function MapComponent() {
       collectTiles(Map.LOD_16, vectorTileUrlBmapv);
       collectTiles(Map.LOD_15, vectorTileUrlBmapv);
       collectTiles(Map.LOD_14, vectorTileUrlBmapv);
+
+      collectTiles(Map.LOD_16, vectorTileUrlBmaph);
+      collectTiles(Map.LOD_15, vectorTileUrlBmaph);
       collectTiles(Map.LOD_14, vectorTileUrlBmaph);
 
       // build rectangle props for each loadable tile

@@ -301,6 +301,24 @@ export class ClipDefs {
             status: 'pending'
         },
         {
+            layerNameDest: Map.LAYER__NAME__SHIP_LINE,
+            layerNameClip: Map.LAYER__NAME_____CHURCH,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__SHIP_LINE,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__SHIP_LINE,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
             layerNameDest: Map.LAYER__NAME____HIGHWAY,
             layerNameClip: Map.LAYER__NAME_____CHURCH,
             distance: 0,
