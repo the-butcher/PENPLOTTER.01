@@ -4,9 +4,10 @@ import { IMapProcessing } from "./IMapProcessing";
 export interface IMapLayerProps {
     id: string;
     visible: boolean;
-    polylines005: MultiLineString;
-    polylines010: MultiLineString;
-    polylines030: MultiLineString;
+    polylines013: MultiLineString;
+    polylines018: MultiLineString;
+    polylines025: MultiLineString;
+    polylines035: MultiLineString;
     polylines050: MultiLineString;
     status: IMapProcessing;
     coordinate4326ToCoordinateCanvas: (coordinate4326: Position) => Position;

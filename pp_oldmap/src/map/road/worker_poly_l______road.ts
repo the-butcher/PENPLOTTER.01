@@ -4,13 +4,13 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { Map } from '../Map';
 import { IWorkerPolyOutputRoad } from './IWorkerPolyOutputRoad';
-import { IRoadProperties } from './IRoadProperties';
+import { ISymbolProperties } from '../common/ISymbolProperties';
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerPolyInput<LineString, IRoadProperties> = e.data;
+    const workerInput: IWorkerPolyInput<LineString, ISymbolProperties> = e.data;
 
-    const filterBySymbolValue = (features: Feature<LineString, IRoadProperties>[], ...symbols: number[]): MultiLineString => {
+    const filterBySymbolValue = (features: Feature<LineString, ISymbolProperties>[], ...symbols: number[]): MultiLineString => {
         const result = VectorTileGeometryUtil.emptyMultiPolyline();
         features.forEach(feature => {
             const symbol = feature.properties.symbol;

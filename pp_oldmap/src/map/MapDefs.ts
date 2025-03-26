@@ -7,10 +7,16 @@ export class MapDefs {
     static DEFAULT_TEXT_SCALE____WATER = 0.035;
 
     static MAP_DEF_________TEST: IMapDef = {
-        bbox3857: [ // lobau -> issues with small geometries ("holzhäuser" do not show, but are also in a strange resolution in original basemap)
-            1832600, 6139900,
-            1836600, 6142900
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1830468,
+            6142200
         ],
+            4000,
+            2828
+        ),
+        // 6142199,109152 1830468,72773
+        // 6142199,109152 1830468,72773
+
         // bbox3857: [ // leopoldsberg
         //     1820635, 6149670,
         //     1822635, 6151670
@@ -20,10 +26,19 @@ export class MapDefs {
     }
 
     static MAP_DEF_________1010: IMapDef = {
-        bbox3857: [ // erster bezirk
-            1820500, 6140200,
-            1824500, 6143200
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1822430,
+            6141780
         ],
+            4000,
+            2828
+            // 400.0,
+            // 282.8
+        ),
+        // bbox3857: [ // erster bezirk
+        //     1820500, 6140200,
+        //     1824500, 6143200
+        // ],
         padding: 200,
         labelDefs: []
     }
@@ -34,7 +49,7 @@ export class MapDefs {
             6144431
         ],
             4000,
-            3000
+            2828
         ),
         padding: 200,
         labelDefs: []
@@ -143,14 +158,26 @@ export class MapDefs {
     }
 
     static MAP_DEF_____WOLFGANG: IMapDef = {
-        bbox3857: [
-            1494000, 6062000,
-            1498000, 6065000
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1496000,
+            6063500
         ],
+            4000,
+            2828
+        ),
         padding: 1200,
         labelDefs: [
             {
                 tileName: 'Markt',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Au',
                 plotName: '',
                 distance: 0,
                 vertical: 0,

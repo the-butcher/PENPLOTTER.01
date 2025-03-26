@@ -61,26 +61,10 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    // // const f1: Feature<LineString> = { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[16.4050337185907, 48.22778207141378], [16.40684050694569, 48.22638375028658]] } }
-    // const f1: Feature<LineString> = { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[16.4050337185907, 48.228045358244806], [16.407183541550918, 48.22638375028658]] } };
-    // const f2: Feature<Polygon> = { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [[[16.409365359873494, 48.227990770574245], [16.409645622979085, 48.228146324408655], [16.40967343399625, 48.22820057595858], [16.4096513131812, 48.2282559773847], [16.409551455997406, 48.2283011813034], [16.40943095622324, 48.228280390663244], [16.403853027881556, 48.22526419549088], [16.40380122547788, 48.22520919181199], [16.40380691711324, 48.22515198959701], [16.40384306785297, 48.22511553326185], [16.40391204698263, 48.22509065947686], [16.403977631185978, 48.225090430316655], [16.404040224328174, 48.22511059880741], [16.409365359873494, 48.227990770574245]]] } };
-
-    // const p1: MultiLineString = VectorTileGeometryUtil.emptyMultiPolyline();
-    // p1.coordinates.push(f1.geometry.coordinates);
-    // console.log(VectorTileGeometryUtil.clipMultPolyline2(p1, f2));
-
-
-    const _mapDef = MapDefs.MAP_DEF_____HAINBURG;
+    const _mapDef = MapDefs.MAP_DEF_____WOLFGANG;
 
     const _map = new Map({
-      // bbox3857: [ // leopoldsberg
-      //     1820635, 6149670,
-      //     1822635, 6151670
-      // ],
-      // bbox3857: [ // lobau -> issues with small geometries ("holzhäuser" do not show, but are also in a strange resolution in original basemap)
-      //     1834537, 6141225,
-      //     1836537, 6143225
-      // ],
+
       bbox3857: _mapDef.bbox3857,
       padding: _mapDef.padding,
 
@@ -110,9 +94,37 @@ function MapComponent() {
         {
           createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME_______WOOD, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX______WOOD);
+              // 3 Wald
+              // 6 Gewässerrand
+              // 7 Friedhof
+              // 8 Freizeit
+              // 9 Weingarten
+              if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7)) {
+                return true;
+              } else {
+                return false;
+              }
             }
-          }, [2, -2], 500)
+          }, [2, -2], 500, {
+            '3': {
+              gridType: 'hexagon',
+              gridSize: 30,
+              randSize: 0.0002,
+              symbolFactory: 'createTreeSymbol'
+            },
+            '6': {
+              gridType: 'triangle',
+              gridSize: 40,
+              randSize: 0.0002,
+              symbolFactory: 'createMarshSymbol'
+            },
+            '7': {
+              gridType: 'triangle',
+              gridSize: 30,
+              randSize: 0.0001,
+              symbolFactory: 'createGraveSymbol'
+            }
+          })
         },
         {
           createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
@@ -128,7 +140,7 @@ function MapComponent() {
               // 10, 11 Ergänzungsnetz
               return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 10, 11, 14)); // 9, 12, 13, 14
             }
-          }, l => l.multiPolyline010)
+          }, l => l.multiPolyline025)
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_______TRAM, {
@@ -139,7 +151,7 @@ function MapComponent() {
               // Naturbestand :: Wien
               return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
             }
-          }, l => l.multiPolyline005)
+          }, l => l.multiPolyline018)
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
@@ -148,36 +160,47 @@ function MapComponent() {
               // 15 Fähre
               return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
             }
-          }, l => l.multiPolyline010, [12, 4])
+          }, l => l.multiPolyline025, [12, 4])
         },
         {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME______ROADS, {
+          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____ROADS_A, {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
               const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
-              // const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4);
               return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
             }
           })
         },
         {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME_____BRIDGE, {
+          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME___BRIDGE_A, {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
               const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
-              // const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4);
               return vectorTileKey.lod === 15 && isBridge && isCommonRoad;
-              // return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144');
             }
           })
         },
         {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____HIGHWAY, {
+          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____ROADS_B, {
+            // 0 Autobahn, Schnellstrasse
+            // 1 Rampe
+            // 2 in Bau
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
               const isHighway = vectorTileFeature.hasValue('_symbol', 0, 1, 2);
               return vectorTileKey.lod === 15 && isGipOrBridge && isHighway;
-              // return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === 'GIP_L_GIP_144');
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME___BRIDGE_B, {
+            // 0 Autobahn, Schnellstrasse
+            // 1 Rampe
+            // 2 in Bau
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+              const isHighway = vectorTileFeature.hasValue('_symbol', 0, 1, 2);
+              return vectorTileKey.lod === 15 && isBridge && isHighway;
             }
           })
         },
@@ -196,7 +219,7 @@ function MapComponent() {
               }
               return false;
             }
-          }, l => l.multiPolyline005)
+          }, l => l.multiPolyline018)
         },
         {
           createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
@@ -342,9 +365,10 @@ function MapComponent() {
         _mapLayerProps.push({
           id: l.name,
           visible: true,
-          polylines005: l.multiPolyline005,
-          polylines010: l.multiPolyline010,
-          polylines030: l.multiPolyline030,
+          polylines013: l.multiPolyline013,
+          polylines018: l.multiPolyline018,
+          polylines025: l.multiPolyline025,
+          polylines035: l.multiPolyline035,
           polylines050: l.multiPolyline050,
           coordinate4326ToCoordinateCanvas,
           status: {
@@ -620,6 +644,10 @@ function MapComponent() {
         mapLayerPropsRef.current = _mapLayerProps;
         setMapLayerProps(mapLayerPropsRef.current);
 
+      }).catch((e) => {
+
+        console.warn(e);
+
       });
 
     }
@@ -646,6 +674,19 @@ function MapComponent() {
         for (let i = 0; i < _mapLayerProps.length; i++) {
           if (_mapLayerProps[i].id === processablePlotLayer.id) {
             _mapLayerProps[i].status.plot = 'success';
+          }
+        }
+        mapLayerPropsRef.current = _mapLayerProps;
+        setMapLayerProps(mapLayerPropsRef.current);
+
+      }).catch((e) => {
+
+        console.warn(e);
+
+        const _mapLayerProps = cloneMapLayerProps();
+        for (let i = 0; i < _mapLayerProps.length; i++) {
+          if (_mapLayerProps[i].id === processablePlotLayer.id) {
+            _mapLayerProps[i].status.plot = 'failure';
           }
         }
         mapLayerPropsRef.current = _mapLayerProps;
@@ -730,6 +771,19 @@ function MapComponent() {
         mapLayerPropsRef.current = _mapLayerProps;
         setMapLayerProps(mapLayerPropsRef.current);
 
+      }).catch((e) => {
+
+        console.warn(e);
+
+        const _mapLayerProps = cloneMapLayerProps();
+        for (let i = 0; i < _mapLayerProps.length; i++) {
+          if (_mapLayerProps[i].id === processableLineLayer.id) {
+            _mapLayerProps[i].status.line = 'failure';
+          }
+        }
+        mapLayerPropsRef.current = _mapLayerProps;
+        setMapLayerProps(mapLayerPropsRef.current);
+
       });
 
     } else {
@@ -738,13 +792,14 @@ function MapComponent() {
 
   }
 
-  const cloneMapLayerProps = () => {
+  const cloneMapLayerProps = (): IMapLayerProps[] => {
     const _mapLayerProps = mapLayerPropsRef.current.map(p => {
       return {
         ...p,
-        polylines005: p.polylines005,
-        polylines010: p.polylines010,
-        polylines030: p.polylines030,
+        polylines013: p.polylines013,
+        polylines018: p.polylines018,
+        polylines025: p.polylines025,
+        polylines035: p.polylines035,
         polylines050: p.polylines050,
         handleVisibilityChange,
         handleGeoJsonExport
@@ -752,17 +807,19 @@ function MapComponent() {
     });
     if (mapContainer === 'canvas') {
       _mapLayerProps.forEach(p => {
-        p.polylines005 = VectorTileGeometryUtil.emptyMultiPolyline();
-        p.polylines010 = VectorTileGeometryUtil.emptyMultiPolyline();
-        p.polylines030 = VectorTileGeometryUtil.emptyMultiPolyline();
+        p.polylines013 = VectorTileGeometryUtil.emptyMultiPolyline();
+        p.polylines018 = VectorTileGeometryUtil.emptyMultiPolyline();
+        p.polylines025 = VectorTileGeometryUtil.emptyMultiPolyline();
+        p.polylines035 = VectorTileGeometryUtil.emptyMultiPolyline();
         p.polylines050 = VectorTileGeometryUtil.emptyMultiPolyline();
       });
     } else {
       _mapLayerProps.forEach(p => {
         const layer = map!.findLayerByName(p.id)!;
-        p.polylines005 = layer.multiPolyline005;
-        p.polylines010 = layer.multiPolyline010;
-        p.polylines030 = layer.multiPolyline030;
+        p.polylines013 = layer.multiPolyline013;
+        p.polylines018 = layer.multiPolyline018;
+        p.polylines025 = layer.multiPolyline025;
+        p.polylines035 = layer.multiPolyline035;
         p.polylines050 = layer.multiPolyline050;
       });
     }

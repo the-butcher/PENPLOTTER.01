@@ -1,9 +1,10 @@
 import { MultiLineString, MultiPolygon } from "geojson";
 
 export interface IWorkerClipOutput {
-    multiPolyline005Dest: MultiLineString;
-    multiPolyline010Dest: MultiLineString;
-    multiPolyline030Dest: MultiLineString;
+    multiPolyline013Dest: MultiLineString;
+    multiPolyline018Dest: MultiLineString;
+    multiPolyline025Dest: MultiLineString;
+    multiPolyline035Dest: MultiLineString;
     multiPolyline050Dest: MultiLineString;
     polyDataDest: MultiPolygon;
 }

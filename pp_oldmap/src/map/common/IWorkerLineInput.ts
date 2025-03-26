@@ -1,8 +1,8 @@
-import { BBox, Feature, Geometry, MultiPolygon } from "geojson";
+import { BBox, Feature, GeoJsonProperties, Geometry, MultiPolygon } from "geojson";
 
-export interface IWorkerLineInput<F extends Geometry> {
+export interface IWorkerLineInput<F extends Geometry, P extends GeoJsonProperties> {
     name: string;
-    tileData: Feature<F>[];
+    tileData: Feature<F, P>[];
     polyData: MultiPolygon;
     bboxClp4326: BBox;
     bboxMap4326: BBox;

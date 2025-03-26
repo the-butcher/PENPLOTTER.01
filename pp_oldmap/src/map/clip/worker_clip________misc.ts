@@ -15,7 +15,6 @@ self.onmessage = (e) => {
     });
     if (polyDataClip.coordinates.length > 0) {
 
-        // add some buffer margin for better readability
         const bufferResult = turf.buffer(polyDataClip, workerInput.distance, {
             units: 'meters'
         });
@@ -23,14 +22,17 @@ self.onmessage = (e) => {
         VectorTileGeometryUtil.cleanAndSimplify(bufferResultGeometry);
         bufferResult!.geometry = bufferResultGeometry;
 
-        if (!workerInput.options?.skip005) {
-            workerInput.multiPolyline005Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline005Dest, bufferResult!);
+        if (!workerInput.options?.skip013) {
+            workerInput.multiPolyline013Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline013Dest, bufferResult!);
         }
-        if (!workerInput.options?.skip010) {
-            workerInput.multiPolyline010Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline010Dest, bufferResult!);
+        if (!workerInput.options?.skip018) {
+            workerInput.multiPolyline018Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline018Dest, bufferResult!);
         }
-        if (!workerInput.options?.skip030) {
-            workerInput.multiPolyline030Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline030Dest, bufferResult!);
+        if (!workerInput.options?.skip025) {
+            workerInput.multiPolyline025Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline025Dest, bufferResult!);
+        }
+        if (!workerInput.options?.skip035) {
+            workerInput.multiPolyline035Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline035Dest, bufferResult!);
         }
         if (!workerInput.options?.skip050) {
             workerInput.multiPolyline050Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline050Dest, bufferResult!);
@@ -44,10 +46,13 @@ self.onmessage = (e) => {
                 }
             });
             if (polyDataDest.coordinates.length > 0) {
-                const featureC = turf.featureCollection([turf.feature(workerInput.polyDataDest), bufferResult!]);
-                const difference: UnionPolygon = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
-                const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(difference);
-                workerInput.polyDataDest = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+                const featureC = turf.featureCollection([turf.feature(polyDataDest), bufferResult!]);
+                const difference = turf.difference(featureC);
+                if (difference) {
+                    const differenceGeometry: UnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                    const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(differenceGeometry);
+                    workerInput.polyDataDest = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+                }
             }
 
         }
@@ -55,9 +60,10 @@ self.onmessage = (e) => {
     }
 
     const workerOutput: IWorkerClipOutput = {
-        multiPolyline005Dest: workerInput.multiPolyline005Dest,
-        multiPolyline010Dest: workerInput.multiPolyline010Dest,
-        multiPolyline030Dest: workerInput.multiPolyline030Dest,
+        multiPolyline013Dest: workerInput.multiPolyline013Dest,
+        multiPolyline018Dest: workerInput.multiPolyline018Dest,
+        multiPolyline025Dest: workerInput.multiPolyline025Dest,
+        multiPolyline035Dest: workerInput.multiPolyline035Dest,
         multiPolyline050Dest: workerInput.multiPolyline050Dest,
         polyDataDest: workerInput.polyDataDest
     };

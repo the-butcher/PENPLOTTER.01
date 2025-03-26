@@ -72,7 +72,7 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
         // no worker, just copying some coordinates
 
-        this.multiPolyline030.coordinates.push(...this.multiPolyline04.coordinates);
+        this.multiPolyline035.coordinates.push(...this.multiPolyline04.coordinates);
 
     }
 
@@ -81,7 +81,7 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
         console.log(`${this.name}, creating dashes ...`);
 
         this.multiPolyline04 = VectorTileGeometryUtil.dashMultiPolyline(this.multiPolyline04, [10, 12]);
-        this.multiPolyline030.coordinates = this.multiPolyline04.coordinates;
+        this.multiPolyline035.coordinates = this.multiPolyline04.coordinates;
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClipLayer(bboxMap4326);

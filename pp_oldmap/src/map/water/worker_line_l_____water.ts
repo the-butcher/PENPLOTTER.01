@@ -1,20 +1,20 @@
-import { Polygon, Position } from 'geojson';
+import { GeoJsonProperties, Polygon, Position } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerLineInput<Polygon> = e.data;
+    const workerInput: IWorkerLineInput<Polygon, GeoJsonProperties> = e.data;
 
-    let multiPolyline005 = VectorTileGeometryUtil.emptyMultiPolyline();
-    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
 
     /**
      * create the buffered set of polygons that determine the appearance of the water layer
      * the result of this operation is the basis for the layer's polylines
      */
-    let distance = -5;
+    let distance = -6;
     const distances: number[] = [];
     for (let i = 0; i < 20; i++) {
         distances.push(distance);
@@ -28,23 +28,23 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, clipping to bboxClp4326 (2) ...`);
     multiPolygonB = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonB, workerInput.bboxClp4326); // with buffered rings
 
-    const coordinates005: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-    multiPolyline005.coordinates.push(...coordinates005);
+    const coordinates018: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+    multiPolyline018.coordinates.push(...coordinates018);
 
     // first ring is 0.3 for a more distinct water line
-    const coordinates010: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-    multiPolyline010.coordinates.push(...coordinates010);
+    const coordinates035: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+    multiPolyline035.coordinates.push(...coordinates035);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline005, workerInput.bboxMap4326);
-    multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline010, workerInput.bboxMap4326);
+    multiPolyline018 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline018, workerInput.bboxMap4326);
+    multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline005);
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline018);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline035);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline005,
-        multiPolyline010
+        multiPolyline018,
+        multiPolyline035
     };
     self.postMessage(workerOutput);
 

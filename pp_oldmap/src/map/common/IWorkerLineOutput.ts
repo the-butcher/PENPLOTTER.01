@@ -1,9 +1,10 @@
 import { MultiLineString } from "geojson";
 
 export interface IWorkerLineOutput {
-    multiPolyline005?: MultiLineString;
-    multiPolyline010?: MultiLineString;
-    multiPolyline030?: MultiLineString;
+    multiPolyline013?: MultiLineString;
+    multiPolyline018?: MultiLineString;
+    multiPolyline025?: MultiLineString;
+    multiPolyline035?: MultiLineString;
     multiPolyline050?: MultiLineString;
     multiPolylineDef?: MultiLineString;
 }

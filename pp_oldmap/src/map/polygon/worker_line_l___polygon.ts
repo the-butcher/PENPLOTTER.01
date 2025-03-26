@@ -1,24 +1,24 @@
-import { Polygon, Position } from "geojson";
+import { Position } from "geojson";
 import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
-import { IWorkerLineInput } from "../common/IWorkerLineInput";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
+import { IWorkerLineInputPolygon } from "./IWorkerLineInputPolygon";
 
 self.onmessage = (e) => {
 
-    const workerInput: IWorkerLineInput<Polygon> = e.data;
+    const workerInput: IWorkerLineInputPolygon = e.data;
 
-    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
 
-    const coordinates01: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-    multiPolyline010.coordinates.push(...coordinates01);
+    const coordinates025: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+    multiPolyline025.coordinates.push(...coordinates025);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline010, workerInput.bboxMap4326);
+    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline010
+        multiPolyline025
     };
     self.postMessage(workerOutput);
 

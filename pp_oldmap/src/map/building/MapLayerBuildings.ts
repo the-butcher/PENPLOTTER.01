@@ -88,34 +88,6 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
             workerInstance.postMessage(workerInput);
         });
 
-        // const polygonCount010 = 3;
-        // const polygonCount030 = 50;
-        // const polygonDelta010 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
-        // const polygonDelta030 = Pen.getPenWidthMeters(0.20, Map.SCALE) * -0.60;
-
-        // // thinner rings for better edge precision
-        // const distances010: number[] = [];
-        // for (let i = 0; i < polygonCount010; i++) {
-        //     distances010.push(polygonDelta010);
-        // }
-        // console.log(`${this.name}, buffer collect 010 ...`, distances010);
-        // const features010 = VectorTileGeometryUtil.bufferCollect2(this.polyData, true, ...distances010);
-
-        // const distances030: number[] = [polygonDelta030 * 2.00]; // let the first ring be well inside the finer rings
-        // for (let i = 0; i < polygonCount030; i++) {
-        //     distances030.push(polygonDelta030);
-        // }
-        // console.log(`${this.name}, buffer collect 030 ...`, distances030);
-        // const features030 = VectorTileGeometryUtil.bufferCollect2(this.polyData, false, ...distances030);
-
-        // const connected010 = VectorTileGeometryUtil.connectBufferFeatures(features010);
-        // this.multiPolyline010 = VectorTileGeometryUtil.restructureMultiPolyline(connected010);
-
-        // const connected030 = VectorTileGeometryUtil.connectBufferFeatures(features030);
-        // this.multiPolyline030 = VectorTileGeometryUtil.restructureMultiPolyline(connected030);
-
-        // this.cleanCoords();
-
     }
 
 }

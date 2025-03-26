@@ -5,30 +5,38 @@ import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFil
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
-import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { ISymbolDefPointFill, IWorkerLineInputPolygon } from './IWorkerLineInputPolygon';
+import { ISymbolProperties } from '../common/ISymbolProperties';
 
-export class MapLayerPolygon extends AMapLayer<Polygon, GeoJsonProperties> {
+export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
 
     outin: [number, number];
     minArea: number;
+    symbolDefinitions: { [K in string]: ISymbolDefPointFill } = {};
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, outin: [number, number], minArea: number) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, outin: [number, number], minArea: number, symbolDefinitions: { [K in string]: ISymbolDefPointFill } = {}) {
         super(name, filter);
         this.outin = outin;
         this.minArea = minArea;
+        this.symbolDefinitions = symbolDefinitions;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
+
         const polygons = VectorTileGeometryUtil.toPolygons(vectorTileKey, feature.coordinates).filter(p => Math.abs(turf.area(p)) > this.minArea);
+        const symbolValue = feature.getValue('_symbol')?.getValue() as number;
+
         polygons.forEach(polygon => {
             this.tileData.push(turf.feature(polygon, {
                 lod: vectorTileKey.lod,
                 col: vectorTileKey.col,
-                row: vectorTileKey.row
+                row: vectorTileKey.row,
+                symbol: symbolValue
             }));
         });
+
     }
 
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
@@ -66,12 +74,13 @@ export class MapLayerPolygon extends AMapLayer<Polygon, GeoJsonProperties> {
 
         console.log(`${this.name}, processing line ...`);
 
-        const workerInput: IWorkerLineInput<Polygon> = {
+        const workerInput: IWorkerLineInputPolygon = {
             name: this.name,
             tileData: this.tileData,
             polyData: this.polyData,
             bboxClp4326,
-            bboxMap4326
+            bboxMap4326,
+            symbolDefinitions: this.symbolDefinitions
         };
 
         return new Promise((resolve, reject) => {
@@ -90,15 +99,40 @@ export class MapLayerPolygon extends AMapLayer<Polygon, GeoJsonProperties> {
 
     }
 
-    async processPlot(): Promise<void> {
+    async processPlot(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+
 
         console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(2);
 
-        const polylines010 = VectorTileGeometryUtil.destructureMultiPolyline(this.multiPolyline010).filter(p => turf.length(turf.feature(p), {
+        const polylines025 = VectorTileGeometryUtil.destructureMultiPolyline(this.multiPolyline025).filter(p => turf.length(turf.feature(p), {
             units: 'meters'
         }) > 20);
-        this.multiPolyline010 = VectorTileGeometryUtil.restructureMultiPolyline(polylines010);
+        this.multiPolyline025 = VectorTileGeometryUtil.restructureMultiPolyline(polylines025);
+
+        const workerInput: IWorkerLineInputPolygon = {
+            name: this.name,
+            tileData: this.tileData,
+            polyData: this.polyData,
+            bboxClp4326,
+            bboxMap4326,
+            symbolDefinitions: this.symbolDefinitions
+        };
+
+        return new Promise((resolve, reject) => {
+            const workerInstance = new Worker(new URL('./worker_plot_l___polygon.ts', import.meta.url), { type: 'module' });
+            workerInstance.onmessage = (e) => {
+                this.applyWorkerOutputLine(e.data);
+                workerInstance.terminate();
+                resolve();
+            };
+            workerInstance.onerror = (e) => {
+                workerInstance.terminate();
+                reject(e);
+            };
+            workerInstance.postMessage(workerInput);
+        });
+
 
     }
 

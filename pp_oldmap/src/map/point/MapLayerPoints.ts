@@ -110,7 +110,7 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 const workerOutput: IWorkerPolyOutputPoint = e.data;
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
-                this.multiPolyline005 = workerOutput.multiPolyline005;
+                this.multiPolyline025 = workerOutput.multiPolyline025;
                 workerInstance.terminate();
                 resolve();
             };
@@ -130,20 +130,20 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     async processPlot(): Promise<void> {
 
-        const polygonCount005 = 3;
-        const polygonDelta005 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
+        const polygonCount018 = 3;
+        const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
 
         // TODO :: remove code duplication
-        const distances005: number[] = [];
-        for (let i = 0; i < polygonCount005; i++) {
-            distances005.push(polygonDelta005);
+        const distances018: number[] = [];
+        for (let i = 0; i < polygonCount018; i++) {
+            distances018.push(polygonDelta018);
         }
-        console.log(`${this.name}, buffer collect 010 ...`, distances005);
-        const features005 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances005);
+        console.log(`${this.name}, buffer collect 018 ...`, distances018);
+        const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
 
-        const connected005A = VectorTileGeometryUtil.connectBufferFeatures(features005);
-        const connected005B = VectorTileGeometryUtil.restructureMultiPolyline(connected005A);
-        this.multiPolyline005.coordinates.push(...connected005B.coordinates);
+        const connected018A = VectorTileGeometryUtil.connectBufferFeatures(features018);
+        const connected018B = VectorTileGeometryUtil.restructureMultiPolyline(connected018A);
+        this.multiPolyline018.coordinates.push(...connected018B.coordinates);
 
     }
 

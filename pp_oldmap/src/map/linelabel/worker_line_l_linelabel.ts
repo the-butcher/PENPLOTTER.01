@@ -7,13 +7,13 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputLineLabel = e.data;
 
-    const multiPolyline005 = VectorTileGeometryUtil.emptyMultiPolyline();
+    const multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
 
-    const coordinates005: Position[][] = workerInput.polyText.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-    multiPolyline005.coordinates.push(...coordinates005);
+    const coordinates018: Position[][] = workerInput.polyText.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+    multiPolyline018.coordinates.push(...coordinates018);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline005
+        multiPolyline018
     };
     self.postMessage(workerOutput);
 

@@ -7,7 +7,7 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputLine = e.data;
 
-    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
     let multiPolylineDef = VectorTileGeometryUtil.emptyMultiPolyline();
 
     // const tileData1: Feature<LineString, GeoJsonProperties>[] = [...workerInput.tileData];
@@ -118,18 +118,18 @@ self.onmessage = (e) => {
         const offsetPolyline = turf.lineOffset(multiPolylineDef, workerInput.offset, {
             units: 'meters'
         });
-        multiPolyline010.coordinates = offsetPolyline.geometry.coordinates;
+        multiPolyline025.coordinates = offsetPolyline.geometry.coordinates;
     }
 
     multiPolylineDef = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolylineDef, workerInput.bboxMap4326);
-    multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline010, workerInput.bboxMap4326);
+    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
 
     // VectorTileGeometryUtil.cleanAndSimplify(multiPolylineDef);
-    // VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
+    // VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
 
     const workerOutput: IWorkerLineOutput = {
         multiPolylineDef,
-        multiPolyline010
+        multiPolyline025: multiPolyline025
     };
     self.postMessage(workerOutput);
 

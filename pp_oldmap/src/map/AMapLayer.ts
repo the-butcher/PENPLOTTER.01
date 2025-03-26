@@ -24,9 +24,10 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     tileData: Feature<F, P>[];
     polyData: MultiPolygon; // polygon (even for line and point layers) describing an area around this layer's features, meant to be ready after the processPoly method has run
 
-    multiPolyline005: MultiLineString;
-    multiPolyline010: MultiLineString;
-    multiPolyline030: MultiLineString;
+    multiPolyline013: MultiLineString;
+    multiPolyline018: MultiLineString;
+    multiPolyline025: MultiLineString;
+    multiPolyline035: MultiLineString;
     multiPolyline050: MultiLineString;
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
@@ -34,9 +35,10 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
         this.filter = filter;
         this.tileData = [];
         this.polyData = VectorTileGeometryUtil.emptyMultiPolygon();
-        this.multiPolyline005 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline030 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.multiPolyline013 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
         this.multiPolyline050 = VectorTileGeometryUtil.emptyMultiPolyline();
     }
 
@@ -47,17 +49,19 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     abstract accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void>;
 
     async clipToLayerMultipolygon(layer: AMapLayer<Geometry, GeoJsonProperties>, distance: number, options: ISkipOptions = {
-        skip005: false,
-        skip010: false,
-        skip030: false,
+        skip013: false,
+        skip018: false,
+        skip025: false,
+        skip035: false,
         skip050: false,
         skipMlt: true
     }): Promise<void> {
 
         const workerInput: IWorkerClipInput = {
-            multiPolyline005Dest: this.multiPolyline005,
-            multiPolyline010Dest: this.multiPolyline010,
-            multiPolyline030Dest: this.multiPolyline030,
+            multiPolyline013Dest: this.multiPolyline013,
+            multiPolyline018Dest: this.multiPolyline018,
+            multiPolyline025Dest: this.multiPolyline025,
+            multiPolyline035Dest: this.multiPolyline035,
             multiPolyline050Dest: this.multiPolyline050,
             polyDataDest: this.polyData,
             polyDataClip: layer.polyData,
@@ -69,16 +73,17 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
             const workerInstance = new Worker(new URL('../map/clip/worker_clip________misc.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerClipOutput = e.data;
-                this.multiPolyline005 = workerOutput.multiPolyline005Dest;
-                this.multiPolyline010 = workerOutput.multiPolyline010Dest;
-                this.multiPolyline030 = workerOutput.multiPolyline030Dest;
+                this.multiPolyline013 = workerOutput.multiPolyline013Dest;
+                this.multiPolyline018 = workerOutput.multiPolyline018Dest;
+                this.multiPolyline025 = workerOutput.multiPolyline025Dest;
+                this.multiPolyline035 = workerOutput.multiPolyline035Dest;
                 this.multiPolyline050 = workerOutput.multiPolyline050Dest;
                 this.polyData = workerOutput.polyDataDest;
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);
@@ -137,7 +142,7 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
             // context.stroke();
         }
 
-        const ratio = 10;
+        const ratio = 6;
 
         // this.tileData.map(f => f.geometry).forEach(tileGeometry => {
         //     if (tileGeometry.type === 'Polygon') {
@@ -154,19 +159,25 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
 
         if (geometryTypes.has('polyline')) {
-            context.lineWidth = 0.05 * ratio;
-            this.multiPolyline005.coordinates.forEach(polyline005 => {
-                drawPolyline(polyline005);
+
+            context.lineWidth = 0.13 * ratio;
+            this.multiPolyline013.coordinates.forEach(polyline013 => {
+                drawPolyline(polyline013);
             });
 
-            context.lineWidth = 0.10 * ratio;
-            this.multiPolyline010.coordinates.forEach(polyline010 => {
-                drawPolyline(polyline010);
+            context.lineWidth = 0.18 * ratio;
+            this.multiPolyline018.coordinates.forEach(polyline018 => {
+                drawPolyline(polyline018);
             });
 
-            context.lineWidth = 0.20 * ratio;
-            this.multiPolyline030.coordinates.forEach(polyline030 => {
-                drawPolyline(polyline030);
+            context.lineWidth = 0.25 * ratio;
+            this.multiPolyline025.coordinates.forEach(polyline025 => {
+                drawPolyline(polyline025);
+            });
+
+            context.lineWidth = 0.35 * ratio;
+            this.multiPolyline035.coordinates.forEach(polyline035 => {
+                drawPolyline(polyline035);
             });
 
             context.lineWidth = 0.50 * ratio;
@@ -178,36 +189,42 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }
 
     applyWorkerOutputLine(workerOutput: IWorkerLineOutput) {
-        this.multiPolyline005 = workerOutput.multiPolyline005 ?? this.multiPolyline005;
-        this.multiPolyline010 = workerOutput.multiPolyline010 ?? this.multiPolyline010;
-        this.multiPolyline030 = workerOutput.multiPolyline030 ?? this.multiPolyline030;
+        this.multiPolyline013 = workerOutput.multiPolyline013 ?? this.multiPolyline013;
+        this.multiPolyline018 = workerOutput.multiPolyline018 ?? this.multiPolyline018;
+        this.multiPolyline025 = workerOutput.multiPolyline025 ?? this.multiPolyline025;
+        this.multiPolyline035 = workerOutput.multiPolyline035 ?? this.multiPolyline035;
         this.multiPolyline050 = workerOutput.multiPolyline050 ?? this.multiPolyline050;
     }
 
     bboxClipLayer(bboxMap4326: BBox): void {
         // console.log(`${this.name}, bbox-clip ...`);
-        this.multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline005, bboxMap4326);
-        this.multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline010, bboxMap4326);
-        this.multiPolyline030 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline030, bboxMap4326);
+        this.multiPolyline013 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline013, bboxMap4326);
+        this.multiPolyline018 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline018, bboxMap4326);
+        this.multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline025, bboxMap4326);
+        this.multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);
         this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
     }
 
     connectPolylines(toleranceMeters: number, options: ISkipOptions = {
-        skip005: false,
-        skip010: false,
-        skip030: false,
+        skip013: false,
+        skip018: false,
+        skip025: false,
+        skip035: false,
         skip050: false,
         skipMlt: true
     }): void {
         console.log(`${this.name}, connect-polylines ...`);
-        if (!options.skip005) {
-            this.multiPolyline005 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline005, toleranceMeters);
+        if (!options.skip013) {
+            this.multiPolyline013 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline013, toleranceMeters);
         }
-        if (!options.skip010) {
-            this.multiPolyline010 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline010, toleranceMeters);
+        if (!options.skip018) {
+            this.multiPolyline018 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline018, toleranceMeters);
         }
-        if (!options.skip030) {
-            this.multiPolyline030 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline030, toleranceMeters);
+        if (!options.skip025) {
+            this.multiPolyline025 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline025, toleranceMeters);
+        }
+        if (!options.skip035) {
+            this.multiPolyline035 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline035, toleranceMeters);
         }
         if (!options.skip050) {
             this.multiPolyline050 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline050, toleranceMeters);
@@ -216,26 +233,12 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
     cleanCoords() {
         console.log(`${this.name}, cleaning coords ...`);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline005);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline010);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline030);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline013);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline018);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline025);
+        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline035);
         VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline050);
         VectorTileGeometryUtil.cleanAndSimplify(this.polyData);
-        // turf.cleanCoords(this.multiPolyline005, {
-        //     mutate: true
-        // });
-        // turf.cleanCoords(this.multiPolyline010, {
-        //     mutate: true
-        // });
-        // turf.cleanCoords(this.multiPolyline030, {
-        //     mutate: true
-        // });
-        // turf.cleanCoords(this.multiPolyline050, {
-        //     mutate: true
-        // });
-        // turf.cleanCoords(this.polyData, {
-        //     mutate: true
-        // });
     }
 
 }

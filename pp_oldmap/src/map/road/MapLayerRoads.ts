@@ -8,10 +8,10 @@ import { AMapLayer } from '../AMapLayer';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerLineInputRoad } from './IWorkerLineInputRoad';
 import { IWorkerPolyOutputRoad } from './IWorkerPolyOutputRoad';
-import { IRoadProperties } from './IRoadProperties';
+import { ISymbolProperties } from '../common/ISymbolProperties';
 
 
-export class MapLayerRoads extends AMapLayer<LineString, IRoadProperties> {
+export class MapLayerRoads extends AMapLayer<LineString, ISymbolProperties> {
 
     multiPolyline02: MultiLineString;
     multiPolyline34: MultiLineString;
@@ -56,7 +56,7 @@ export class MapLayerRoads extends AMapLayer<LineString, IRoadProperties> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const workerInput: IWorkerPolyInput<LineString, IRoadProperties> = {
+        const workerInput: IWorkerPolyInput<LineString, ISymbolProperties> = {
             name: this.name,
             tileData: this.tileData,
             outin: [10, -4], // implicit 6m buffer

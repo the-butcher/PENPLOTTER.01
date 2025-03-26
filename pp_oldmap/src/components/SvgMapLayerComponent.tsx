@@ -4,11 +4,12 @@ import { IMapLayerProps } from "./IMapLayerProps";
 
 function SvgMapLayerComponent(props: IMapLayerProps) {
 
-    const { id, visible, polylines005, polylines010, polylines030, polylines050, coordinate4326ToCoordinateCanvas } = { ...props };
+    const { id, visible, polylines013, polylines018, polylines025, polylines035, polylines050, coordinate4326ToCoordinateCanvas } = { ...props };
 
-    const [d005, setD005] = useState<string>('');
-    const [d010, setD010] = useState<string>('');
-    const [d030, setD030] = useState<string>('');
+    const [d013, setD013] = useState<string>('');
+    const [d018, setD018] = useState<string>('');
+    const [d025, setD025] = useState<string>('');
+    const [d035, setD035] = useState<string>('');
     const [d050, setD050] = useState<string>('');
 
     useEffect(() => {
@@ -17,11 +18,12 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
 
     useEffect(() => {
 
-        console.debug('⚙ updating map layer component (polylines01, polylines03, polylines05)', polylines010, polylines030, polylines050);
+        console.debug('⚙ updating map layer component (polylines013, polylines018, polylines025, polylines035, polylines050)', polylines013, polylines018, polylines025, polylines035, polylines050);
 
-        let _d005 = '';
-        let _d010 = '';
-        let _d030 = '';
+        let _d013 = '';
+        let _d018 = '';
+        let _d025 = '';
+        let _d035 = '';
         let _d050 = '';
 
         const drawRing = (ring: Position[], d: string): string => {
@@ -39,28 +41,32 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
             return drawRing(polyline, d);
         }
 
-        polylines005.coordinates.forEach(polyline005 => {
-            _d005 = drawPolyline(polyline005, _d005);
+        polylines013.coordinates.forEach(polyline013 => {
+            _d013 = drawPolyline(polyline013, _d013);
         });
-        polylines010.coordinates.forEach(polyline010 => {
-            _d010 = drawPolyline(polyline010, _d010);
+        polylines018.coordinates.forEach(polyline018 => {
+            _d018 = drawPolyline(polyline018, _d018);
         });
-        polylines030.coordinates.forEach(polyline030 => {
-            _d030 = drawPolyline(polyline030, _d030);
+        polylines025.coordinates.forEach(polyline025 => {
+            _d025 = drawPolyline(polyline025, _d025);
+        });
+        polylines035.coordinates.forEach(polyline035 => {
+            _d035 = drawPolyline(polyline035, _d035);
         });
         polylines050.coordinates.forEach(polyline050 => {
             _d050 = drawPolyline(polyline050, _d050);
         });
 
-        setD005(_d005);
-        setD010(_d010);
-        setD030(_d030);
+        setD013(_d013);
+        setD018(_d018);
+        setD025(_d025);
+        setD035(_d035);
         setD050(_d050);
 
-    }, [polylines005, polylines010, polylines030, polylines050]);
+    }, [polylines013, polylines018, polylines025, polylines035, polylines050]);
 
     const toStrokeWidth = (penWidth: number): number => {
-        return penWidth * 6;
+        return penWidth * 3;
         // return 0.2;
     }
     const stroke = 'rgba(0, 0, 0, 1)';
@@ -69,47 +75,60 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
         <g id={id}>
             <path
                 style={{
-                    stroke,
-                    strokeWidth: toStrokeWidth(0.05),
+                    stroke: 'rgba(0, 0, 0, 0.20)',
+                    strokeWidth: toStrokeWidth(0.25),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
                     fill: 'none',
                     visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
-                pen-id='p005'
-                d={d005}
+                pen-id='p013'
+                d={d013}
             />
             <path
                 style={{
                     stroke,
-                    strokeWidth: toStrokeWidth(0.1),
+                    strokeWidth: toStrokeWidth(0.18),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
                     fill: 'none',
                     visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
-                pen-id='p010'
-                d={d010}
+                pen-id='p018'
+                d={d018}
             />
             <path
                 style={{
                     stroke,
-                    strokeWidth: toStrokeWidth(0.2),
+                    strokeWidth: toStrokeWidth(0.25),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
                     fill: 'none',
                     visibility: visible ? 'visible' : 'hidden'
                 }}
                 // eslint-disable-next-line react/no-unknown-property
-                pen-id='p030'
-                d={d030}
+                pen-id='p025'
+                d={d025}
             />
             <path
                 style={{
                     stroke,
-                    strokeWidth: toStrokeWidth(0.5),
+                    strokeWidth: toStrokeWidth(0.35),
+                    strokeLinecap: 'round',
+                    strokeLinejoin: 'round',
+                    fill: 'none',
+                    visibility: visible ? 'visible' : 'hidden'
+                }}
+                // eslint-disable-next-line react/no-unknown-property
+                pen-id='p035'
+                d={d035}
+            />
+            <path
+                style={{
+                    stroke,
+                    strokeWidth: toStrokeWidth(0.50),
                     strokeLinecap: 'round',
                     strokeLinejoin: 'round',
                     fill: 'none',

@@ -29,9 +29,10 @@ export class Map {
     static readonly LAYER__NAME__SHIP_LINE = "l_ship_line";
     static readonly LAYER__NAME_____BORDER = "l____border";
     static readonly LAYER__NAME___RIVER_TX = "l__river_tx";
-    static readonly LAYER__NAME______ROADS = "l_____roads";
-    static readonly LAYER__NAME_____BRIDGE = "l____bridge";
-    static readonly LAYER__NAME____HIGHWAY = "l___highway";
+    static readonly LAYER__NAME____ROADS_A = "l___roads_a";
+    static readonly LAYER__NAME___BRIDGE_A = "l__bridge_a";
+    static readonly LAYER__NAME____ROADS_B = "l___roads_b";
+    static readonly LAYER__NAME___BRIDGE_B = "l__bridge_b";
     static readonly LAYER__NAME_____TUNNEL = "l____tunnel";
     static readonly LAYER__NAME__ELEVATE_A = "l_elevate_a";
     static readonly LAYER__NAME__ELEVATE_B = "l_elevate_b";

@@ -8,8 +8,8 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputRoad = e.data;
 
-    let multiPolyline010 = VectorTileGeometryUtil.emptyMultiPolyline();
-    let multiPolyline030 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline050 = VectorTileGeometryUtil.emptyMultiPolyline();
 
     const multiPolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons02); // highways
     const multiPolygon34 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons34); // bigger roads
@@ -48,21 +48,21 @@ self.onmessage = (e) => {
     multiOutline56 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon02));
     workerInput.multiPolyline78 = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline78, turf.feature(multiPolygon02));
 
-    multiPolyline010.coordinates.push(...multiOutline34.coordinates);
-    multiPolyline010.coordinates.push(...multiOutline56.coordinates);
-    multiPolyline030.coordinates.push(...workerInput.multiPolyline78.coordinates);
-    multiPolyline030.coordinates.push(...multiOutline02.coordinates);
+    multiPolyline035.coordinates.push(...multiOutline34.coordinates);
+    multiPolyline035.coordinates.push(...multiOutline56.coordinates);
+    multiPolyline050.coordinates.push(...workerInput.multiPolyline78.coordinates);
+    multiPolyline050.coordinates.push(...multiOutline02.coordinates);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline010 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline010, workerInput.bboxMap4326);
-    multiPolyline030 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline030, workerInput.bboxMap4326);
+    multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
+    multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline050, workerInput.bboxMap4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline030);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline035);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline050);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline010,
-        multiPolyline030
+        multiPolyline035,
+        multiPolyline050
     };
     self.postMessage(workerOutput);
 

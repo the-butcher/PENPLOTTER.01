@@ -133,19 +133,19 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
         // console.log(`${this.name}, connecting polylines ...`, this.linesByName);
 
-        const polygonCount005 = 3;
-        const polygonDelta005 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
+        const polygonCount018 = 3;
+        const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
 
         // TODO :: remove code duplication
-        const distances005: number[] = [];
-        for (let i = 0; i < polygonCount005; i++) {
-            distances005.push(polygonDelta005);
+        const distances018: number[] = [];
+        for (let i = 0; i < polygonCount018; i++) {
+            distances018.push(polygonDelta018);
         }
-        console.log(`${this.name}, buffer collect 010 ...`, distances005);
-        const features005 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances005);
+        console.log(`${this.name}, buffer collect 018 ...`, distances018);
+        const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
 
-        const connected005 = VectorTileGeometryUtil.connectBufferFeatures(features005);
-        this.multiPolyline005 = VectorTileGeometryUtil.restructureMultiPolyline(connected005);
+        const connected018 = VectorTileGeometryUtil.connectBufferFeatures(features018);
+        this.multiPolyline018 = VectorTileGeometryUtil.restructureMultiPolyline(connected018);
 
 
 

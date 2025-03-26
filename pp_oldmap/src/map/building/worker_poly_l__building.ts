@@ -50,11 +50,11 @@ self.onmessage = (e) => {
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // get outer rings, all holes removed
-    let polygons010 = VectorTileGeometryUtil.destructureMultiPolygon(polyData);
-    polygons010.forEach(polygonO => {
+    let polygons025 = VectorTileGeometryUtil.destructureMultiPolygon(polyData);
+    polygons025.forEach(polygonO => {
         polygonO.coordinates = polygonO.coordinates.slice(0, 1);
     });
-    let multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons010);
+    let multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons025);
 
     // get inner ring reversed, act like real polygons temporarily
     let polygonsI: Polygon[] = VectorTileGeometryUtil.destructureMultiPolygon(polyData);
@@ -86,8 +86,8 @@ self.onmessage = (e) => {
     // outer polygon inset (to account for pen width)
     const inoutO: number[] = [inout0, polygonInset - inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutO[0]}, ${inoutO[1]}] ...`);
-    polygons010 = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonO, ...inoutO);
-    multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons010);
+    polygons025 = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonO, ...inoutO);
+    multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons025);
 
     const inoutI: number[] = [polygonInset - inout0, inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutI[0]}, ${inoutI[1]}] ...`);

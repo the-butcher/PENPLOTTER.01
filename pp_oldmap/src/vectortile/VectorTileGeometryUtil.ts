@@ -713,25 +713,25 @@ export class VectorTileGeometryUtil {
 
     }
 
-    static getMultiPolygonText(text: string, textOffset: Position, scale: number = 0.008): MultiPolygon {
+    // static getMultiPolygonText(text: string, textOffset: Position, scale: number = 0.008): MultiPolygon {
 
-        const coordinates: Position[][][] = [];
+    //     const coordinates: Position[][][] = [];
 
-        const chars = Array.from(text);
-        let charOffset: Position = [...textOffset];
-        for (let i = 0; i < chars.length; i++) {
+    //     const chars = Array.from(text);
+    //     let charOffset: Position = [...textOffset];
+    //     for (let i = 0; i < chars.length; i++) {
 
-            coordinates.push(...VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, charOffset).coordinates);
-            charOffset = VectorTileGeometryUtil.getCharOffset(chars[i], scale, textOffset, charOffset);
+    //         coordinates.push(...VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, charOffset).coordinates);
+    //         charOffset = VectorTileGeometryUtil.getCharOffset(chars[i], scale, textOffset, charOffset);
 
-        }
+    //     }
 
-        return {
-            type: 'MultiPolygon',
-            coordinates
-        };
+    //     return {
+    //         type: 'MultiPolygon',
+    //         coordinates
+    //     };
 
-    }
+    // }
 
     static getCharOffset(char: string, scale: number, textOffset: Position, charOffset: Position): Position {
 
@@ -744,7 +744,7 @@ export class VectorTileGeometryUtil {
 
         const glyph = noto_serif_regular.glyphs[char];
         return [
-            charOffset[0] + glyph.ha * scale * 1.02,
+            charOffset[0] + glyph.ha * scale * 1.05,
             charOffset[1]
         ];
 
@@ -1047,7 +1047,24 @@ export class VectorTileGeometryUtil {
     static connectBufferFeatures(bufferLines: Feature<LineString>[]): LineString[] {
 
         for (let bufferFeatureIndex = 0; bufferFeatureIndex < bufferLines.length; bufferFeatureIndex++) {
+
             bufferLines[bufferFeatureIndex].properties!.index = bufferFeatureIndex;
+
+            const coordinatesA = bufferLines[bufferFeatureIndex].geometry.coordinates;
+
+            const coordinateCount = coordinatesA.length;
+            const coordinateSplit = Math.floor(coordinateCount * Math.random());
+
+            const coordinatesB: Position[] = [
+                ...coordinatesA.slice(coordinateSplit), // from the split coordinate
+                ...coordinatesA.slice(1, coordinateSplit + 1), // skip closing coordinate and repeat split coordinate for new closing coordinate
+            ];
+
+            // console.log(coordinateSplit, coordinatesA, coordinatesB);
+
+            bufferLines[bufferFeatureIndex].geometry.coordinates = coordinatesB;
+
+
         }
 
         const ringDeviations: IRingDeviation[] = [];

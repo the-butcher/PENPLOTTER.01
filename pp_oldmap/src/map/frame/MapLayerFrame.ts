@@ -80,16 +80,24 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
         ]
 
         // UL and RL corner markers
-        this.multiPolyline010 = {
+        this.multiPolyline013 = {
             type: 'MultiLineString',
             coordinates
         }
 
         // UL and RL corner markers
-        this.multiPolyline030 = {
+        this.multiPolyline025 = {
             type: 'MultiLineString',
             coordinates
         }
+
+        // // UL and RL corner markers
+        // this.multiPolyline035 = {
+        //     type: 'MultiLineString',
+        //     coordinates
+        // }
+
+
 
     }
 

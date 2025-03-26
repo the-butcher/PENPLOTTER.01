@@ -27,18 +27,18 @@ self.onmessage = (e) => {
     workerInput.tileData = _tileData;
 
     const polyText = VectorTileGeometryUtil.emptyMultiPolygon();
-    let multiPolyline005 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
     let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
     // @ts-expect-error text type
-    const symbolFactory = SymbolUtil[workerInput.symbolFactory];
+    const symbolFactory: (coordinate: Position) => Position[][] = SymbolUtil[workerInput.symbolFactory];
 
     workerInput.tileData.forEach(point => {
         if (VectorTileGeometryUtil.booleanWithin(workerInput.bboxMap4326, point.geometry.coordinates)) {
 
             const symbolCoordinates = symbolFactory(point.geometry.coordinates);
             if (symbolCoordinates.length > 0) {
-                multiPolyline005.coordinates.push(symbolFactory(point.geometry.coordinates));
+                multiPolyline025.coordinates.push(...symbolCoordinates);
             }
 
             const name: string = point.properties!.name;
@@ -106,11 +106,11 @@ self.onmessage = (e) => {
 
     // buffer around symbols
     let bufferPolygons: Polygon[] = [];
-    if (multiPolyline005.coordinates.length > 0) {
-        const linebuffer005 = turf.buffer(multiPolyline005, bufferDist, {
+    if (multiPolyline025.coordinates.length > 0) {
+        const linebuffer018 = turf.buffer(multiPolyline025, bufferDist, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        bufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer005.geometry));
+        bufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer018.geometry));
     }
 
     // buffer around text polygons
@@ -127,15 +127,15 @@ self.onmessage = (e) => {
         polyData = VectorTileGeometryUtil.restructureMultiPolygon(bufferPolygons);
     }
 
-    multiPolyline005 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline005, workerInput.bboxMap4326);
-    turf.cleanCoords(multiPolyline005, {
+    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+    turf.cleanCoords(multiPolyline025, {
         mutate: true
     });
 
     const workerOutput: IWorkerPolyOutputPoint = {
         polyData,
         polyText,
-        multiPolyline005
+        multiPolyline025: multiPolyline025
     };
     self.postMessage(workerOutput);
 

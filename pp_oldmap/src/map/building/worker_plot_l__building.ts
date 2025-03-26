@@ -8,38 +8,38 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerPlotInput = e.data;
 
-    const polygonCount010 = 3;
-    const polygonCount030 = 50;
-    const polygonDelta010 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.75;
-    const polygonDelta030 = Pen.getPenWidthMeters(0.20, Map.SCALE) * -0.75;
+    const polygonCount025 = 3;
+    const polygonCount035 = 50;
+    const polygonDelta025 = Pen.getPenWidthMeters(0.25, Map.SCALE) * -0.50;
+    const polygonDelta050 = Pen.getPenWidthMeters(0.50, Map.SCALE) * -0.50;
 
     // thinner rings for better edge precision
-    const distances010: number[] = [];
-    for (let i = 0; i < polygonCount010; i++) {
-        distances010.push(polygonDelta010);
+    const distances025: number[] = [];
+    for (let i = 0; i < polygonCount025; i++) {
+        distances025.push(polygonDelta025);
     }
-    console.log(`${workerInput.name}, buffer collect 010 ...`, distances010);
-    const features010 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, true, ...distances010);
+    console.log(`${workerInput.name}, buffer collect 025 ...`, distances025);
+    const features025 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, true, ...distances025);
 
-    const distances030: number[] = [polygonDelta030 * 2.00]; // let the first ring be well inside the finer rings
-    for (let i = 0; i < polygonCount030; i++) {
-        distances030.push(polygonDelta030);
+    const distances050: number[] = [polygonDelta050 * 2.00]; // let the first ring be well inside the finer rings
+    for (let i = 0; i < polygonCount035; i++) {
+        distances050.push(polygonDelta050);
     }
-    console.log(`${workerInput.name}, buffer collect 030 ...`, distances030);
-    const features030 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, false, ...distances030);
+    console.log(`${workerInput.name}, buffer collect 050 ...`, distances050);
+    const features050 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, false, ...distances050);
 
-    const connected010 = VectorTileGeometryUtil.connectBufferFeatures(features010);
-    const multiPolyline010 = VectorTileGeometryUtil.restructureMultiPolyline(connected010);
+    const connected025 = VectorTileGeometryUtil.connectBufferFeatures(features025);
+    const multiPolyline025 = VectorTileGeometryUtil.restructureMultiPolyline(connected025);
 
-    const connected030 = VectorTileGeometryUtil.connectBufferFeatures(features030);
-    const multiPolyline030 = VectorTileGeometryUtil.restructureMultiPolyline(connected030);
+    const connected050 = VectorTileGeometryUtil.connectBufferFeatures(features050);
+    const multiPolyline050 = VectorTileGeometryUtil.restructureMultiPolyline(connected050);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline010);
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline030);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline050);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline010,
-        multiPolyline030
+        multiPolyline025,
+        multiPolyline050
     };
     self.postMessage(workerOutput);
 
