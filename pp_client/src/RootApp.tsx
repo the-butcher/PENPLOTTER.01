@@ -353,13 +353,14 @@ function RootApp() {
         overallExtent.yMax = (fileSvgProperties.extent.yMax - fileSvgProperties.extent.yMin) * scale;
       }
 
+      // cnfBSvgProperties.penId = 'p050'
       const isPenIdSet = ObjectUtil.isPenIdSet(cnfBSvgProperties.penId);
 
       // filtering for penId
       const linepathPenIds = isPenIdSet ? linepathScaleds.filter(p => p.penId === cnfBSvgProperties.penId) : linepathScaleds;
 
       // simplify and connect
-      const linepathSimples = linepathPenIds.map(linepath => GeometryUtil.simplifyLinepath(0.1, linepath));
+      const linepathSimples = linepathPenIds.map(linepath => GeometryUtil.simplifyLinepath(0.025, linepath));
 
       // remove short segments
       const linepathNoShorts: ILinePath[] = [];
@@ -409,6 +410,7 @@ function RootApp() {
         handleConnBleProperties
       };
       setConnBleProperties(connBlePropertiesRef.current);
+
 
       if (isPenIdSet) {
         sendBlePropertiesRef.current = {

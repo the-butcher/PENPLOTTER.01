@@ -79,11 +79,11 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
                 this.multiPolyline035 = workerOutput.multiPolyline035Dest;
                 this.multiPolyline050 = workerOutput.multiPolyline050Dest;
                 this.polyData = workerOutput.polyDataDest;
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

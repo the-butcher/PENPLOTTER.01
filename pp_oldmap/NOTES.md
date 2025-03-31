@@ -1,8 +1,15 @@
--- have some kind of error feedback when a step fails
+-- slope hatching
+-- have 2 rgb caches, slope and aspect and come up with pixel format convention for each
+-- use stretch in ArcGIS Pro and use the valuesprovided by that
+-- copy respective raters to png_16 so they can be read in java
+-- read png_16 rasters with java and write png_r8_g8 rasters for usage in javascript
+-- invent hachure generation algorithm on top of the png_r8_g8 rasters
+-- store as geojson (maybe in some tiled structure, so pp_oldmap can get what it needs)
+
+OK have some kind of error feedback when a step fails
 OK error in the hainburg extent (changed cleanAndSimplify code)
--- create possibility for label (+line-label) injection
+OK create possibility for label (+line-label) injection
 OK river-labels missing in vienna (added label-class 2)
--- Point layer creates a freak label on the "Leopoldsberg" extent
 OK Seilbahn
 
 OK symbol filter for line labels

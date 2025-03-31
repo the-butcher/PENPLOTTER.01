@@ -28,6 +28,7 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
+import { MapLayerGeoJsonLines } from "../map/geojson_lines/MapLayerGeoJsonLines";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -61,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF_____WOLFGANG;
+    const _mapDef = MapDefs.MAP_DEF__DUERRNSTEIN;
 
     const _map = new Map({
 
@@ -99,7 +100,7 @@ function MapComponent() {
               // 7 Friedhof
               // 8 Freizeit
               // 9 Weingarten
-              if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7)) {
+              if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7, 9)) {
                 return true;
               } else {
                 return false;
@@ -108,21 +109,31 @@ function MapComponent() {
           }, [2, -2], 500, {
             '3': {
               gridType: 'hexagon',
-              gridSize: 30,
-              randSize: 0.0002,
-              symbolFactory: 'createTreeSymbol'
+              gridSize: 28,
+              randSize: 0.00025,
+              symbolFactory: 'createTreeSymbol',
+              outerDim: 75
             },
             '6': {
               gridType: 'triangle',
-              gridSize: 40,
+              gridSize: 30,
               randSize: 0.0002,
-              symbolFactory: 'createMarshSymbol'
+              symbolFactory: 'createMarshSymbol',
+              outerDim: 0
             },
             '7': {
               gridType: 'triangle',
               gridSize: 30,
-              randSize: 0.0001,
-              symbolFactory: 'createGraveSymbol'
+              randSize: 0,
+              symbolFactory: 'createGraveSymbol',
+              outerDim: 0
+            },
+            '9': {
+              gridType: 'rectangle',
+              gridSize: 25,
+              randSize: 0.000075,
+              symbolFactory: 'createWineSymbol',
+              outerDim: 50
             }
           })
         },
@@ -211,25 +222,28 @@ function MapComponent() {
             }
           })
         },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod > 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
+        //         return true
+        //       }
+        //       return false;
+        //     }
+        //   }, l => l.multiPolyline018)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL/label') { //  &&
+        //         return true;
+        //       }
+        //       return false;
+        //     }
+        //   }, [], 0)
+        // },
         {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              if (vectorTileKey.lod > 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
-                return true
-              }
-              return false;
-            }
-          }, l => l.multiPolyline018)
-        },
-        {
-          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL/label') { //  &&
-                return true;
-              }
-              return false;
-            }
-          }, [], 0)
+          createLayerInstance: () => new MapLayerGeoJsonLines(Map.LAYER__NAME___HACHURES, l => l.multiPolyline018)
         },
         {
           createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {

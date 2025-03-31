@@ -28,7 +28,7 @@ self.onmessage = (e) => {
     })
 
     const lineNames = new Set(tileData.map(f => f.properties!.name));
-    // console.log('lineNames', lineNames);
+    console.log('lineNames', lineNames);
 
     let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
 
@@ -48,6 +48,8 @@ self.onmessage = (e) => {
         const connectedLinesA = VectorTileGeometryUtil.restructureMultiPolyline(namedLines);
         const connectedLinesB = VectorTileGeometryUtil.connectMultiPolyline(connectedLinesA, 5);
         const connectedLinesC = VectorTileGeometryUtil.destructureMultiPolyline(connectedLinesB);
+
+        // console.log(namedLines, connectedLinesC);
 
         if (connectedLinesC.length > 0) {
 
@@ -119,6 +121,7 @@ self.onmessage = (e) => {
                     const labelLinePositionB = labelLinePositionA + charOffset[0] * labelDef.charsign;
                     if (labelLinePositionB < 0 || labelLinePositionB > labelLineLength) {
                         polyName = VectorTileGeometryUtil.emptyMultiPolygon(); // abort and clear this text
+                        console.log('abort');
                         break;
                     }
                     const labelCoordinate4326B = turf.along(labelLine, labelLinePositionB, {

@@ -15,6 +15,7 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 import * as JSONfn from 'json-fn';
 import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
+import { Line } from 'd3';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -27,6 +28,23 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
         this.labelDefs = labelDefs;
         this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
         this.labelClasses = labelClasses;
+
+
+        for (let i = 0; i < this.labelDefs.length; i++) {
+            if (this.labelDefs[i].geometry) {
+                const polyline: LineString = {
+                    type: 'LineString',
+                    coordinates: this.labelDefs[i].geometry!
+                }
+                this.tileData.push(turf.feature(polyline, {
+                    lod: 0,
+                    col: 0,
+                    row: 0,
+                    name: this.labelDefs[i].tileName
+                }));
+            }
+        }
+
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -88,11 +106,11 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                 const workerOutput: IWorkerPolyOutputLineLabel = e.data;
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);
@@ -117,7 +135,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
             const workerInstance = new Worker(new URL('./worker_line_l_linelabel.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {

@@ -1,4 +1,4 @@
-import { Feature, MultiPoint, MultiPolygon, Polygon, Position } from "geojson";
+import { BBox, Feature, MultiPoint, MultiPolygon, Polygon, Position } from "geojson";
 import { UnionPolygon, VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { ISymbolDefPointFill, IWorkerLineInputPolygon } from "./IWorkerLineInputPolygon";
@@ -26,19 +26,23 @@ self.onmessage = (e) => {
             return result;
         }
 
-        const getHexPoints = (multiPolygon: UnionPolygon, symbolDefinition: ISymbolDefPointFill): Position[] => {
+        const getHexPoints = (multiPolygon: UnionPolygon, bbox: BBox, symbolDefinition: ISymbolDefPointFill): Position[] => {
 
             const hexCoordinatesA: Position[] = [];
 
-            const hexagonGrid = turf.hexGrid(turf.bbox(multiPolygon), symbolDefinition.gridSize, {
-                units: 'meters'
-            });
+
             if (symbolDefinition.gridType === 'hexagon') {
+                const hexagonGrid = turf.hexGrid(bbox, symbolDefinition.gridSize, {
+                    units: 'meters'
+                });
                 hexagonGrid.features.forEach(feature => {
                     hexCoordinatesA.push(feature.geometry.coordinates[0][0]);
                     hexCoordinatesA.push(feature.geometry.coordinates[0][1]);
                 });
-            } else {
+            } if (symbolDefinition.gridType === 'triangle') {
+                const hexagonGrid = turf.hexGrid(turf.bbox(multiPolygon), symbolDefinition.gridSize, {
+                    units: 'meters'
+                });
                 hexagonGrid.features.forEach(feature => {
                     let x = 0;
                     let y = 0;
@@ -49,6 +53,22 @@ self.onmessage = (e) => {
                     hexCoordinatesA.push([
                         x / 6,
                         y / 6
+                    ]);
+                });
+            } else {
+                const squareGrid = turf.rectangleGrid(turf.bbox(multiPolygon), symbolDefinition.gridSize * 1.4, symbolDefinition.gridSize, {
+                    units: 'meters'
+                });
+                squareGrid.features.forEach(feature => {
+                    let x = 0;
+                    let y = 0;
+                    for (let i = 0; i < 4; i++) {
+                        x += feature.geometry.coordinates[0][i][0];
+                        y += feature.geometry.coordinates[0][i][1];
+                    }
+                    hexCoordinatesA.push([
+                        x / 4,
+                        y / 4
                     ]);
                 });
             }
@@ -87,89 +107,41 @@ self.onmessage = (e) => {
             const symbolizablePolygons = filterBySymbolValue(workerInput.tileData, parseInt(symbolKeys[symbolKeyIndex]));
             const symbolDefinition: ISymbolDefPointFill = workerInput.symbolDefinitions[symbolKeys[symbolKeyIndex]];
 
-            const centerPolygons02 = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 2, -4);
+            const centerPolygons02 = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -15);
             const centerMultipolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(centerPolygons02);
 
-            const centerPolygons75 = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 2, -77);
-            const centerMultipolygon75 = VectorTileGeometryUtil.restructureMultiPolygon(centerPolygons75);
-
-            // let outerPolygon: UnionPolygon = symbolizablePolygons;
-
             const hexCoordinatesB: Position[] = [];
+            const bbox = turf.bbox(symbolizablePolygons);
+            if (symbolDefinition.outerDim > 0) {
 
-            if (centerMultipolygon75.coordinates.length > 0) {
+                const centerPolygonsOd = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -(symbolDefinition.outerDim + 10));
+                const centerMultipolygonOd = VectorTileGeometryUtil.restructureMultiPolygon(centerPolygonsOd);
 
-                const featureO = turf.feature(centerMultipolygon02);
-                const featureI = turf.feature(centerMultipolygon75);
-                const featureC = turf.featureCollection([featureO, featureI]);
+                if (centerMultipolygonOd.coordinates.length > 0) {
 
-                const outerPolygonFeature = turf.difference(featureC);
-                if (outerPolygonFeature) {
-                    hexCoordinatesB.push(...getHexPoints(outerPolygonFeature.geometry, symbolDefinition));
-                    hexCoordinatesB.push(...getHexPoints(centerMultipolygon75, {
-                        ...symbolDefinition,
-                        gridSize: symbolDefinition.gridSize * 2
-                    }));
-                } else {
-                    hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, symbolDefinition));
+                    const featureO = turf.feature(centerMultipolygon02);
+                    const featureI = turf.feature(centerMultipolygonOd);
+                    const featureC = turf.featureCollection([featureO, featureI]);
+
+                    const outerPolygonFeature = turf.difference(featureC);
+                    if (outerPolygonFeature) {
+
+                        hexCoordinatesB.push(...getHexPoints(outerPolygonFeature.geometry, bbox, symbolDefinition));
+                        hexCoordinatesB.push(...getHexPoints(centerMultipolygonOd, bbox, {
+                            ...symbolDefinition,
+                            gridSize: symbolDefinition.gridSize * 2
+                        }));
+                    } else { // no difference feature
+                        hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, bbox, symbolDefinition));
+                    }
+
+                } else { // no outer ring created
+                    hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, bbox, symbolDefinition));
                 }
 
-            } else {
-                hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, symbolDefinition));
+            } else { // no outer dim specified
+                hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, bbox, symbolDefinition));
             }
-
-
-            // const hexCoordinatesA: Position[] = [];
-
-            // const hexagonGrid = turf.hexGrid(turf.bbox(symbolizablePolygons), symbolDefinition.gridSize, {
-            //     units: 'meters'
-            // });
-            // if (symbolDefinition.gridType === 'hexagon') {
-            //     hexagonGrid.features.forEach(feature => {
-            //         hexCoordinatesA.push(feature.geometry.coordinates[0][0]);
-            //         hexCoordinatesA.push(feature.geometry.coordinates[0][1]);
-            //     });
-            // } else {
-            //     hexagonGrid.features.forEach(feature => {
-            //         let x = 0;
-            //         let y = 0;
-            //         for (let i = 0; i < 6; i++) {
-            //             x += feature.geometry.coordinates[0][i][0];
-            //             y += feature.geometry.coordinates[0][i][1];
-            //         }
-            //         hexCoordinatesA.push([
-            //             x / 6,
-            //             y / 6
-            //         ]);
-            //     });
-            // }
-
-            // // add some random offsets to all points
-            // if (symbolDefinition.randSize > 0) {
-            //     hexCoordinatesA.forEach(coordinate => {
-            //         coordinate[0] += (Math.random() - 0.5) * symbolDefinition.randSize;
-            //         coordinate[1] += (Math.random() - 0.5) * symbolDefinition.randSize;
-            //     });
-            // }
-
-            // // filter coordinates to be within the wood polygons
-            // const hexpoints: MultiPoint = {
-            //     type: 'MultiPoint',
-            //     coordinates: hexCoordinatesA
-            // };
-
-            // // const pointsWithinMultiPolygon = turf.pointsWithinPolygon(turf.feature(hexpoints), outerMultipolygon);
-            // const pointsWithinMultiPolygon = turf.pointsWithinPolygon(turf.pointsWithinPolygon(turf.feature(hexpoints), workerInput.polyData), outerPolygon);
-            // const hexCoordinatesB: Position[] = [];
-            // pointsWithinMultiPolygon.features.forEach(feature => {
-            //     if (feature.geometry.type === 'MultiPoint') {
-            //         hexCoordinatesB.push(...feature.geometry.coordinates);
-            //     } else if (feature.geometry.type === 'Point') {
-            //         hexCoordinatesB.push(feature.geometry.coordinates);
-            //     }
-            // });
-
-
 
             // @ts-expect-error text type
             const symbolFactory: (coordinate: Position) => Position[][] = SymbolUtil[symbolDefinition.symbolFactory];

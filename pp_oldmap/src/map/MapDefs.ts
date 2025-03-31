@@ -8,27 +8,43 @@ export class MapDefs {
 
     static MAP_DEF_________TEST: IMapDef = {
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
-            1830468,
-            6142200
+            1726650,
+            6173400
         ],
             4000,
             2828
         ),
-        // 6142199,109152 1830468,72773
-        // 6142199,109152 1830468,72773
-
-        // bbox3857: [ // leopoldsberg
-        //     1820635, 6149670,
-        //     1822635, 6151670
-        // ],
         padding: 200,
         labelDefs: []
     }
 
+    static MAP_DEF__DUERRNSTEIN: IMapDef = {
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1726700,
+            6173400
+        ],
+            4000,
+            2828
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: 'Donau',
+                plotName: 'Donau',
+                distance: 0.17,
+                vertical: 0,
+                charsign: -1.1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                idxvalid: (index: number) => index === 1
+            },
+
+        ]
+    }
+
     static MAP_DEF_________1010: IMapDef = {
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
-            1822430,
-            6141780
+            1822430 + 4000 * 2,
+            6141780 + 2828 * 1
         ],
             4000,
             2828
@@ -58,7 +74,7 @@ export class MapDefs {
     static MAP_DEF____HALLSTATT: IMapDef = {
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
             1519500,
-            6033850
+            6034100
         ],
             4000,
             2828
@@ -211,6 +227,57 @@ export class MapDefs {
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
                 idxvalid: () => false
+            },
+            {
+                tileName: 'WOLFGANGSEE',
+                plotName: 'WOLFGANGSEE',
+                distance: 0.25,
+                vertical: 0,
+                charsign: 0.8,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER * 1.5,
+                idxvalid: () => true,
+                geometry: [
+                    [
+                        13.439543460347924,
+                        47.736844561911148
+                    ],
+                    [
+                        13.441857650775541,
+                        47.73590580155475
+                    ],
+                    [
+                        13.443822794511297,
+                        47.734753491991448
+                    ],
+                    [
+                        13.445359004376982,
+                        47.733292973176191
+                    ],
+                    [
+                        13.4463706556089,
+                        47.731780241805801
+                    ],
+                    [
+                        13.447705975227615,
+                        47.730272292448099
+                    ],
+                    [
+                        13.44916819894819,
+                        47.729182253179758
+                    ],
+                    [
+                        13.451018241546583,
+                        47.728214248566324
+                    ],
+                    [
+                        13.4531551341815,
+                        47.727442299353626
+                    ],
+                    [
+                        13.45524339292526,
+                        47.727107406991934
+                    ]
+                ]
             }
         ]
     }

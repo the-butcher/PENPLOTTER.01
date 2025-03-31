@@ -420,12 +420,39 @@ export class ClipDefs {
             distance: 0,
             status: 'pending'
         },
+        {
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME_____CHURCH,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
         /////////////////////////////////////////////
         // MISC
         /////////////////////////////////////////////
         {
             layerNameDest: Map.LAYER__NAME__BUILDINGS,
             layerNameClip: Map.LAYER__NAME______FRAME,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__SHIP_LINE,
+            layerNameClip: Map.LAYER__NAME___RIVER_TX,
             distance: 0,
             status: 'pending',
             options: {
@@ -440,6 +467,12 @@ export class ClipDefs {
             options: {
                 skipMlt: false
             }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__ELEVATE_A,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME__ELEVATE_A,

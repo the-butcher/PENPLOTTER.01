@@ -36,6 +36,7 @@ export class Map {
     static readonly LAYER__NAME_____TUNNEL = "l____tunnel";
     static readonly LAYER__NAME__ELEVATE_A = "l_elevate_a";
     static readonly LAYER__NAME__ELEVATE_B = "l_elevate_b";
+    static readonly LAYER__NAME___HACHURES = "l__hachures";
 
     static readonly SYMBOL_INDEX_GREENAREA = 1; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______WOOD = 3; // on NUTZUNG_L16_20

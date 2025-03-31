@@ -1,3 +1,5 @@
+import { Position } from "geojson";
+
 export interface ILabelDef {
     tileName: string;
     plotName: string;
@@ -6,4 +8,5 @@ export interface ILabelDef {
     charsign: number;
     txtscale: number;
     idxvalid: (index: number) => boolean;
+    geometry?: Position[];
 }

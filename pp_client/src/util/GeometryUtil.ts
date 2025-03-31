@@ -27,7 +27,7 @@ export class GeometryUtil {
         let coordR3D: ICoordinate3D | undefined;
         let coordA3D: ICoordinate3D | undefined;
         let coordB3D: ICoordinate3D | undefined;
-        const semiLift = (GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D) / 2;
+        const basicLift = (GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D) * 0.66;
 
         let penId = '';
         for (let i = 0; i < linepaths.length; i++) {
@@ -39,15 +39,15 @@ export class GeometryUtil {
                 const segmentId = linepaths[i].segments[0].id;
                 penId = linepaths[i].penId;
                 const segmentLength2D = GeometryUtil.getDistance2D(coordA2D, coordB2D);
-                const extraLift = Math.min(semiLift, segmentLength2D / 4);
+                const extraLift = Math.min(basicLift, segmentLength2D / 4);
 
                 coordA3D = {
                     ...coordA2D,
-                    z: GeometryUtil.Z_VALUE_PEN_D + semiLift + extraLift
+                    z: GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift
                 };
                 coordB3D = {
                     ...coordB2D,
-                    z: GeometryUtil.Z_VALUE_PEN_D + semiLift + extraLift
+                    z: GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift
                 };
                 const fullMoveSegment: ILine3D = {
                     id: `${segmentId}_tr_full`,
@@ -66,7 +66,7 @@ export class GeometryUtil {
                 };
                 coordB3D = {
                     ...coordA2D,
-                    z: GeometryUtil.Z_VALUE_PEN_D + semiLift
+                    z: GeometryUtil.Z_VALUE_PEN_D + basicLift
                 };
                 plotPaths1.push({
                     id: `${segmentId}_tr_up_1`,
@@ -108,7 +108,7 @@ export class GeometryUtil {
                 coordA3D = coordR3D;
                 coordB3D = {
                     ...coordB2D,
-                    z: GeometryUtil.Z_VALUE_PEN_D + semiLift
+                    z: GeometryUtil.Z_VALUE_PEN_D + basicLift
                 };
                 plotPaths1.push({
                     id: `${segmentId}_tr_dn_1`,

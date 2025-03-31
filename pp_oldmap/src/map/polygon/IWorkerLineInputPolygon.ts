@@ -8,7 +8,8 @@ export interface IWorkerLineInputPolygon extends IWorkerLineInput<Polygon, ISymb
 
 export interface ISymbolDefPointFill {
     symbolFactory: string; // the method to be called on SymbolUtil
-    gridType: 'hexagon' | 'triangle';
+    gridType: 'hexagon' | 'triangle' | 'rectangle';
     gridSize: number;
     randSize: number;
+    outerDim: number;
 }
