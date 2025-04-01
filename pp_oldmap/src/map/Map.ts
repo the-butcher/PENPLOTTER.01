@@ -15,28 +15,28 @@ export interface IMapProps {
 
 export class Map {
 
-    static readonly LAYER__NAME______WATER = "l_____water";
-    static readonly LAYER__NAME_______WOOD = "l______wood";
-    static readonly LAYER__NAME__GREENAREA = "l_greenarea";
-    static readonly LAYER__NAME__BUILDINGS = "l_buildings";
-    static readonly LAYER__NAME_____CHURCH = "l____church";
-    static readonly LAYER__NAME_____SUMMIT = "l____summit";
-    static readonly LAYER__NAME___LOCATION = "l__location";
-    static readonly LAYER__NAME______FRAME = "l_____frame";
-    static readonly LAYER__NAME_____LABELS = "l____labels";
-    static readonly LAYER__NAME____RAILWAY = "l___railway";
-    static readonly LAYER__NAME_______TRAM = "l______tram";
-    static readonly LAYER__NAME__SHIP_LINE = "l_ship_line";
-    static readonly LAYER__NAME_____BORDER = "l____border";
-    static readonly LAYER__NAME___RIVER_TX = "l__river_tx";
-    static readonly LAYER__NAME____ROADS_A = "l___roads_a";
-    static readonly LAYER__NAME___BRIDGE_A = "l__bridge_a";
-    static readonly LAYER__NAME____ROADS_B = "l___roads_b";
-    static readonly LAYER__NAME___BRIDGE_B = "l__bridge_b";
-    static readonly LAYER__NAME_____TUNNEL = "l____tunnel";
-    static readonly LAYER__NAME__ELEVATE_A = "l_elevate_a";
-    static readonly LAYER__NAME__ELEVATE_B = "l_elevate_b";
-    static readonly LAYER__NAME___HACHURES = "l__hachures";
+    static readonly LAYER__NAME______WATER = "l______water";
+    static readonly LAYER__NAME_VEGETATION = "l_vegetation";
+    static readonly LAYER__NAME__GREENAREA = "l__greenarea";
+    static readonly LAYER__NAME__BUILDINGS = "l__buildings";
+    static readonly LAYER__NAME_____CHURCH = "l_____church";
+    static readonly LAYER__NAME_____SUMMIT = "l_____summit";
+    static readonly LAYER__NAME___LOCATION = "l___location";
+    static readonly LAYER__NAME______FRAME = "l______frame";
+    static readonly LAYER__NAME_____LABELS = "l_____labels";
+    static readonly LAYER__NAME____RAILWAY = "l____railway";
+    static readonly LAYER__NAME_______TRAM = "l_______tram";
+    static readonly LAYER__NAME__SHIP_LINE = "l__ship_line";
+    static readonly LAYER__NAME_____BORDER = "l_____border";
+    static readonly LAYER__NAME___RIVER_TX = "l___river_tx";
+    static readonly LAYER__NAME____ROADS_A = "l____roads_a";
+    static readonly LAYER__NAME___BRIDGE_A = "l___bridge_a";
+    static readonly LAYER__NAME____ROADS_B = "l____roads_b";
+    static readonly LAYER__NAME___BRIDGE_B = "l___bridge_b";
+    static readonly LAYER__NAME_____TUNNEL = "l_____tunnel";
+    static readonly LAYER__NAME__ELEVATE_A = "l__elevate_a";
+    static readonly LAYER__NAME__ELEVATE_B = "l__elevate_b";
+    static readonly LAYER__NAME___HACHURES = "l___hachures";
 
     static readonly SYMBOL_INDEX_GREENAREA = 1; // on NUTZUNG_L16_20
     static readonly SYMBOL_INDEX______WOOD = 3; // on NUTZUNG_L16_20

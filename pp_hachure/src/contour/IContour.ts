@@ -34,4 +34,5 @@ export interface IContour {
     weighedLengthToLength: (length: number) => number;
 
     getSvgData: () => string;
+
 }

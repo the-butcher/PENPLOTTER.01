@@ -8,8 +8,8 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerPlotInput = e.data;
 
-    const polygonCount025 = 3;
-    const polygonCount035 = 50;
+    const polygonCount025 = 4;
+    const polygonCount050 = 50;
     const polygonDelta025 = Pen.getPenWidthMeters(0.25, Map.SCALE) * -0.50;
     const polygonDelta050 = Pen.getPenWidthMeters(0.50, Map.SCALE) * -0.50;
 
@@ -22,7 +22,7 @@ self.onmessage = (e) => {
     const features025 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, true, ...distances025);
 
     const distances050: number[] = [polygonDelta050 * 2.00]; // let the first ring be well inside the finer rings
-    for (let i = 0; i < polygonCount035; i++) {
+    for (let i = 0; i < polygonCount050; i++) {
         distances050.push(polygonDelta050);
     }
     console.log(`${workerInput.name}, buffer collect 050 ...`, distances050);

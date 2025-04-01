@@ -7,18 +7,18 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputPolygon = e.data;
 
-    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline013 = VectorTileGeometryUtil.emptyMultiPolyline();
 
-    const coordinates025: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-    multiPolyline025.coordinates.push(...coordinates025);
+    const coordinates013: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+    multiPolyline013.coordinates.push(...coordinates013);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+    multiPolyline013 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline013, workerInput.bboxMap4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline013);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline025
+        multiPolyline013
     };
     self.postMessage(workerOutput);
 

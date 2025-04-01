@@ -1,21 +1,11 @@
-import * as turf from '@turf/turf';
 import { BBox, GeoJsonProperties, LineString, MultiLineString } from "geojson";
-import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
-import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
-import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
-import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
-import { IWorkerLineInputLine } from './IWorkerLineInputLine';
-import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
-import { hachures_duerrnstein } from './hachures_duerrnstein';
-
+import { hachures_vigaun } from "./hachures_vigaun";
 
 export class MapLayerGeoJsonLines extends AMapLayer<LineString, GeoJsonProperties> {
 
     private getDefaultPolylineContainer: (mapLayerLines: MapLayerGeoJsonLines) => MultiLineString;
-    private offset: number;
 
     constructor(name: string, getDefaultPolylineContainer: (mapLayerLines: MapLayerGeoJsonLines) => MultiLineString) {
         super(name, {
@@ -29,16 +19,14 @@ export class MapLayerGeoJsonLines extends AMapLayer<LineString, GeoJsonPropertie
     }
 
     async processPoly(): Promise<void> { // bboxMap4326: BBox
-
-
-
+        //nothing
     }
 
-    async processLine(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processLine(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing line ...`);
 
-        const linestrings = hachures_duerrnstein.features.map(f => f.geometry);
+        const linestrings = hachures_vigaun.features.map(f => f.geometry);
         const multiLineString = VectorTileGeometryUtil.restructureMultiPolyline(linestrings);
         this.getDefaultPolylineContainer(this).coordinates.push(...multiLineString.coordinates);
 
@@ -46,11 +34,8 @@ export class MapLayerGeoJsonLines extends AMapLayer<LineString, GeoJsonPropertie
 
     }
 
-
     async processPlot(): Promise<void> {
-
-
-
+        // nothing
     }
 
 }

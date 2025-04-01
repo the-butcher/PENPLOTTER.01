@@ -6,18 +6,14 @@ import * as d3Contour from 'd3-contour';
 import { Feature, LineString } from "geojson";
 import { createRef, useEffect, useState } from "react";
 import { Contour } from '../contour/Contour';
+import { Hachure } from '../contour/Hachure';
 import { IContour } from '../contour/IContour';
 import { IContourProperties } from '../contour/IContourProperties';
 import { IHachure } from '../contour/IHachure';
 import { GeometryUtil } from '../util/GeometryUtil';
-import { IRange } from '../util/IRange';
 import { IRasterData } from '../util/IRasterData';
 import { ObjectUtil } from '../util/ObjectUtil';
 import { RasterLoader } from '../util/RasterLoader';
-
-export interface IBluetoothSenderProps {
-    dummy?: never;
-}
 
 function ImageLoaderComponent() {
 
@@ -27,22 +23,14 @@ function ImageLoaderComponent() {
     const [rasterDataHeight, setRasterDataHeight] = useState<IRasterData>();
 
     const [dH, setDH] = useState<string>('');
-    const [dV, setDV] = useState<string>('');
-    const [dW, setDW] = useState<string>('');
+    // const [dV, setDV] = useState<string>('');
+    // const [dW, setDW] = useState<string>('');
     const [dL, setDL] = useState<string>('');
+    const [dS, setDS] = useState<string>('');
 
     const [hachures, setHachures] = useState<IHachure[]>([]);
 
-    const heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
-    const heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
 
-    const sampleToHeight = (sample: number): number => {
-        return ObjectUtil.mapValues(sample, heightRangeSample, heightRangeRaster);
-    }
-
-
-    const rasterDataHeightBlurFactor = 3;
-    const rasterDataContourInterval = 20;
 
     const getContourFeatures = (rasterData: IRasterData, thresholds: number[]): Feature<LineString, IContourProperties>[] => {
 
@@ -81,27 +69,6 @@ function ImageLoaderComponent() {
 
     }
 
-
-    const toSvgContourData = (rasterData: IRasterData, thresholds: number[]): string => {
-
-        let svgContourData = '';
-
-        const contourFeatures = getContourFeatures(rasterData, thresholds.filter(t => t % 25 === 0));
-        contourFeatures.forEach(contourFeature => {
-            let command = 'M';
-            for (let coordinateIndex = 0; coordinateIndex < contourFeature.geometry.coordinates.length; coordinateIndex++) {
-
-                const contourPoint = GeometryUtil.position4326ToPixel(contourFeature.geometry.coordinates[coordinateIndex]);
-                svgContourData += `${command}${contourPoint[0]} ${contourPoint[1]}`;
-                command = 'L';
-
-            }
-        });
-
-        return svgContourData;
-
-    }
-
     useEffect(() => {
 
         console.debug('✨ building ImageLoaderComponent');
@@ -111,12 +78,12 @@ function ImageLoaderComponent() {
 
         if (canvasElement && svgElement) {
 
-            new RasterLoader().load('png_10_10_height_scaled_pynb_r8g8.png', sampleToHeight).then(_imageDataHeight => {
+            new RasterLoader().load('png_10_10_height_scaled_pynb_r8g8.png', GeometryUtil.sampleToHeight).then(_imageDataHeight => {
 
                 console.log('_imageDataHeight', _imageDataHeight);
 
                 // initial blur
-                d3Array.blur2({ data: _imageDataHeight.data, width: _imageDataHeight.width }, rasterDataHeightBlurFactor);
+                d3Array.blur2({ data: _imageDataHeight.data, width: _imageDataHeight.width }, Hachure.CONFIG.blurFactor);
                 setRasterDataHeight(_imageDataHeight);
 
             });
@@ -131,12 +98,12 @@ function ImageLoaderComponent() {
 
         if (rasterDataHeight) {
 
-            const minHeight = heightRangeRaster.min - heightRangeRaster.min % rasterDataContourInterval + rasterDataContourInterval;
-            const maxHeight = heightRangeRaster.max - heightRangeRaster.max % rasterDataContourInterval;
+            const minHeight = GeometryUtil.heightRangeRaster.min - GeometryUtil.heightRangeRaster.min % Hachure.CONFIG.contourOff + Hachure.CONFIG.contourOff;
+            const maxHeight = GeometryUtil.heightRangeRaster.max - GeometryUtil.heightRangeRaster.max % Hachure.CONFIG.contourOff;
 
             console.log('minHeight', minHeight, 'maxHeight', maxHeight);
             const thresholds: number[] = [];
-            for (let i = minHeight; i <= maxHeight; i += 2.5) {
+            for (let i = minHeight; i <= maxHeight; i += Hachure.CONFIG.contourOff) {
                 thresholds.push(i);
             }
 
@@ -145,65 +112,102 @@ function ImageLoaderComponent() {
             svgElement.style.width = `${rasterDataHeight.width * 4}`;
             svgElement.style.height = `${rasterDataHeight.height * 4}`;
 
-            setDL(toSvgContourData(rasterDataHeight, thresholds));
+            // setDL(toSvgContourData(rasterDataHeight, thresholds));
 
-            let _dV = '';
-            let _dW = '';
+
 
             const contours: IContour[] = [];
-            let _hachures: IHachure[] = [];
+
 
             console.log('building contours ....');
             const contourFeatures = getContourFeatures(rasterDataHeight, thresholds).filter(f => turf.length(f, {
                 units: 'meters'
-            }) > Contour.SEGMENT_BASE_LENGTH);
+            }) > Hachure.CONFIG.contourDiv * 2);
             contourFeatures.forEach(contourFeature => {
                 contours.push(new Contour(contourFeature));
             });
 
-            // console.log('contours[contours.length - 1]', contours[contours.length - 1]);
-            // _dW += contours[0].getSvgData();
-            // _dW += contours[1].getSvgData();
-            console.log('done building contours');
+            let _dL = '';
+            contours.forEach(contour => {
+                _dL += contour.getSvgData()
+            });
+            setDL(_dL);
 
+            console.log('done building contours');
+            console.log('building hachures ....');
+
+            let _hachuresProgress: IHachure[] = [];
+            const _hachuresComplete: IHachure[] = [];
+            let _hachuresTemp: IHachure[] = [];
             for (let i = 0; i < thresholds.length - 1; i++) {
 
                 const heightA = thresholds[i];
                 const heightB = thresholds[i + 1];
 
-                console.log(`handling heights: ${heightA}, ${heightB} (${_hachures.length})`);
+                console.log(`handling heights: ${heightA}, ${heightB} (${_hachuresProgress.length}, ${_hachuresComplete.length})`);
 
                 const heightAContours = contours.filter(c => c.getHeight() === heightA);
 
                 // const extraHachuresA: IHachure[] = [];
                 for (let j = 0; j < heightAContours.length; j++) {
-                    _hachures.push(...heightAContours[j].handleHachures(_hachures));
+                    _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress));
                 }
 
+                _hachuresTemp = [];
+                _hachuresProgress.forEach(h => {
+                    if (h.isComplete()) {
+                        h.popLastVertex(); // complete means "got to close" at this point, shorten hachure in this case
+                        _hachuresComplete.push(h);
+                    } else {
+                        _hachuresTemp.push(h);
+                    }
+                });
+                _hachuresProgress = _hachuresTemp;
+
+                _hachuresProgress.forEach(h => h.setComplete())
                 const heightBContours = contours.filter(c => c.getHeight() === heightB);
                 for (let j = 0; j < heightBContours.length; j++) {
-                    _hachures = heightBContours[j].intersectHachures(_hachures);
+                    _hachuresProgress = heightBContours[j].intersectHachures(_hachuresProgress);
                 }
 
-                _hachures = _hachures.filter(h => h.getVertexCount() > 1)
+                _hachuresProgress = _hachuresProgress.filter(h => h.getVertexCount() > 1)
+
+                _hachuresTemp = [];
+                _hachuresProgress.forEach(h => {
+                    if (h.isComplete()) {
+                        _hachuresComplete.push(h);
+                    } else {
+                        _hachuresTemp.push(h);
+                    }
+                });
+                _hachuresProgress = _hachuresTemp;
 
             }
 
-            // hachures.forEach(hachure => {
-            //     _dV += hachure.getSvgDataFw();
-            // });
+            // one more time filtering by distance
+            const heightA = thresholds[thresholds.length - 1];
+            const heightAContours = contours.filter(c => c.getHeight() === heightA);
 
-            // _hachures.forEach(hachure => {
-            //     _dH += hachure.getSvgData();
-            // });
+            // const extraHachuresA: IHachure[] = [];
+            for (let j = 0; j < heightAContours.length; j++) {
+                _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress));
+            }
 
-            setHachures(_hachures);
+            _hachuresTemp = [];
+            _hachuresProgress.forEach(h => {
+                if (h.isComplete()) {
+                    h.popLastVertex(); // complete means "got to close" at this point, shorten hachure in this case
+                    _hachuresComplete.push(h);
+                } else {
+                    _hachuresTemp.push(h);
+                }
+            });
+            _hachuresProgress = _hachuresTemp;
 
-            // setDV(_dV);
-            // setDW(_dW);
-            // setDH(_dH);
-
-            // renderRasterDataHeight();
+            setHachures([
+                ..._hachuresProgress,
+                ..._hachuresComplete
+            ]);
 
         }
 
@@ -216,13 +220,19 @@ function ImageLoaderComponent() {
         if (hachures) {
 
             let _dH = '';
+            let _dS = '';
 
             hachures.forEach(hachure => {
                 _dH += hachure.getSvgData();
             });
+            hachures.forEach(hachure => {
+                _dS += hachure.getSvgDataSteep()
+            });
+
 
             setDH(_dH);
-            renderRasterDataHeight();
+            // setDS(_dS);
+            // renderRasterDataHeight();
 
         }
 
@@ -249,8 +259,8 @@ function ImageLoaderComponent() {
 
                     pixelIndex = (y * rasterDataHeight.width + x);
                     valV = ObjectUtil.mapValues(rasterDataHeight.data[pixelIndex], {
-                        min: heightRangeRaster.min,
-                        max: heightRangeRaster.max * 2
+                        min: GeometryUtil.heightRangeRaster.min,
+                        max: GeometryUtil.heightRangeRaster.max * 2
                     }, {
                         min: 0,
                         max: 255
@@ -302,37 +312,37 @@ function ImageLoaderComponent() {
 
     }
 
-    const exportSVG = () => {
+    // const exportSVG = () => {
 
-        // https://stackoverflow.com/questions/60241398/how-to-download-and-svg-element-as-an-svg-file
-        const svg = svgRef.current;
+    //     // https://stackoverflow.com/questions/60241398/how-to-download-and-svg-element-as-an-svg-file
+    //     const svg = svgRef.current;
 
-        if (svg) {
+    //     if (svg) {
 
-            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-            svg.style.width = `${svgRef.current.width}`;
-            svg.style.height = `${svgRef.current.height}`;
-            svg.style.maxWidth = `${svgRef.current.width}`;
-            svg.style.maxHeight = `${svgRef.current.height}`;
-            svg.style.transform = '';
+    //         svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    //         svg.style.width = `${svgRef.current.width}`;
+    //         svg.style.height = `${svgRef.current.height}`;
+    //         svg.style.maxWidth = `${svgRef.current.width}`;
+    //         svg.style.maxHeight = `${svgRef.current.height}`;
+    //         svg.style.transform = '';
 
-            const outerSVG = svg!.outerHTML;
+    //         const outerSVG = svg!.outerHTML;
 
-            svg.style.width = `${svgRef.current.width}`;
-            svg.style.height = `${svgRef.current.height}`;
-            svg.style.maxWidth = `${svgRef.current.width}`;
-            svg.style.maxHeight = `${svgRef.current.height}`;
+    //         svg.style.width = `${svgRef.current.width}`;
+    //         svg.style.height = `${svgRef.current.height}`;
+    //         svg.style.maxWidth = `${svgRef.current.width}`;
+    //         svg.style.maxHeight = `${svgRef.current.height}`;
 
-            const base64doc = btoa(unescape(encodeURIComponent(outerSVG)));
-            const a = document.createElement('a');
-            const e = new MouseEvent('click');
-            a.download = `fold.svg`;
-            a.href = 'data:image/svg+xml;base64,' + base64doc;
-            a.dispatchEvent(e);
+    //         const base64doc = btoa(unescape(encodeURIComponent(outerSVG)));
+    //         const a = document.createElement('a');
+    //         const e = new MouseEvent('click');
+    //         a.download = `fold.svg`;
+    //         a.href = 'data:image/svg+xml;base64,' + base64doc;
+    //         a.dispatchEvent(e);
 
-        }
+    //     }
 
-    };
+    // };
 
     return (
         <div>
@@ -359,8 +369,8 @@ function ImageLoaderComponent() {
             >
                 <path
                     style={{
-                        stroke: `rgba(100, 100, 100, 0.75)`,
-                        strokeWidth: '0.5',
+                        stroke: `rgba(50, 50, 50, 0.75)`,
+                        strokeWidth: '0.33',
                         fill: 'none',
                         strokeLinecap: 'round',
                         strokeLinejoin: 'round'
@@ -368,6 +378,16 @@ function ImageLoaderComponent() {
                     d={dH}
                 />
                 <path
+                    style={{
+                        stroke: `rgba(50, 50, 50, 0.75)`,
+                        strokeWidth: '0.66',
+                        fill: 'none',
+                        strokeLinecap: 'round',
+                        strokeLinejoin: 'round'
+                    }}
+                    d={dS}
+                />
+                {/* <path
                     style={{
                         stroke: `rgba(255, 0, 0, 0.50)`,
                         strokeWidth: '0.1',
@@ -386,10 +406,10 @@ function ImageLoaderComponent() {
                         strokeLinejoin: 'round'
                     }}
                     d={dW}
-                />
+                /> */}
                 <path
                     style={{
-                        stroke: `rgba(100, 100, 100, 0.75)`,
+                        stroke: `rgba(100, 100, 100, 0.25)`,
                         strokeWidth: '0.2',
                         fill: 'none',
                         strokeLinecap: 'round',

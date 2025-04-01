@@ -8,7 +8,7 @@ export class ClipDefs {
         // GREENAREA
         /////////////////////////////////////////////
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME__GREENAREA,
             distance: 6,
             status: 'pending',
@@ -62,7 +62,7 @@ export class ClipDefs {
         // WOOD
         /////////////////////////////////////////////
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
             distance: 6,
             status: 'pending',
@@ -71,7 +71,7 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME______WATER,
             distance: 6,
             status: 'pending',
@@ -80,7 +80,7 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME____ROADS_A,
             distance: 2,
             status: 'pending',
@@ -89,7 +89,7 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME____ROADS_B,
             distance: 2,
             status: 'pending',
@@ -98,7 +98,7 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME_____CHURCH,
             distance: 0,
             status: 'pending',
@@ -107,7 +107,7 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME_____SUMMIT,
             distance: 0,
             status: 'pending',
@@ -116,7 +116,7 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
             status: 'pending',
@@ -130,13 +130,13 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME____ROADS_A,
-            distance: 2,
+            distance: 1,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME____ROADS_B,
-            distance: 2,
+            distance: 1,
             status: 'pending'
         },
         {
@@ -205,29 +205,35 @@ export class ClipDefs {
             distance: 1,
             status: 'pending'
         }, // remove roads underneath tracks (this may be a problem in urban areas)
-        {
-            layerNameDest: Map.LAYER__NAME____ROADS_A,
-            layerNameClip: Map.LAYER__NAME__BUILDINGS,
-            distance: 5,
-            status: 'pending',
-            options: {
-                skip018: true,
-                skip035: true, // single line roads
-            }
-        },
+        // {
+        //     layerNameDest: Map.LAYER__NAME____ROADS_A,
+        //     layerNameClip: Map.LAYER__NAME__BUILDINGS,
+        //     distance: 5,
+        //     status: 'pending',
+        //     options: {
+        //         skip018: true,
+        //         skip035: true, // single line roads
+        //     }
+        // },
         {
             layerNameDest: Map.LAYER__NAME____ROADS_A,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
             distance: 8,
             status: 'pending',
-            options: {
-                skip025: true,
-                skip050: true,
-            }
+            // options: {
+            //     skip025: true,
+            //     skip050: true,
+            // }
         },
         /////////////////////////////////////////////
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
+        {
+            layerNameDest: Map.LAYER__NAME______WATER,
+            layerNameClip: Map.LAYER__NAME___HACHURES,
+            distance: 0,
+            status: 'pending'
+        },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME______FRAME,
@@ -241,7 +247,7 @@ export class ClipDefs {
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME_______WOOD,
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
             status: 'pending'
@@ -418,6 +424,12 @@ export class ClipDefs {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME______WATER,
+            distance: 1,
             status: 'pending'
         },
         {

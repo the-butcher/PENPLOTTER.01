@@ -5,5 +5,4 @@ export interface IHachureVertex {
     positionPixl: Position;
     height: number;
     aspect: number;
-    // maybe slope here
 }

@@ -189,11 +189,20 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }
 
     applyWorkerOutputLine(workerOutput: IWorkerLineOutput) {
-        this.multiPolyline013 = workerOutput.multiPolyline013 ?? this.multiPolyline013;
+        this.multiPolyline013 = workerOutput.multiPolyline013 ? this.mergeMultiPolylines(workerOutput.multiPolyline013, this.multiPolyline013) : this.multiPolyline013;
         this.multiPolyline018 = workerOutput.multiPolyline018 ?? this.multiPolyline018;
         this.multiPolyline025 = workerOutput.multiPolyline025 ?? this.multiPolyline025;
         this.multiPolyline035 = workerOutput.multiPolyline035 ?? this.multiPolyline035;
         this.multiPolyline050 = workerOutput.multiPolyline050 ?? this.multiPolyline050;
+    }
+
+    mergeMultiPolylines(multiPolylineA: MultiLineString, multiPolylineB: MultiLineString): MultiLineString {
+        const polylinesA = VectorTileGeometryUtil.destructureMultiPolyline(multiPolylineA);
+        const polylinesB = VectorTileGeometryUtil.destructureMultiPolyline(multiPolylineB);
+        return VectorTileGeometryUtil.restructureMultiPolyline([
+            ...polylinesA,
+            ...polylinesB
+        ])
     }
 
     bboxClipLayer(bboxMap4326: BBox): void {

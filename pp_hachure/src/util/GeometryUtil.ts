@@ -1,15 +1,29 @@
-import { Feature, LineString, MultiLineString, MultiPolygon, Position } from "geojson";
+import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Position } from "geojson";
 import { IMatrix2D } from "./Interfaces";
 import * as turf from "@turf/turf";
 import { IContourProperties } from "../contour/IContourProperties";
+import { ObjectUtil } from "./ObjectUtil";
+import { IRange } from "./IRange";
 
 export class GeometryUtil {
 
+    // static rasterOrigin3857: Position = [
+    //     1724199.6402537469,
+    //     6175169.4598493706
+    // ];
     static rasterOrigin3857: Position = [
-        1724199.6402537469,
-        6175169.4598493706
+        1459299.6402537469,
+        6052689.4598493706
     ];
     static cellSize = 10;
+    // const heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
+    // const heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
+    static heightRangeSample: IRange = { min: 7057.0, max: 13529.0 };
+    static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };;
+
+    static sampleToHeight = (sample: number): number => {
+        return ObjectUtil.mapValues(sample, GeometryUtil.heightRangeSample, GeometryUtil.heightRangeRaster);
+    }
 
     static position4326ToPixel = (position4326: Position): Position => {
         const position3857 = turf.toMercator(position4326);
@@ -25,6 +39,10 @@ export class GeometryUtil {
             pixel[1] * GeometryUtil.cellSize + GeometryUtil.rasterOrigin3857[1]
         ];
         return turf.toWgs84(position3857);
+    }
+
+    static booleanWithinBbox(bbox: BBox, point: Position) {
+        return (point[0] >= bbox[0] && point[0] <= bbox[2] && point[1] >= bbox[1] && point[1] <= bbox[3]);
     }
 
     static connectContours(contours: Feature<LineString, IContourProperties>[], toleranceMeters: number): Feature<LineString, IContourProperties>[] {

@@ -62,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF__DUERRNSTEIN;
+    const _mapDef = MapDefs.MAP_DEF_______VIGAUN;
 
     const _map = new Map({
 
@@ -93,7 +93,7 @@ function MapComponent() {
           }, [2, -2], 500)
         },
         {
-          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME_______WOOD, {
+          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME_VEGETATION, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               // 3 Wald
               // 6 Gewässerrand
@@ -222,26 +222,6 @@ function MapComponent() {
             }
           })
         },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileKey.lod > 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
-        //         return true
-        //       }
-        //       return false;
-        //     }
-        //   }, l => l.multiPolyline018)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL/label') { //  &&
-        //         return true;
-        //       }
-        //       return false;
-        //     }
-        //   }, [], 0)
-        // },
         {
           createLayerInstance: () => new MapLayerGeoJsonLines(Map.LAYER__NAME___HACHURES, l => l.multiPolyline018)
         },
@@ -251,13 +231,6 @@ function MapComponent() {
               return vectorTileFeature.layerName === 'GIPFEL_L09-20'
             }
           }, 'createSummitSymbol', _mapDef.labelDefs)
-        },
-        {
-          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
-            }
-          }, 'createTownSymbol', _mapDef.labelDefs)
         },
         {
           createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
@@ -285,6 +258,34 @@ function MapComponent() {
             }
           })
         },
+
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__ELEVATE_A, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod > 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL') {
+        //         return true
+        //       }
+        //       return false;
+        //     }
+        //   }, l => l.multiPolyline018)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__ELEVATE_B, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'AUSTRIA_HL_20_100_1000_HL/label') { //  &&
+        //         return true;
+        //       }
+        //       return false;
+        //     }
+        //   }, [], 0)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+        //     }
+        //   }, 'createTownSymbol', _mapDef.labelDefs)
+        // },
 
       ],
     });
@@ -450,9 +451,12 @@ function MapComponent() {
       collectTiles(Map.LOD_15, vectorTileUrlBmapv);
       collectTiles(Map.LOD_14, vectorTileUrlBmapv);
 
-      collectTiles(Map.LOD_16, vectorTileUrlBmaph);
-      collectTiles(Map.LOD_15, vectorTileUrlBmaph);
-      collectTiles(Map.LOD_14, vectorTileUrlBmaph);
+      if (map.findLayerByName(Map.LAYER__NAME__ELEVATE_A) || map.findLayerByName(Map.LAYER__NAME__ELEVATE_B)) {
+        collectTiles(Map.LOD_16, vectorTileUrlBmaph);
+        collectTiles(Map.LOD_15, vectorTileUrlBmaph);
+        collectTiles(Map.LOD_14, vectorTileUrlBmaph);
+      }
+
 
       // build rectangle props for each loadable tile
       _loadableTileKeys.forEach(_loadableTileKey => {

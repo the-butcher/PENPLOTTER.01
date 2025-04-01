@@ -1,16 +1,21 @@
-import { LineString, Position } from "geojson";
-import { ObjectUtil } from "../util/ObjectUtil";
-import { RasterUtil } from "../util/RasterUtil";
-import { IHachure } from "./IHachure";
-import { IHachureVertex } from "./IHachureVertex";
-import { GeometryUtil } from "../util/GeometryUtil";
 import * as turf from "@turf/turf";
+import { LineString, Position } from "geojson";
+import { GeometryUtil } from "../util/GeometryUtil";
+import { ObjectUtil } from "../util/ObjectUtil";
+import { IHachure } from "./IHachure";
+import { IHachureConfig } from "./IHachureConfig";
+import { IHachureVertex } from "./IHachureVertex";
 
 export class Hachure implements IHachure {
 
-    static readonly HACHURE_MIN_SPACING = 30; // per weighed length
-    static readonly HACHURE_MAX_SPACING = 45; // per weighed length
-    static readonly HACHURE_RAY__LENGTH = 4;
+    static readonly CONFIG: IHachureConfig = {
+        minSpacing: 5,
+        maxSpacing: 7.5,
+        blurFactor: 0.25,
+        contourOff: 1, // vertical difference of contours
+        contourDiv: 2.5, // the subdivisions along a contour
+        hachureRay: 1.25 // larger value -> flatter surfaces get hachures
+    }
 
     private id: string;
     private readonly vertices: IHachureVertex[];
@@ -32,7 +37,12 @@ export class Hachure implements IHachure {
     }
 
     addVertex(vertex: IHachureVertex) {
+        this.complete = false;
         this.vertices.push(vertex);
+    };
+
+    popLastVertex() {
+        this.vertices.pop();
     };
 
     getLastVertex() {
@@ -41,8 +51,7 @@ export class Hachure implements IHachure {
 
     setComplete() {
         this.complete = true;
-        this.vertices.pop(); // remove the last vertex when closing
-        // console.log(this.id, 'completed')
+        // this.vertices.pop(); // remove the last vertex when closing
     }
 
     isComplete() {
@@ -65,17 +74,18 @@ export class Hachure implements IHachure {
         return lineString;
     }
 
-    getSvgDataFw(): string {
+    // getSvgDataFw(): string {
 
-        const lastVertex = this.getLastVertex();
-        const fwlength = 10;
 
-        let d = `M${lastVertex.positionPixl[0]} ${lastVertex.positionPixl[1]}`;
-        d += `l${Math.cos(lastVertex.aspect * RasterUtil.DEG2RAD) * 10} ${Math.sin(lastVertex.aspect * RasterUtil.DEG2RAD) * fwlength}`;
+    //     const lastVertex = this.getLastVertex();
+    //     const fwlength = 10;
 
-        return d;
+    //     let d = `M${lastVertex.positionPixl[0]} ${lastVertex.positionPixl[1]}`;
+    //     d += `l${Math.cos(lastVertex.aspect * RasterUtil.DEG2RAD) * 10} ${Math.sin(lastVertex.aspect * RasterUtil.DEG2RAD) * fwlength}`;
 
-    }
+    //     return d;
+
+    // }
 
     getSvgData(): string {
 
@@ -85,6 +95,34 @@ export class Hachure implements IHachure {
             d += `${command}${vertex.positionPixl[0]} ${vertex.positionPixl[1]} `;
             command = 'L';
         });
+        return d;
+
+    }
+
+    getSvgDataSteep(): string {
+
+        let command = 'M';
+        let d = '';
+
+        let position4326A: Position = this.vertices[0].position4326;
+        d += `${command}${this.vertices[0].positionPixl[0]} ${this.vertices[0].positionPixl[1]}`;
+
+        let position4326B: Position;
+        for (let i = 1; i < this.vertices.length; i++) {
+
+            position4326B = this.vertices[i].position4326;
+            const distance = turf.distance(position4326A, position4326B, {
+                units: 'meters'
+            })
+            if (distance < Hachure.CONFIG.contourDiv / 2) {
+                command = 'L';
+            } else {
+                command = 'M';
+            }
+            d += `${command}${this.vertices[i].positionPixl[0]} ${this.vertices[i].positionPixl[1]}`;
+            position4326A = position4326B;
+
+        }
 
         return d;
 

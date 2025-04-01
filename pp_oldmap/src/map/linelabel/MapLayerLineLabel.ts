@@ -13,9 +13,8 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
-import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
-import { Line } from 'd3';
+import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -106,11 +105,11 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                 const workerOutput: IWorkerPolyOutputLineLabel = e.data;
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);
@@ -135,7 +134,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
             const workerInstance = new Worker(new URL('./worker_line_l_linelabel.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
