@@ -1,8 +1,21 @@
-import { Position } from "geojson";
+import { IPositionProperties } from "./IPositionProperties";
 
-export interface IHachureVertex {
-    position4326: Position;
-    positionPixl: Position;
+/**
+ * description of a vertex along a hachure line
+ * @since 02.04.2025
+ * @author h.fleischer
+ */
+export interface IHachureVertex extends IPositionProperties {
+    /**
+     * the height at the position of this vertex
+     */
     height: number;
+    /**
+     * the aspect (upward direction) at the position of this vertex in degrees
+     */
     aspect: number;
+    /**
+     * the calculated slope at the vertex position in degrees
+     */
+    slope: number;
 }

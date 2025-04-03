@@ -3,7 +3,7 @@ import { Button } from "@mui/material";
 import * as turf from "@turf/turf";
 import * as d3Array from 'd3-array';
 import * as d3Contour from 'd3-contour';
-import { Feature, LineString } from "geojson";
+import { Feature, LineString, Polygon } from "geojson";
 import { createRef, useEffect, useState } from "react";
 import { Contour } from '../contour/Contour';
 import { Hachure } from '../contour/Hachure';
@@ -26,7 +26,7 @@ function ImageLoaderComponent() {
     // const [dV, setDV] = useState<string>('');
     // const [dW, setDW] = useState<string>('');
     const [dL, setDL] = useState<string>('');
-    const [dS, setDS] = useState<string>('');
+    // const [dS, setDS] = useState<string>('');
 
     const [hachures, setHachures] = useState<IHachure[]>([]);
 
@@ -112,18 +112,18 @@ function ImageLoaderComponent() {
             svgElement.style.width = `${rasterDataHeight.width * 4}`;
             svgElement.style.height = `${rasterDataHeight.height * 4}`;
 
-            // setDL(toSvgContourData(rasterDataHeight, thresholds));
-
-
-
             const contours: IContour[] = [];
-
 
             console.log('building contours ....');
             const contourFeatures = getContourFeatures(rasterDataHeight, thresholds).filter(f => turf.length(f, {
                 units: 'meters'
             }) > Hachure.CONFIG.contourDiv * 2);
+            let height = -1;
             contourFeatures.forEach(contourFeature => {
+                if (contourFeature.properties.height != height) {
+                    height = contourFeature.properties.height;
+                    console.log('contour height: ', height);
+                }
                 contours.push(new Contour(contourFeature));
             });
 
@@ -134,10 +134,11 @@ function ImageLoaderComponent() {
             setDL(_dL);
 
             console.log('done building contours');
+
             console.log('building hachures ....');
 
             let _hachuresProgress: IHachure[] = [];
-            const _hachuresComplete: IHachure[] = [];
+            let _hachuresComplete: IHachure[] = [];
             let _hachuresTemp: IHachure[] = [];
             for (let i = 0; i < thresholds.length - 1; i++) {
 
@@ -150,7 +151,7 @@ function ImageLoaderComponent() {
 
                 // const extraHachuresA: IHachure[] = [];
                 for (let j = 0; j < heightAContours.length; j++) {
-                    _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress));
+                    _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress, _hachuresComplete));
                 }
 
                 _hachuresTemp = [];
@@ -174,7 +175,7 @@ function ImageLoaderComponent() {
 
                 _hachuresTemp = [];
                 _hachuresProgress.forEach(h => {
-                    if (h.isComplete()) {
+                    if (h.isComplete()) { // still complete means did not find intersection
                         _hachuresComplete.push(h);
                     } else {
                         _hachuresTemp.push(h);
@@ -188,9 +189,8 @@ function ImageLoaderComponent() {
             const heightA = thresholds[thresholds.length - 1];
             const heightAContours = contours.filter(c => c.getHeight() === heightA);
 
-            // const extraHachuresA: IHachure[] = [];
             for (let j = 0; j < heightAContours.length; j++) {
-                _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress));
+                _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress, _hachuresComplete));
             }
 
             _hachuresTemp = [];
@@ -203,6 +203,9 @@ function ImageLoaderComponent() {
                 }
             });
             _hachuresProgress = _hachuresTemp;
+
+            _hachuresProgress = _hachuresProgress.filter(h => h.getVertexCount() > 2)
+            _hachuresComplete = _hachuresComplete.filter(h => h.getVertexCount() > 2)
 
             setHachures([
                 ..._hachuresProgress,
@@ -220,14 +223,14 @@ function ImageLoaderComponent() {
         if (hachures) {
 
             let _dH = '';
-            let _dS = '';
+            // let _dS = '';
 
             hachures.forEach(hachure => {
                 _dH += hachure.getSvgData();
             });
-            hachures.forEach(hachure => {
-                _dS += hachure.getSvgDataSteep()
-            });
+            // hachures.forEach(hachure => {
+            //     _dS += hachure.getSvgDataSteep()
+            // });
 
 
             setDH(_dH);
@@ -295,7 +298,7 @@ function ImageLoaderComponent() {
     const exportHachureGeoJson = () => {
 
         // const layer = map!.findLayerByName(id);
-        const exportFeatures: Feature<LineString>[] = [];
+        const exportFeatures: Feature<Polygon>[] = [];
         hachures.forEach(hachure => {
             exportFeatures.push(turf.feature(hachure.toLineString()));
         })
@@ -371,13 +374,13 @@ function ImageLoaderComponent() {
                     style={{
                         stroke: `rgba(50, 50, 50, 0.75)`,
                         strokeWidth: '0.33',
-                        fill: 'none',
+                        fill: 'rgba(50, 50, 50, 0.25)',
                         strokeLinecap: 'round',
                         strokeLinejoin: 'round'
                     }}
                     d={dH}
                 />
-                <path
+                {/* <path
                     style={{
                         stroke: `rgba(50, 50, 50, 0.75)`,
                         strokeWidth: '0.66',
@@ -387,7 +390,7 @@ function ImageLoaderComponent() {
                     }}
                     d={dS}
                 />
-                {/* <path
+                <path
                     style={{
                         stroke: `rgba(255, 0, 0, 0.50)`,
                         strokeWidth: '0.1',
@@ -409,8 +412,8 @@ function ImageLoaderComponent() {
                 /> */}
                 <path
                     style={{
-                        stroke: `rgba(100, 100, 100, 0.25)`,
-                        strokeWidth: '0.2',
+                        stroke: `rgba(100, 100, 100, 0.0)`,
+                        strokeWidth: '0.25',
                         fill: 'none',
                         strokeLinecap: 'round',
                         strokeLinejoin: 'round'
@@ -418,18 +421,6 @@ function ImageLoaderComponent() {
                     d={dL}
                 />
 
-                {/* {
-                    normals.map(force => <path
-                        key={force.id}
-                        style={{
-                            stroke: 'rgba(0, 0, 0, 0.5)',
-                            strokeWidth: 0.5,
-                            fill: 'none',
-                            strokeLinejoin: 'round'
-                        }}
-                        d={force.path}
-                    />)
-                } */}
 
             </svg>
             <Button

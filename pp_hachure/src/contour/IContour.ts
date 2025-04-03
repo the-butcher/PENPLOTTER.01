@@ -11,7 +11,7 @@ export interface IContour {
      * return any additional hachures that may be needed to fill empty spaces
      * @param hachures
      */
-    handleHachures(hachures: IHachure[]): IHachure[];
+    handleHachures(hachuresProgress: IHachure[], hachuresComplete: IHachure[]): IHachure[];
 
 
     /**

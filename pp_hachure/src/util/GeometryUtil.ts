@@ -7,19 +7,38 @@ import { IRange } from "./IRange";
 
 export class GeometryUtil {
 
+    // vigaun
     // static rasterOrigin3857: Position = [
-    //     1724199.6402537469,
-    //     6175169.4598493706
+    //     1459299.6402537469,
+    //     6052689.4598493706
     // ];
+
+    // wolfgang
+    // static rasterOrigin3857: Position = [
+    //     1459299.6402537469,
+    //     6052689.4598493706
+    // ];
+
+    // hallstatt
     static rasterOrigin3857: Position = [
-        1459299.6402537469,
-        6052689.4598493706
+        1516999.6402537469,
+        6035869.4598493706
     ];
+
+
     static cellSize = 10;
-    // const heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
-    // const heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
-    static heightRangeSample: IRange = { min: 7057.0, max: 13529.0 };
-    static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };;
+
+    // vigaun
+    // static heightRangeSample: IRange = { min: 7057.0, max: 13529.0 };
+    // static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };
+
+    // wolfgang
+    // static heightRangeSample: IRange = { min: 8607.0, max: 18487.0 };
+    // static heightRangeRaster: IRange = { min: 537.80029296875, max: 1155.19140625 };
+
+    // hallstatt
+    static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
+    static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
 
     static sampleToHeight = (sample: number): number => {
         return ObjectUtil.mapValues(sample, GeometryUtil.heightRangeSample, GeometryUtil.heightRangeRaster);
@@ -29,14 +48,14 @@ export class GeometryUtil {
         const position3857 = turf.toMercator(position4326);
         return [
             (position3857[0] - GeometryUtil.rasterOrigin3857[0]) / GeometryUtil.cellSize,
-            (position3857[1] - GeometryUtil.rasterOrigin3857[1]) / GeometryUtil.cellSize
+            (GeometryUtil.rasterOrigin3857[1] - position3857[1]) / GeometryUtil.cellSize
         ];
     }
 
     static pixelToPosition4326 = (pixel: Position): Position => {
         const position3857 = [
             pixel[0] * GeometryUtil.cellSize + GeometryUtil.rasterOrigin3857[0],
-            pixel[1] * GeometryUtil.cellSize + GeometryUtil.rasterOrigin3857[1]
+            GeometryUtil.rasterOrigin3857[1] - pixel[1] * GeometryUtil.cellSize
         ];
         return turf.toWgs84(position3857);
     }

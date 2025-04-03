@@ -1,7 +1,7 @@
 import { BBox, GeoJsonProperties, LineString, MultiLineString } from "geojson";
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
-import { hachures_vigaun } from "./hachures_vigaun";
+import { hachures_hallstatt } from "./hachures_hallstatt";
 
 export class MapLayerGeoJsonLines extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -26,7 +26,7 @@ export class MapLayerGeoJsonLines extends AMapLayer<LineString, GeoJsonPropertie
 
         console.log(`${this.name}, processing line ...`);
 
-        const linestrings = hachures_vigaun.features.map(f => f.geometry);
+        const linestrings = hachures_hallstatt.features.map(f => f.geometry);
         const multiLineString = VectorTileGeometryUtil.restructureMultiPolyline(linestrings);
         this.getDefaultPolylineContainer(this).coordinates.push(...multiLineString.coordinates);
 

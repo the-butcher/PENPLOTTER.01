@@ -1,4 +1,4 @@
-import { LineString } from "geojson";
+import { Polygon } from "geojson";
 import { IHachureVertex } from "./IHachureVertex";
 
 export interface IHachure {
@@ -9,8 +9,7 @@ export interface IHachure {
     addVertex: (vertex: IHachureVertex) => void;
     setComplete: () => void;
     isComplete: () => boolean;
-    toLineString: () => LineString;
-
     getSvgData: () => string;
-    getSvgDataSteep: () => string;
+    // getSvgDataSteep: () => string;
+    toLineString: () => Polygon;
 }

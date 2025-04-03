@@ -41,6 +41,18 @@ export class ClipDefs {
             status: 'pending'
         },
         {
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME____ROADS_A,
+            distance: 1,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME____ROADS_B,
+            distance: 3,
+            status: 'pending'
+        },
+        {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME_____CHURCH,
             distance: 0,
@@ -229,8 +241,8 @@ export class ClipDefs {
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
         {
-            layerNameDest: Map.LAYER__NAME______WATER,
-            layerNameClip: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
             status: 'pending'
         },

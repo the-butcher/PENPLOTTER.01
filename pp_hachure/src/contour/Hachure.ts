@@ -1,21 +1,33 @@
 import * as turf from "@turf/turf";
-import { LineString, Position } from "geojson";
+import { Polygon, Position } from "geojson";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
+import { RasterUtil } from "../util/RasterUtil";
 import { IHachure } from "./IHachure";
 import { IHachureConfig } from "./IHachureConfig";
 import { IHachureVertex } from "./IHachureVertex";
+import { IPositionProperties } from "./IPositionProperties";
 
 export class Hachure implements IHachure {
 
     static readonly CONFIG: IHachureConfig = {
-        minSpacing: 5,
-        maxSpacing: 7.5,
-        blurFactor: 0.25,
+        minSpacing: 15,
+        maxSpacing: 15 * 1.66,
+        blurFactor: 2,
         contourOff: 1, // vertical difference of contours
         contourDiv: 2.5, // the subdivisions along a contour
-        hachureRay: 1.25 // larger value -> flatter surfaces get hachures
+        hachureRay: (1 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize // larger value -> flatter surfaces get hachures
     }
+
+    // static readonly CONFIG: IHachureConfig = {
+    //     minSpacing: 15,
+    //     maxSpacing: 15 * 1.66,
+    //     blurFactor: 2,
+    //     contourOff: 2.5, // vertical difference of contours
+    //     contourDiv: 5, // the subdivisions along a contour
+    //     hachureRay: (2.5 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize // larger value -> flatter surfaces get hachures
+    // }
+
 
     private id: string;
     private readonly vertices: IHachureVertex[];
@@ -38,7 +50,17 @@ export class Hachure implements IHachure {
 
     addVertex(vertex: IHachureVertex) {
         this.complete = false;
-        this.vertices.push(vertex);
+        const lastVertex = this.getLastVertex();
+        const hDiff = turf.distance(lastVertex.position4326, vertex.position4326, {
+            units: 'meters'
+        });
+        const vDiff = vertex.height - lastVertex.height;
+        const slope = Math.atan2(vDiff, hDiff) * RasterUtil.RAD2DEG;
+        this.vertices[this.vertices.length - 1].slope = slope;
+        this.vertices.push({
+            ...vertex,
+            slope
+        });
     };
 
     popLastVertex() {
@@ -51,27 +73,41 @@ export class Hachure implements IHachure {
 
     setComplete() {
         this.complete = true;
-        // this.vertices.pop(); // remove the last vertex when closing
     }
 
     isComplete() {
         return this.complete;
     }
 
-    toLineString(): LineString {
-        const lineString: LineString = {
-            type: 'LineString',
-            coordinates: []
+    toLineString(): Polygon {
+
+        const lineString: Polygon = {
+            type: 'Polygon',
+            coordinates: [[]]
         };
-        const rasterOrigin4326 = turf.toWgs84(GeometryUtil.rasterOrigin3857);
-        this.vertices.forEach(vertex => {
-            const vertexFix: Position = [
-                vertex.position4326[0],
-                - (vertex.position4326[1] - rasterOrigin4326[1]) + rasterOrigin4326[1]
-            ]
-            lineString.coordinates.push(vertexFix);
-        });
+
+        const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
+        if (offsetMetersTop > 1) { // if a rectangular edge would be visible
+            lineString.coordinates[0].push(this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2).position4326);
+        }
+
+        for (let i = this.vertices.length - 1; i >= 0; i--) {
+            lineString.coordinates[0].push(this.getOffsetPosition(this.vertices[i], -1).position4326);
+        }
+
+        const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
+        if (offsetMetersBot > 1) { // if a rectangular edge would be visible
+            lineString.coordinates[0].push(this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2).position4326);
+        }
+
+        for (let i = 0; i < this.vertices.length; i++) {
+            lineString.coordinates[0].push(this.getOffsetPosition(this.vertices[i], 1).position4326);
+        }
+
+        lineString.coordinates[0].push(lineString.coordinates[0][0]); // close polygon
+
         return lineString;
+
     }
 
     // getSvgDataFw(): string {
@@ -87,45 +123,109 @@ export class Hachure implements IHachure {
 
     // }
 
+    getOffsetPosition(hachureVertex: IHachureVertex, sign: -1 | 1): IPositionProperties {
+        const offset = this.getOffsetMeters(hachureVertex, sign);
+        const positionPixl: Position = [
+            hachureVertex.positionPixl[0] + Math.sin(hachureVertex.aspect * RasterUtil.DEG2RAD) * offset / GeometryUtil.cellSize,
+            hachureVertex.positionPixl[1] - Math.cos(hachureVertex.aspect * RasterUtil.DEG2RAD) * offset / GeometryUtil.cellSize,
+        ];
+        const position4326 = GeometryUtil.pixelToPosition4326(positionPixl);
+        return {
+            positionPixl,
+            position4326
+        };
+    }
+
+    getOffsetPositionAlong(hachureVertex: IHachureVertex, offset: number): IPositionProperties {
+        const positionPixl: Position = [
+            hachureVertex.positionPixl[0] + Math.cos(hachureVertex.aspect * RasterUtil.DEG2RAD) * offset / GeometryUtil.cellSize,
+            hachureVertex.positionPixl[1] + Math.sin(hachureVertex.aspect * RasterUtil.DEG2RAD) * offset / GeometryUtil.cellSize,
+        ];
+        const position4326 = GeometryUtil.pixelToPosition4326(positionPixl);
+        return {
+            positionPixl,
+            position4326
+        };
+    }
+
+    getOffsetMeters(hachureVertex: IHachureVertex, sign: -1 | 1) {
+        return ObjectUtil.mapValues(hachureVertex.slope, {
+            min: 10,
+            max: 90
+        }, {
+            min: 0,
+            max: 10 * sign
+        });
+    }
+
     getSvgData(): string {
 
-        let command = 'M';
         let d = '';
-        this.vertices.forEach(vertex => {
-            d += `${command}${vertex.positionPixl[0]} ${vertex.positionPixl[1]} `;
+        let command: string;
+
+        // the line going down
+        command = 'M';
+
+        const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
+        if (offsetMetersTop > 1) { // if a rectangular edge would be visible
+            const offsetPosition = this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2);
+            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
             command = 'L';
-        });
-        return d;
-
-    }
-
-    getSvgDataSteep(): string {
-
-        let command = 'M';
-        let d = '';
-
-        let position4326A: Position = this.vertices[0].position4326;
-        d += `${command}${this.vertices[0].positionPixl[0]} ${this.vertices[0].positionPixl[1]}`;
-
-        let position4326B: Position;
-        for (let i = 1; i < this.vertices.length; i++) {
-
-            position4326B = this.vertices[i].position4326;
-            const distance = turf.distance(position4326A, position4326B, {
-                units: 'meters'
-            })
-            if (distance < Hachure.CONFIG.contourDiv / 2) {
-                command = 'L';
-            } else {
-                command = 'M';
-            }
-            d += `${command}${this.vertices[i].positionPixl[0]} ${this.vertices[i].positionPixl[1]}`;
-            position4326A = position4326B;
-
         }
 
+        for (let i = this.vertices.length - 1; i >= 0; i--) {
+            const offsetPosition = this.getOffsetPosition(this.vertices[i], -1);
+            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+            command = 'L';
+        }
+
+        const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
+        if (offsetMetersBot > 1) { // if a rectangular edge would be visible
+            const offsetPosition = this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2);
+            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+            command = 'L'; // first vertex closes the lower end
+        }
+
+        // the line going up
+        for (let i = 0; i < this.vertices.length; i++) {
+            const offsetPosition = this.getOffsetPosition(this.vertices[i], 1);
+            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+            command = 'L'; // first vertex closes the lower end
+        }
+
+        d += `Z`; // closing the upper end
+
         return d;
 
     }
+
+    // getSvgDataSteep(): string {
+
+    //     let command = 'M';
+    //     let d = '';
+
+    //     let position4326A: Position = this.vertices[0].position4326;
+    //     d += `${command}${this.vertices[0].positionPixl[0]} ${this.vertices[0].positionPixl[1]}`;
+
+    //     let position4326B: Position;
+    //     for (let i = 1; i < this.vertices.length; i++) {
+
+    //         position4326B = this.vertices[i].position4326;
+    //         const distance = turf.distance(position4326A, position4326B, {
+    //             units: 'meters'
+    //         })
+    //         if (distance < Hachure.CONFIG.contourDiv / 2) {
+    //             command = 'L';
+    //         } else {
+    //             command = 'M';
+    //         }
+    //         d += `${command}${this.vertices[i].positionPixl[0]} ${this.vertices[i].positionPixl[1]}`;
+    //         position4326A = position4326B;
+
+    //     }
+
+    //     return d;
+
+    // }
 
 }

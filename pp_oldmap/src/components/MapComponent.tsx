@@ -62,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF_______VIGAUN;
+    const _mapDef = MapDefs.MAP_DEF____HALLSTATT;
 
     const _map = new Map({
 
@@ -109,8 +109,8 @@ function MapComponent() {
           }, [2, -2], 500, {
             '3': {
               gridType: 'hexagon',
-              gridSize: 28,
-              randSize: 0.00025,
+              gridSize: 30,
+              randSize: 0.00020,
               symbolFactory: 'createTreeSymbol',
               outerDim: 75
             },

@@ -33,7 +33,7 @@ export class Contour implements IContour {
         this.length = turf.length(feature, {
             units: 'meters'
         });
-        console.log('length', this.length)
+        // console.log('length', this.length)
 
         // this.geometry = feature.geometry;
 
@@ -95,7 +95,7 @@ export class Contour implements IContour {
                 max: -1
             }, {
                 min: Hachure.CONFIG.contourDiv, // larger means tighter
-                max: Hachure.CONFIG.contourDiv * 0.33
+                max: Hachure.CONFIG.contourDiv * 0.50
             });
             weighedLength += incrmt;
 
@@ -168,19 +168,16 @@ export class Contour implements IContour {
         return this.height;
     }
 
-    handleHachures(hachures: IHachure[]): IHachure[] {
+    handleHachures(hachuresProgress: IHachure[], hachuresComplete: IHachure[]): IHachure[] {
 
         const extraHachures: IHachure[] = [];
 
         const weighedLengths: number[] = []; // [0, this.weighedLength];
         weighedLengths.push(0);
 
-        // console.log('handleHachures', hachures.length);
-        for (let i = 0; i < hachures.length; i++) {
+        for (let i = 0; i < hachuresProgress.length; i++) {
 
-            // weighedLengths.sort();
-
-            const hachure = hachures[i];
+            const hachure = hachuresProgress[i];
 
             const lastVertex4326 = hachure.getLastVertex().position4326;
             const nearestPoint = this.findNearestPointOnLine(lastVertex4326)!;
@@ -190,18 +187,17 @@ export class Contour implements IContour {
                 const weighedLength = this.lengthToWeighedLength(length);
                 const hasWeightLengthSmallerThanMin = weighedLengths.find(w => Math.abs(weighedLength - w) < Hachure.CONFIG.minSpacing);
                 if (hasWeightLengthSmallerThanMin) {
-                    // TODO :: decide if the weighed distance for this line should still be counted
                     // TODO :: depending on distances before or after it may also make sense to discontinue/complete the previous line
                     hachure.setComplete();
-                } else {
-                    weighedLengths.push(weighedLength);
                 }
+                //  else {
+                weighedLengths.push(weighedLength); // weighedLength is added regardless of complete state that may just have been set, in some cases another line would be started right away otherwise
+                // }
 
             }
 
-        };
+        }
         weighedLengths.push(this.weighedLength);
-
         weighedLengths.sort();
 
         // console.log('weighedLengths', weighedLengths);
@@ -209,7 +205,7 @@ export class Contour implements IContour {
 
         let extraHachureAdded = true;
         let counter = 0;
-        while (extraHachureAdded && counter++ < 10) {
+        while (extraHachureAdded && counter++ < 25) {
 
             const _weighedLengths = [...weighedLengths.sort((a, b) => a - b)];
             // console.log('_weighedLengths', _weighedLengths);
@@ -219,30 +215,41 @@ export class Contour implements IContour {
             for (let i = 0; i < _weighedLengths.length - 1; i++) {
 
                 const weighedLengthDiff = _weighedLengths[i + 1] - _weighedLengths[i];
-                if (weighedLengthDiff > Hachure.CONFIG.maxSpacing * 2) {
+                if (weighedLengthDiff > Hachure.CONFIG.maxSpacing * 2) { // enough space to fit one extra
 
                     const weighedLength = _weighedLengths[i] + weighedLengthDiff / 2;
                     const length = this.weighedLengthToLength(weighedLength);
 
-                    // const position4326 = turf.along(this.geometry, length, {
-                    //     units: 'meters'
-                    // }).geometry.coordinates;
                     const position4326 = this.findPointAlong(length);
                     if (position4326) {
-                        const positionPixl = GeometryUtil.position4326ToPixel(position4326);
-                        const aspect = this.lengthToAspect(length);
 
-                        const extraHachure = new Hachure({
-                            position4326,
-                            positionPixl,
-                            aspect,
-                            height: this.height
+                        const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
+                            const distance = turf.distance(position4326, h.getLastVertex().position4326, {
+                                units: 'meters'
+                            });
+                            return distance < Hachure.CONFIG.minSpacing * 1;
                         });
-                        extraHachures.push(extraHachure);
-                        extraHachureAdded = true;
 
-                        // console.log('adding extra hachure', i, i + 1, weighedLength, extraHachure);
-                        weighedLengths.push(weighedLength);
+                        if (!hasNearbyEndOfCompletedHachure) {
+
+                            const positionPixl = GeometryUtil.position4326ToPixel(position4326);
+                            const aspect = this.lengthToAspect(length);
+
+                            const extraHachure = new Hachure({
+                                position4326,
+                                positionPixl,
+                                aspect,
+                                height: this.height,
+                                slope: 0 // temporary value
+                            });
+                            extraHachures.push(extraHachure);
+                            extraHachureAdded = true;
+
+                            // console.log('adding extra hachure', i, i + 1, weighedLength, extraHachure);
+                            weighedLengths.push(weighedLength);
+
+                        }
+
                     } else {
                         console.error('did not find point along');
                     }
@@ -294,7 +301,8 @@ export class Contour implements IContour {
                         position4326,
                         positionPixl,
                         aspect,
-                        height: this.height
+                        height: this.height,
+                        slope: 0 // temporary value
                     });
                     // console.log('hachure after adding', hachure);
 
@@ -337,7 +345,9 @@ export class Contour implements IContour {
                 } else {
                     let minIntersectionDistance = Number.MAX_VALUE;
                     for (let j = 0; j < intersections.features.length; j++) {
-                        const intersectionDistance = turf.distance(refPosition, intersections.features[0].geometry.coordinates);
+                        const intersectionDistance = turf.distance(refPosition, intersections.features[j].geometry.coordinates, {
+                            units: 'meters'
+                        });
                         if (intersectionDistance < minIntersectionDistance) {
                             minIntersectionDistance = intersectionDistance;
                             minIntersectionIndex = j;
