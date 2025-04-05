@@ -4,7 +4,6 @@ import { IMapProcessing } from "./IMapProcessing";
 export interface IMapLayerProps {
     id: string;
     visible: boolean;
-    polylines013: MultiLineString;
     polylines018: MultiLineString;
     polylines025: MultiLineString;
     polylines035: MultiLineString;

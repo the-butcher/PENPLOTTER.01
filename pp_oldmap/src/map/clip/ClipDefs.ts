@@ -41,16 +41,22 @@ export class ClipDefs {
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME____ROADS_A,
             distance: 1,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME____ROADS_B,
             distance: 3,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
@@ -241,10 +247,13 @@ export class ClipDefs {
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
@@ -268,7 +277,10 @@ export class ClipDefs {
             layerNameDest: Map.LAYER__NAME__BUILDINGS,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
             layerNameDest: Map.LAYER__NAME____ROADS_A,
@@ -295,7 +307,7 @@ export class ClipDefs {
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME__ELEVATE_A,
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
             status: 'pending'
@@ -439,28 +451,40 @@ export class ClipDefs {
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME______WATER,
             distance: 1,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME_____CHURCH,
             distance: 0,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME_____SUMMIT,
             distance: 0,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
-            layerNameDest: Map.LAYER__NAME___HACHURES,
+            layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME___LOCATION,
             distance: 0,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         /////////////////////////////////////////////
         // MISC
@@ -493,14 +517,39 @@ export class ClipDefs {
             }
         },
         {
-            layerNameDest: Map.LAYER__NAME__ELEVATE_A,
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
             layerNameClip: Map.LAYER__NAME_____SUMMIT,
             distance: 0,
             status: 'pending'
         },
         {
-            layerNameDest: Map.LAYER__NAME__ELEVATE_A,
-            layerNameClip: Map.LAYER__NAME__ELEVATE_B,
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
+            layerNameClip: Map.LAYER__NAME_CONTOUR_TX,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME_CONTOUR_TX,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME___CLIPPOLY,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
+            layerNameClip: Map.LAYER__NAME___CLIPPOLY,
+            distance: 0,
+            status: 'pending'
+        }
+        ,
+        {
+            layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
+            layerNameClip: Map.LAYER__NAME___CLIPPOLY,
             distance: 0,
             status: 'pending'
         }

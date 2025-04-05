@@ -22,9 +22,6 @@ self.onmessage = (e) => {
         VectorTileGeometryUtil.cleanAndSimplify(bufferResultGeometry);
         bufferResult!.geometry = bufferResultGeometry;
 
-        if (!workerInput.options?.skip013) {
-            workerInput.multiPolyline013Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline013Dest, bufferResult!);
-        }
         if (!workerInput.options?.skip018) {
             workerInput.multiPolyline018Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline018Dest, bufferResult!);
         }
@@ -60,7 +57,6 @@ self.onmessage = (e) => {
     }
 
     const workerOutput: IWorkerClipOutput = {
-        multiPolyline013Dest: workerInput.multiPolyline013Dest,
         multiPolyline018Dest: workerInput.multiPolyline018Dest,
         multiPolyline025Dest: workerInput.multiPolyline025Dest,
         multiPolyline035Dest: workerInput.multiPolyline035Dest,

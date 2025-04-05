@@ -9,18 +9,21 @@ import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 import { ISymbolDefPointFill, IWorkerLineInputPolygon } from './IWorkerLineInputPolygon';
 import { ISymbolProperties } from '../common/ISymbolProperties';
+import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 
 export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
 
     outin: [number, number];
     minArea: number;
     symbolDefinitions: { [K in string]: ISymbolDefPointFill } = {};
+    private geoJsonPath: string;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, outin: [number, number], minArea: number, symbolDefinitions: { [K in string]: ISymbolDefPointFill } = {}) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, outin: [number, number], minArea: number, symbolDefinitions: { [K in string]: ISymbolDefPointFill } = {}, geoJsonPath: string = '') {
         super(name, filter);
         this.outin = outin;
         this.minArea = minArea;
         this.symbolDefinitions = symbolDefinitions;
+        this.geoJsonPath = geoJsonPath;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -42,6 +45,11 @@ export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing data ...`);
+
+        if (this.geoJsonPath !== '') {
+            const featureCollection = await new GeoJsonLoader().load<Polygon, ISymbolProperties>(this.geoJsonPath);
+            featureCollection.features.forEach(f => this.tileData.push(f));
+        }
 
         const workerInput: IWorkerPolyInput<Polygon, GeoJsonProperties> = {
             name: this.name,

@@ -28,7 +28,6 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerGeoJsonLines } from "../map/geojson_lines/MapLayerGeoJsonLines";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -62,7 +61,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF____HALLSTATT;
+    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
 
     const _map = new Map({
 
@@ -83,7 +82,14 @@ function MapComponent() {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
             }
-          }, _mapDef.labelDefs, 6, 7) // 2,
+          }, _mapDef.labelDefs, '', 6, 7) // 2,
+        },
+        {
+          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
+            accepts: () => {
+              return false;
+            }
+          }, [2, -2], 500, {}, _mapDef.clippoly)
         },
         {
           createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
@@ -109,7 +115,7 @@ function MapComponent() {
           }, [2, -2], 500, {
             '3': {
               gridType: 'hexagon',
-              gridSize: 30,
+              gridSize: 25,
               randSize: 0.00020,
               symbolFactory: 'createTreeSymbol',
               outerDim: 75
@@ -123,7 +129,7 @@ function MapComponent() {
             },
             '7': {
               gridType: 'triangle',
-              gridSize: 30,
+              gridSize: 25,
               randSize: 0,
               symbolFactory: 'createGraveSymbol',
               outerDim: 0
@@ -223,9 +229,6 @@ function MapComponent() {
           })
         },
         {
-          createLayerInstance: () => new MapLayerGeoJsonLines(Map.LAYER__NAME___HACHURES, l => l.multiPolyline018)
-        },
-        {
           createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'GIPFEL_L09-20'
@@ -249,7 +252,42 @@ function MapComponent() {
                 return false;
               }
             }
-          }, l => l.multiPolyline050, [0, 0], -15)
+          }, l => l.multiPolyline050, [0, 0], -10)
+        },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+            }
+          }, 'createTownSymbol', _mapDef.labelDefs)
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____HACHURE, {
+            accepts: () => {
+              return false;
+            }
+          }, l => l.multiPolyline018, [0, 0], 0, _mapDef.hachures)
+        },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____CONTOUR, {
+            accepts: () => {
+              return false;
+            }
+          }, l => l.multiPolyline025, [0, 0], 0, _mapDef.contours)
+        },
+        {
+          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME_CONTOUR_TX, {
+            accepts: () => {
+              return false;
+            }
+          }, _mapDef.labelDefs, _mapDef.contours)
+        },
+        {
+          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
+            accepts: () => {
+              return false;
+            }
+          }, _mapDef.labelDefs, _mapDef.bordertx)
         },
         {
           createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
@@ -279,13 +317,7 @@ function MapComponent() {
         //     }
         //   }, [], 0)
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
-        //     }
-        //   }, 'createTownSymbol', _mapDef.labelDefs)
-        // },
+
 
       ],
     });
@@ -316,8 +348,9 @@ function MapComponent() {
 
     const layer = map!.findLayerByName(id);
 
-    const polygons = VectorTileGeometryUtil.destructureMultiPolygon(layer!.polyData);
-    const features = polygons.map(p => turf.feature(p));
+    // const polygons = VectorTileGeometryUtil.destructureMultiPolygon(layer!.polyData);
+    const polylines050 = VectorTileGeometryUtil.destructureMultiPolyline(layer!.multiPolyline050);
+    const features = polylines050.map(p => turf.feature(p));
     const featureCollection = turf.featureCollection(features);
 
     const a = document.createElement("a");
@@ -380,7 +413,6 @@ function MapComponent() {
         _mapLayerProps.push({
           id: l.name,
           visible: true,
-          polylines013: l.multiPolyline013,
           polylines018: l.multiPolyline018,
           polylines025: l.multiPolyline025,
           polylines035: l.multiPolyline035,
@@ -451,7 +483,7 @@ function MapComponent() {
       collectTiles(Map.LOD_15, vectorTileUrlBmapv);
       collectTiles(Map.LOD_14, vectorTileUrlBmapv);
 
-      if (map.findLayerByName(Map.LAYER__NAME__ELEVATE_A) || map.findLayerByName(Map.LAYER__NAME__ELEVATE_B)) {
+      if (map.findLayerByName(Map.LAYER__NAME____CONTOUR) || map.findLayerByName(Map.LAYER__NAME_CONTOUR_TX)) {
         collectTiles(Map.LOD_16, vectorTileUrlBmaph);
         collectTiles(Map.LOD_15, vectorTileUrlBmaph);
         collectTiles(Map.LOD_14, vectorTileUrlBmaph);
@@ -814,7 +846,6 @@ function MapComponent() {
     const _mapLayerProps = mapLayerPropsRef.current.map(p => {
       return {
         ...p,
-        polylines013: p.polylines013,
         polylines018: p.polylines018,
         polylines025: p.polylines025,
         polylines035: p.polylines035,
@@ -825,7 +856,6 @@ function MapComponent() {
     });
     if (mapContainer === 'canvas') {
       _mapLayerProps.forEach(p => {
-        p.polylines013 = VectorTileGeometryUtil.emptyMultiPolyline();
         p.polylines018 = VectorTileGeometryUtil.emptyMultiPolyline();
         p.polylines025 = VectorTileGeometryUtil.emptyMultiPolyline();
         p.polylines035 = VectorTileGeometryUtil.emptyMultiPolyline();
@@ -834,7 +864,6 @@ function MapComponent() {
     } else {
       _mapLayerProps.forEach(p => {
         const layer = map!.findLayerByName(p.id)!;
-        p.polylines013 = layer.multiPolyline013;
         p.polylines018 = layer.multiPolyline018;
         p.polylines025 = layer.multiPolyline025;
         p.polylines035 = layer.multiPolyline035;

@@ -1,9 +1,9 @@
 import * as turf from '@turf/turf';
-import { BBox, GeoJsonProperties, LineString, MultiPolygon } from "geojson";
+import { BBox, GeoJsonProperties, Geometry, LineString, MultiPolygon } from "geojson";
 import { IVectorTileFeature } from "../../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../../vectortile/IVectorTileKey";
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
+import { UnionPolygon, VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "../AMapLayer";
 import { ILabelDef } from '../ILabelDef';
 import { Map } from '../Map';
@@ -15,19 +15,22 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 import * as JSONfn from 'json-fn';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
+import { GeoJsonLoader } from '../../util/GeoJsonLoader';
+import { ISkipOptions } from '../ISkipOptions';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
     polyText: MultiPolygon;
     labelDefs: ILabelDef[];
     labelClasses: (string | number)[];
+    geoJsonPath: string;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[], ...labelClasses: (string | number)[]) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[], geoJsonPath: string = '', ...labelClasses: (string | number)[]) {
         super(name, filter);
         this.labelDefs = labelDefs;
         this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
         this.labelClasses = labelClasses;
-
+        this.geoJsonPath = geoJsonPath;
 
         for (let i = 0; i < this.labelDefs.length; i++) {
             if (this.labelDefs[i].geometry) {
@@ -79,6 +82,22 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
         console.log(`${this.name}, processing data ...`);
         // console.log('this.tileData', this.tileData);
+
+        if (this.geoJsonPath !== '') {
+            const featureCollection = await new GeoJsonLoader().load<LineString, GeoJsonProperties>(this.geoJsonPath);
+            featureCollection.features.forEach(f => {
+                if (f.properties?.label) {
+
+                    this.tileData.push(turf.feature(f.geometry, {
+                        lod: -1,
+                        col: -1,
+                        row: -1,
+                        name: f.properties?.label
+                    }));
+
+                }
+            });
+        }
 
         // https://dev.to/localazy/how-to-pass-function-to-web-workers-4ee1
         const labelDefsWorkerInput: ILabelDefLineLabel[] = this.labelDefs.map(d => {
@@ -168,6 +187,46 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
         //
         // this.connectPolylines(2);
+
+    }
+
+    async clipToLayerMultipolygon(layer: AMapLayer<Geometry, GeoJsonProperties>, distance: number, options?: ISkipOptions): Promise<void> {
+
+        await super.clipToLayerMultipolygon(layer, distance, options);
+
+        if (!options?.skipMlt) {
+
+            const polyDataClip = VectorTileGeometryUtil.emptyMultiPolygon();
+            layer.polyData.coordinates.forEach(polygon => {
+                if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                    polyDataClip.coordinates.push(polygon);
+                }
+            });
+            if (polyDataClip.coordinates.length > 0) {
+
+                const bufferResult = turf.buffer(polyDataClip, distance, {
+                    units: 'meters'
+                });
+
+                const polyDataText = VectorTileGeometryUtil.emptyMultiPolygon();
+                this.polyText.coordinates.forEach(polygon => {
+                    if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                        polyDataText.coordinates.push(polygon);
+                    }
+                });
+                if (polyDataText.coordinates.length > 0) {
+                    const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
+                    const difference = turf.difference(featureC);
+                    if (difference) {
+                        const differenceGeometry: UnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                        const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(differenceGeometry);
+                        this.polyText = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+                    }
+                }
+
+            }
+
+        }
 
     }
 

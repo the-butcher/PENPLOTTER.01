@@ -24,7 +24,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     tileData: Feature<F, P>[];
     polyData: MultiPolygon; // polygon (even for line and point layers) describing an area around this layer's features, meant to be ready after the processPoly method has run
 
-    multiPolyline013: MultiLineString;
     multiPolyline018: MultiLineString;
     multiPolyline025: MultiLineString;
     multiPolyline035: MultiLineString;
@@ -35,7 +34,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
         this.filter = filter;
         this.tileData = [];
         this.polyData = VectorTileGeometryUtil.emptyMultiPolygon();
-        this.multiPolyline013 = VectorTileGeometryUtil.emptyMultiPolyline();
         this.multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
         this.multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
         this.multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
@@ -49,7 +47,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     abstract accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void>;
 
     async clipToLayerMultipolygon(layer: AMapLayer<Geometry, GeoJsonProperties>, distance: number, options: ISkipOptions = {
-        skip013: false,
         skip018: false,
         skip025: false,
         skip035: false,
@@ -58,7 +55,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }): Promise<void> {
 
         const workerInput: IWorkerClipInput = {
-            multiPolyline013Dest: this.multiPolyline013,
             multiPolyline018Dest: this.multiPolyline018,
             multiPolyline025Dest: this.multiPolyline025,
             multiPolyline035Dest: this.multiPolyline035,
@@ -73,7 +69,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
             const workerInstance = new Worker(new URL('../map/clip/worker_clip________misc.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerClipOutput = e.data;
-                this.multiPolyline013 = workerOutput.multiPolyline013Dest;
                 this.multiPolyline018 = workerOutput.multiPolyline018Dest;
                 this.multiPolyline025 = workerOutput.multiPolyline025Dest;
                 this.multiPolyline035 = workerOutput.multiPolyline035Dest;
@@ -160,10 +155,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
         if (geometryTypes.has('polyline')) {
 
-            context.lineWidth = 0.13 * ratio;
-            this.multiPolyline013.coordinates.forEach(polyline013 => {
-                drawPolyline(polyline013);
-            });
 
             context.lineWidth = 0.18 * ratio;
             this.multiPolyline018.coordinates.forEach(polyline018 => {
@@ -189,11 +180,10 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }
 
     applyWorkerOutputLine(workerOutput: IWorkerLineOutput) {
-        this.multiPolyline013 = workerOutput.multiPolyline013 ? this.mergeMultiPolylines(workerOutput.multiPolyline013, this.multiPolyline013) : this.multiPolyline013;
-        this.multiPolyline018 = workerOutput.multiPolyline018 ?? this.multiPolyline018;
-        this.multiPolyline025 = workerOutput.multiPolyline025 ?? this.multiPolyline025;
-        this.multiPolyline035 = workerOutput.multiPolyline035 ?? this.multiPolyline035;
-        this.multiPolyline050 = workerOutput.multiPolyline050 ?? this.multiPolyline050;
+        this.multiPolyline018 = workerOutput.multiPolyline018 ? this.mergeMultiPolylines(workerOutput.multiPolyline018, this.multiPolyline018) : this.multiPolyline018;
+        this.multiPolyline025 = workerOutput.multiPolyline025 ? this.mergeMultiPolylines(workerOutput.multiPolyline025, this.multiPolyline025) : this.multiPolyline025;
+        this.multiPolyline035 = workerOutput.multiPolyline035 ? this.mergeMultiPolylines(workerOutput.multiPolyline035, this.multiPolyline035) : this.multiPolyline035;
+        this.multiPolyline050 = workerOutput.multiPolyline050 ? this.mergeMultiPolylines(workerOutput.multiPolyline050, this.multiPolyline050) : this.multiPolyline050;
     }
 
     mergeMultiPolylines(multiPolylineA: MultiLineString, multiPolylineB: MultiLineString): MultiLineString {
@@ -207,7 +197,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
     bboxClipLayer(bboxMap4326: BBox): void {
         // console.log(`${this.name}, bbox-clip ...`);
-        this.multiPolyline013 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline013, bboxMap4326);
         this.multiPolyline018 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline018, bboxMap4326);
         this.multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline025, bboxMap4326);
         this.multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);
@@ -215,7 +204,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }
 
     connectPolylines(toleranceMeters: number, options: ISkipOptions = {
-        skip013: false,
         skip018: false,
         skip025: false,
         skip035: false,
@@ -223,9 +211,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
         skipMlt: true
     }): void {
         console.log(`${this.name}, connect-polylines ...`);
-        if (!options.skip013) {
-            this.multiPolyline013 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline013, toleranceMeters);
-        }
         if (!options.skip018) {
             this.multiPolyline018 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline018, toleranceMeters);
         }
@@ -242,7 +227,6 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
     cleanCoords() {
         console.log(`${this.name}, cleaning coords ...`);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline013);
         VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline018);
         VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline025);
         VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline035);

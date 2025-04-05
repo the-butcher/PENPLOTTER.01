@@ -9,6 +9,9 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 import * as JSONfn from 'json-fn';
 import { GeometryUtil } from '../../util/GeometryUtil';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
+import { LabelBuilder } from '../../vectortile/LabelBuilder';
+import { noto_serif_regular } from '../../util/NotoSerifRegular';
+import { noto_serif_italic } from '../../util/NotoSerifItalic';
 
 self.onmessage = (e) => {
 
@@ -64,8 +67,10 @@ self.onmessage = (e) => {
                     vertical: 12,
                     charsign: 0,
                     txtscale: 0.022,
+                    fonttype: 'regular',
                     idxvalid: () => true
                 };
+                console.log('lineName', lineName, labelDefs)
                 for (let i = 0; i < labelDefs.length; i++) {
                     if (labelDefs[i].plotName === lineName) {
                         labelDef = labelDefs[i];
@@ -77,6 +82,8 @@ self.onmessage = (e) => {
                     continue;
                 }
 
+                const labelBuilder = labelDef.fonttype === 'regular' ? new LabelBuilder(noto_serif_regular) : new LabelBuilder(noto_serif_italic);
+
                 const labelLine = connectedLinesC[a]; // turf.bboxClip(connectedLinesB[a], bboxMap4326).geometry as LineString;
                 // console.log('labelLine', labelLine);
                 turf.cleanCoords(labelLine, {
@@ -87,7 +94,7 @@ self.onmessage = (e) => {
                 });
                 if (labelLineLength === 0) {
                     continue; // next
-                }
+                };
 
                 let labelLinePositionA = labelLineLength * labelDef.distance;
                 let labelCoordinate4326A = turf.along(labelLine, labelLinePositionA, {
@@ -100,8 +107,8 @@ self.onmessage = (e) => {
                 const zeroOffset: Position = [0, 0];
                 for (let i = 0; i < chars.length; i++) {
 
-                    let charCoordinates = VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, zeroOffset).coordinates;
-                    const charOffset = VectorTileGeometryUtil.getCharOffset(chars[i], scale, zeroOffset, zeroOffset);
+                    let charCoordinates = labelBuilder.getMultiPolygonChar(chars[i], scale, zeroOffset).coordinates;
+                    const charOffset = labelBuilder.getCharOffset(chars[i], scale, zeroOffset, zeroOffset);
 
                     if (labelDef.charsign === 0) { // auto
                         const labelLinePositionT = labelLinePositionA + charOffset[0];

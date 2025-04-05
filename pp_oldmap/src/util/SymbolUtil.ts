@@ -66,18 +66,27 @@ export class SymbolUtil {
     static createTreeSymbol = (coordinate4326: Position): Position[][] => { // coordinate4326: Position
 
         const baseRadius = 10 + (Math.random() - 0.5) * 6;
-        const startRadius = - Math.PI / 2;
-        const endRadius = startRadius + Math.PI * 2;
+        const angleA = Math.PI / 4;
+        const angleB = angleA + Math.PI * 2;
+        // const angleC = angleB + Math.PI / 3;
+
 
         const coordinate3857 = turf.toMercator(coordinate4326);
 
         const treeCoordinates3857: Position[] = [];
-        for (let i = startRadius; i <= endRadius; i += Math.PI / 8) {
+        let i = angleA;
+        for (; i <= angleB; i += Math.PI / 8) {
             treeCoordinates3857.push([
                 coordinate3857[0] + Math.cos(i) * baseRadius,
                 coordinate3857[1] - Math.sin(i) * baseRadius
             ]);
         }
+        // for (; i < angleC; i += Math.PI / 8) {
+        //     treeCoordinates3857.push([
+        //         coordinate3857[0] + Math.cos(i) * (baseRadius + 1),
+        //         coordinate3857[1] - Math.sin(i) * (baseRadius + 1)
+        //     ]);
+        // }
         return [treeCoordinates3857.map(treeCoordinate3857 => turf.toWgs84(treeCoordinate3857))];
 
     }

@@ -8,5 +8,7 @@ export interface ILabelDef {
     charsign: number;
     txtscale: number;
     idxvalid: (index: number) => boolean;
-    geometry?: Position[];
+    fonttype: 'regular' | 'italic';
+    geometry?: Position[]; // deprecated, to be replaced with attributed geojson
+
 }

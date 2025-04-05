@@ -10,7 +10,7 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputPolygon = e.data;
 
-    let multiPolyline013 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
 
     const symbolKeys = Object.keys(workerInput.symbolDefinitions);
     if (symbolKeys.length > 0) {
@@ -131,7 +131,7 @@ self.onmessage = (e) => {
                             hexCoordinatesB.push(...getHexPoints(outerPolygonFeature.geometry, bbox, symbolDefinition));
                             hexCoordinatesB.push(...getHexPoints(centerMultipolygonOd, bbox, {
                                 ...symbolDefinition,
-                                gridSize: symbolDefinition.gridSize * 1.5
+                                gridSize: symbolDefinition.gridSize * 2
                             }));
                         } else { // no difference feature
                             hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, bbox, symbolDefinition));
@@ -151,7 +151,7 @@ self.onmessage = (e) => {
                 hexCoordinatesB.forEach(hexCoordinateB => {
                     const symbolCoordinates = symbolFactory(hexCoordinateB);
                     if (symbolCoordinates.length > 0) {
-                        multiPolyline013.coordinates.push(...symbolCoordinates);
+                        multiPolyline025.coordinates.push(...symbolCoordinates);
                     }
                 });
 
@@ -159,12 +159,12 @@ self.onmessage = (e) => {
 
         }
 
-        multiPolyline013 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline013, workerInput.bboxMap4326);
+        multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
 
     }
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline013
+        multiPolyline025
     };
     self.postMessage(workerOutput);
 

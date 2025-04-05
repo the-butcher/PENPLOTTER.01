@@ -7,6 +7,8 @@ import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { MapDefs } from '../MapDefs';
+import { LabelBuilder } from '../../vectortile/LabelBuilder';
+import { noto_serif_regular } from '../../util/NotoSerifRegular';
 
 self.onmessage = (e) => {
 
@@ -59,6 +61,8 @@ self.onmessage = (e) => {
                     }
                 }
 
+                const labelBuilder = new LabelBuilder(noto_serif_regular);
+
                 const labelCoordinate3857A = turf.toMercator(point.geometry.coordinates);
                 const scale = labelDef.txtscale;
                 const chars = Array.from(name);
@@ -66,8 +70,8 @@ self.onmessage = (e) => {
                 let charOffset: Position = [0, 0];
                 for (let i = 0; i < chars.length; i++) {
 
-                    let charCoordinates = VectorTileGeometryUtil.getMultiPolygonChar(chars[i], scale, charOffset).coordinates;
-                    charOffset = VectorTileGeometryUtil.getCharOffset(chars[i], scale, zeroOffset, charOffset);
+                    let charCoordinates = labelBuilder.getMultiPolygonChar(chars[i], scale, charOffset).coordinates;
+                    charOffset = labelBuilder.getCharOffset(chars[i], scale, zeroOffset, charOffset);
 
                     const angle = 0; //Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
                     const matrixA = GeometryUtil.matrixRotationInstance(-angle);
@@ -135,7 +139,7 @@ self.onmessage = (e) => {
     const workerOutput: IWorkerPolyOutputPoint = {
         polyData,
         polyText,
-        multiPolyline025: multiPolyline025
+        multiPolyline025
     };
     self.postMessage(workerOutput);
 

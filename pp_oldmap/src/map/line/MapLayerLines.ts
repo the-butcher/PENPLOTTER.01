@@ -1,14 +1,15 @@
 import * as turf from '@turf/turf';
 import { BBox, GeoJsonProperties, LineString, MultiLineString } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
+import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
+import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 import { IWorkerLineInputLine } from './IWorkerLineInputLine';
-import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 
 
 export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
@@ -16,12 +17,14 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
     private getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString;
     private dashArray: [number, number];
     private offset: number;
+    private geoJsonPath: string;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0], offset: number = 0) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0], offset: number = 0, geoJsonPath: string = '') {
         super(name, filter);
         this.getDefaultPolylineContainer = getDefaultPolylineContainer;
         this.dashArray = dashArray;
         this.offset = offset;
+        this.geoJsonPath = geoJsonPath;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -38,6 +41,11 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
+
+        if (this.geoJsonPath !== '') {
+            const featureCollection = await new GeoJsonLoader().load<LineString, GeoJsonProperties>(this.geoJsonPath);
+            featureCollection.features.forEach(f => this.tileData.push(f));
+        }
 
         const workerInput: IWorkerPolyInput<LineString, GeoJsonProperties> = {
             name: this.name,
