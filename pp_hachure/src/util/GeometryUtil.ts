@@ -12,33 +12,74 @@ export class GeometryUtil {
     //     1459299.6402537469,
     //     6052689.4598493706
     // ];
+    // static heightRangeSample: IRange = { min: 7057.0, max: 13529.0 };
+    // static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };
 
     // wolfgang
     // static rasterOrigin3857: Position = [
     //     1459299.6402537469,
     //     6052689.4598493706
     // ];
-
-    // hallstatt
-    static rasterOrigin3857: Position = [
-        1516999.6402537469,
-        6035869.4598493706
-    ];
-
-
-    static cellSize = 10;
-
-    // vigaun
-    // static heightRangeSample: IRange = { min: 7057.0, max: 13529.0 };
-    // static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };
-
-    // wolfgang
     // static heightRangeSample: IRange = { min: 8607.0, max: 18487.0 };
     // static heightRangeRaster: IRange = { min: 537.80029296875, max: 1155.19140625 };
 
     // hallstatt
-    static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
-    static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
+    // static rasterOrigin3857: Position = [
+    //     1516999.6402537469,
+    //     6035869.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
+    // static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
+
+    // bad gastein
+    // static rasterOrigin3857: Position = [
+    //     1459659.6402537469,
+    //     5962469.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 13856.0, max: 29381.0 };
+    // static heightRangeRaster: IRange = { min: 865.78936767578, max: 1835.9188232422 };
+
+    // hallein
+    static rasterOrigin3857: Position = [
+        1455149.6402537469,
+        6055969.4598493706
+    ];
+    static heightRangeSample: IRange = { min: 6951.0, max: 13762.0 };
+    static heightRangeRaster: IRange = { min: 434.31433105469, max: 859.93572998047 };
+
+    // duernstein
+    // static rasterOrigin3857: Position = [
+    //     1724199.6402537469,
+    //     6175169.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
+    // static heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
+
+    // salzburg
+    // static rasterOrigin3857: Position = [
+    //     1450099.6402537469,
+    //     6075369.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 6611.0, max: 10202.0 };
+    // static heightRangeRaster: IRange = { min: 413.08285522461, max: 637.49353027344 };
+
+    // alte donau
+    // static rasterOrigin3857: Position = [
+    //     1825299.6402537469,
+    //     6147039.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 2482.0, max: 2826.0 };
+    // static heightRangeRaster: IRange = { min: 155.12026977539, max: 176.60583496094 };
+
+    // hainburg
+    // static rasterOrigin3857: Position = [
+    //     1883449.6402537469,
+    //     6133269.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 2197.0, max: 6553.0 };
+    // static heightRangeRaster: IRange = { min: 137.25184631348, max: 409.46697998047 };
+
+    static cellSize = 10;
 
     static sampleToHeight = (sample: number): number => {
         return ObjectUtil.mapValues(sample, GeometryUtil.heightRangeSample, GeometryUtil.heightRangeRaster);

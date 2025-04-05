@@ -1,5 +1,4 @@
-import * as turf from "@turf/turf";
-import { Polygon, Position } from "geojson";
+import { LineString, Position } from "geojson";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
 import { RasterUtil } from "../util/RasterUtil";
@@ -11,33 +10,37 @@ import { IPositionProperties } from "./IPositionProperties";
 export class Hachure implements IHachure {
 
     static readonly CONFIG: IHachureConfig = {
-        minSpacing: 15,
-        maxSpacing: 15 * 1.66,
-        blurFactor: 2,
+        minSpacing: 6,
+        maxSpacing: 6 * 1.66,
+        blurFactor: 0.5,
         contourOff: 1, // vertical difference of contours
         contourDiv: 2.5, // the subdivisions along a contour
-        hachureRay: (1 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize // larger value -> flatter surfaces get hachures
+        hachureRay: (1 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize, // larger value -> flatter surfaces get hachures
+        contourDsp: 50
     }
 
     // static readonly CONFIG: IHachureConfig = {
-    //     minSpacing: 15,
-    //     maxSpacing: 15 * 1.66,
-    //     blurFactor: 2,
+    //     minSpacing: 6,
+    //     maxSpacing: 6 * 1.66,
+    //     blurFactor: 1.5,
     //     contourOff: 2.5, // vertical difference of contours
     //     contourDiv: 5, // the subdivisions along a contour
-    //     hachureRay: (2.5 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize // larger value -> flatter surfaces get hachures
+    //     hachureRay: (2.5 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize, // larger value -> flatter surfaces get hachures
+    //     contourDsp: 50
     // }
 
 
     private id: string;
     private readonly vertices: IHachureVertex[];
     private complete: boolean;
+    private maxVertices: number;
 
     constructor(firstVertex: IHachureVertex) {
         this.id = ObjectUtil.createId();
         this.vertices = [];
         this.complete = false;
         this.vertices.push(firstVertex);
+        this.maxVertices = 10000 + (Math.random() - 0.5) * 75;
     }
 
     getId(): string {
@@ -49,18 +52,13 @@ export class Hachure implements IHachure {
     }
 
     addVertex(vertex: IHachureVertex) {
+
         this.complete = false;
-        const lastVertex = this.getLastVertex();
-        const hDiff = turf.distance(lastVertex.position4326, vertex.position4326, {
-            units: 'meters'
-        });
-        const vDiff = vertex.height - lastVertex.height;
-        const slope = Math.atan2(vDiff, hDiff) * RasterUtil.RAD2DEG;
-        this.vertices[this.vertices.length - 1].slope = slope;
-        this.vertices.push({
-            ...vertex,
-            slope
-        });
+        this.vertices.push(vertex);
+        if (this.vertices.length >= this.maxVertices) {
+            this.setComplete();
+        }
+
     };
 
     popLastVertex() {
@@ -79,49 +77,40 @@ export class Hachure implements IHachure {
         return this.complete;
     }
 
-    toLineString(): Polygon {
+    toLineString(): LineString {
 
-        const lineString: Polygon = {
-            type: 'Polygon',
-            coordinates: [[]]
+        const lineString: LineString = {
+            type: 'LineString',
+            coordinates: []
         };
 
-        const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
-        if (offsetMetersTop > 1) { // if a rectangular edge would be visible
-            lineString.coordinates[0].push(this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2).position4326);
-        }
-
         for (let i = this.vertices.length - 1; i >= 0; i--) {
-            lineString.coordinates[0].push(this.getOffsetPosition(this.vertices[i], -1).position4326);
+            lineString.coordinates.push(this.vertices[i].position4326);
         }
 
-        const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
-        if (offsetMetersBot > 1) { // if a rectangular edge would be visible
-            lineString.coordinates[0].push(this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2).position4326);
-        }
+        // const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
+        // if (offsetMetersTop > 1) { // if a rectangular edge would be visible
+        //     lineString.coordinates.push(this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2).position4326);
+        // }
 
-        for (let i = 0; i < this.vertices.length; i++) {
-            lineString.coordinates[0].push(this.getOffsetPosition(this.vertices[i], 1).position4326);
-        }
+        // for (let i = this.vertices.length - 1; i >= 0; i--) {
+        //     lineString.coordinates.push(this.getOffsetPosition(this.vertices[i], -1).position4326);
+        // }
 
-        lineString.coordinates[0].push(lineString.coordinates[0][0]); // close polygon
+        // const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
+        // if (offsetMetersBot > 1) { // if a rectangular edge would be visible
+        //     lineString.coordinates.push(this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2).position4326);
+        // }
+
+        // for (let i = 0; i < this.vertices.length; i++) {
+        //     lineString.coordinates.push(this.getOffsetPosition(this.vertices[i], 1).position4326);
+        // }
+
+        // lineString.coordinates.push(lineString.coordinates[0]); // close polygon (actually is linestring, but for better shape)
 
         return lineString;
 
     }
-
-    // getSvgDataFw(): string {
-
-
-    //     const lastVertex = this.getLastVertex();
-    //     const fwlength = 10;
-
-    //     let d = `M${lastVertex.positionPixl[0]} ${lastVertex.positionPixl[1]}`;
-    //     d += `l${Math.cos(lastVertex.aspect * RasterUtil.DEG2RAD) * 10} ${Math.sin(lastVertex.aspect * RasterUtil.DEG2RAD) * fwlength}`;
-
-    //     return d;
-
-    // }
 
     getOffsetPosition(hachureVertex: IHachureVertex, sign: -1 | 1): IPositionProperties {
         const offset = this.getOffsetMeters(hachureVertex, sign);
@@ -154,7 +143,7 @@ export class Hachure implements IHachure {
             max: 90
         }, {
             min: 0,
-            max: 10 * sign
+            max: 2 * sign
         });
     }
 
@@ -166,34 +155,39 @@ export class Hachure implements IHachure {
         // the line going down
         command = 'M';
 
-        const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
-        if (offsetMetersTop > 1) { // if a rectangular edge would be visible
-            const offsetPosition = this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2);
-            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-            command = 'L';
-        }
-
         for (let i = this.vertices.length - 1; i >= 0; i--) {
-            const offsetPosition = this.getOffsetPosition(this.vertices[i], -1);
-            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+            d += `${command}${this.vertices[i].positionPixl[0]} ${this.vertices[i].positionPixl[1]} `;
             command = 'L';
         }
 
-        const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
-        if (offsetMetersBot > 1) { // if a rectangular edge would be visible
-            const offsetPosition = this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2);
-            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-            command = 'L'; // first vertex closes the lower end
-        }
+        // const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
+        // if (offsetMetersTop > 1) { // if a rectangular edge would be visible
+        //     const offsetPosition = this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2);
+        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+        //     command = 'L';
+        // }
 
-        // the line going up
-        for (let i = 0; i < this.vertices.length; i++) {
-            const offsetPosition = this.getOffsetPosition(this.vertices[i], 1);
-            d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-            command = 'L'; // first vertex closes the lower end
-        }
+        // for (let i = this.vertices.length - 1; i >= 0; i--) {
+        //     const offsetPosition = this.getOffsetPosition(this.vertices[i], -1);
+        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+        //     command = 'L';
+        // }
 
-        d += `Z`; // closing the upper end
+        // const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
+        // if (offsetMetersBot > 1) { // if a rectangular edge would be visible
+        //     const offsetPosition = this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2);
+        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+        //     command = 'L'; // first vertex closes the lower end
+        // }
+
+        // // the line going up
+        // for (let i = 0; i < this.vertices.length; i++) {
+        //     const offsetPosition = this.getOffsetPosition(this.vertices[i], 1);
+        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
+        //     command = 'L'; // first vertex closes the lower end
+        // }
+
+        // d += `Z`; // closing the upper end
 
         return d;
 

@@ -5,4 +5,5 @@ export interface IHachureConfig {
     contourOff: number; // vertical difference of contours
     contourDiv: number;
     hachureRay: number;
+    contourDsp: number; // display interval of contours
 }

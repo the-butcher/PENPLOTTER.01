@@ -3,7 +3,7 @@ import { Button } from "@mui/material";
 import * as turf from "@turf/turf";
 import * as d3Array from 'd3-array';
 import * as d3Contour from 'd3-contour';
-import { Feature, LineString, Polygon } from "geojson";
+import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useState } from "react";
 import { Contour } from '../contour/Contour';
 import { Hachure } from '../contour/Hachure';
@@ -14,6 +14,7 @@ import { GeometryUtil } from '../util/GeometryUtil';
 import { IRasterData } from '../util/IRasterData';
 import { ObjectUtil } from '../util/ObjectUtil';
 import { RasterLoader } from '../util/RasterLoader';
+import { RasterUtil } from '../util/RasterUtil';
 
 function ImageLoaderComponent() {
 
@@ -29,7 +30,7 @@ function ImageLoaderComponent() {
     // const [dS, setDS] = useState<string>('');
 
     const [hachures, setHachures] = useState<IHachure[]>([]);
-
+    const [contours, setContours] = useState<IContour[]>([]);
 
 
     const getContourFeatures = (rasterData: IRasterData, thresholds: number[]): Feature<LineString, IContourProperties>[] => {
@@ -112,7 +113,7 @@ function ImageLoaderComponent() {
             svgElement.style.width = `${rasterDataHeight.width * 4}`;
             svgElement.style.height = `${rasterDataHeight.height * 4}`;
 
-            const contours: IContour[] = [];
+            const _contours: IContour[] = [];
 
             console.log('building contours ....');
             const contourFeatures = getContourFeatures(rasterDataHeight, thresholds).filter(f => turf.length(f, {
@@ -120,15 +121,16 @@ function ImageLoaderComponent() {
             }) > Hachure.CONFIG.contourDiv * 2);
             let height = -1;
             contourFeatures.forEach(contourFeature => {
+                // just for logging
                 if (contourFeature.properties.height != height) {
                     height = contourFeature.properties.height;
                     console.log('contour height: ', height);
                 }
-                contours.push(new Contour(contourFeature));
+                _contours.push(new Contour(contourFeature, p => RasterUtil.getRasterValue(rasterDataHeight, p[0], p[1])));
             });
 
             let _dL = '';
-            contours.forEach(contour => {
+            _contours.filter(c => c.getHeight() % Hachure.CONFIG.contourDsp === 0).forEach(contour => {
                 _dL += contour.getSvgData()
             });
             setDL(_dL);
@@ -147,7 +149,7 @@ function ImageLoaderComponent() {
 
                 console.log(`handling heights: ${heightA}, ${heightB} (${_hachuresProgress.length}, ${_hachuresComplete.length})`);
 
-                const heightAContours = contours.filter(c => c.getHeight() === heightA);
+                const heightAContours = _contours.filter(c => c.getHeight() === heightA);
 
                 // const extraHachuresA: IHachure[] = [];
                 for (let j = 0; j < heightAContours.length; j++) {
@@ -166,7 +168,7 @@ function ImageLoaderComponent() {
                 _hachuresProgress = _hachuresTemp;
 
                 _hachuresProgress.forEach(h => h.setComplete())
-                const heightBContours = contours.filter(c => c.getHeight() === heightB);
+                const heightBContours = _contours.filter(c => c.getHeight() === heightB);
                 for (let j = 0; j < heightBContours.length; j++) {
                     _hachuresProgress = heightBContours[j].intersectHachures(_hachuresProgress);
                 }
@@ -185,9 +187,9 @@ function ImageLoaderComponent() {
 
             }
 
-            // one more time filtering by distance
+            // one more time filtering by distance, so some hachures can have their last vertex removed
             const heightA = thresholds[thresholds.length - 1];
-            const heightAContours = contours.filter(c => c.getHeight() === heightA);
+            const heightAContours = _contours.filter(c => c.getHeight() === heightA);
 
             for (let j = 0; j < heightAContours.length; j++) {
                 _hachuresProgress.push(...heightAContours[j].handleHachures(_hachuresProgress, _hachuresComplete));
@@ -211,6 +213,7 @@ function ImageLoaderComponent() {
                 ..._hachuresProgress,
                 ..._hachuresComplete
             ]);
+            setContours(_contours.filter(c => c.getHeight() % Hachure.CONFIG.contourDsp === 0));
 
         }
 
@@ -239,7 +242,7 @@ function ImageLoaderComponent() {
 
         }
 
-    }, [hachures]);
+    }, [hachures, contours]);
 
     const renderRasterDataHeight = () => {
 
@@ -295,21 +298,27 @@ function ImageLoaderComponent() {
 
     }
 
-    const exportHachureGeoJson = () => {
+    const exportHachuresGeoJson = () => {
 
-        // const layer = map!.findLayerByName(id);
-        const exportFeatures: Feature<Polygon>[] = [];
-        hachures.forEach(hachure => {
-            exportFeatures.push(turf.feature(hachure.toLineString()));
-        })
+        exportGeoJson(hachures.map(h => turf.feature(h.toLineString())), 'hachures');
 
-        // const polygons = VectorTileGeometryUtil.destructureMultiPolygon(layer!.polyData);
-        // const features = polygons.map(p => turf.feature(p));
-        const featureCollection = turf.featureCollection(exportFeatures);
+    }
+
+    const exportContoursGeoJson = () => {
+
+        exportGeoJson(contours.map(c => turf.feature(c.toLineString(), {
+            label: c.getHeight().toFixed(0)
+        })), 'contours');
+
+    }
+
+    const exportGeoJson = (features: Feature<LineString, GeoJsonProperties>[], prefix: string) => {
+
+        const featureCollection = turf.featureCollection(features);
 
         const a = document.createElement("a");
         const e = new MouseEvent("click");
-        a.download = `hachures_${ObjectUtil.createId()}.json`;
+        a.download = `${prefix}_${ObjectUtil.createId()}.geojson`;
         a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(featureCollection));
         a.dispatchEvent(e);
 
@@ -374,7 +383,7 @@ function ImageLoaderComponent() {
                     style={{
                         stroke: `rgba(50, 50, 50, 0.75)`,
                         strokeWidth: '0.33',
-                        fill: 'rgba(50, 50, 50, 0.25)',
+                        fill: 'none', // 'rgba(50, 50, 50, 0.25)',
                         strokeLinecap: 'round',
                         strokeLinejoin: 'round'
                     }}
@@ -412,7 +421,7 @@ function ImageLoaderComponent() {
                 /> */}
                 <path
                     style={{
-                        stroke: `rgba(100, 100, 100, 0.0)`,
+                        stroke: `rgba(50, 50, 50, 0.75)`,
                         strokeWidth: '0.25',
                         fill: 'none',
                         strokeLinecap: 'round',
@@ -433,8 +442,20 @@ function ImageLoaderComponent() {
                 variant="contained"
                 tabIndex={-1}
                 startIcon={<UploadFileIcon />}
-                onClick={exportHachureGeoJson}
-            >download</Button>
+                onClick={exportHachuresGeoJson}
+            >download hachures</Button>
+            <Button
+                sx={{
+                    width: '200px',
+                    marginLeft: '100px'
+                }}
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                startIcon={<UploadFileIcon />}
+                onClick={exportContoursGeoJson}
+            >download contours</Button>
         </div>
     );
 }

@@ -1,3 +1,4 @@
+import { LineString } from "geojson";
 import { IHachure } from "./IHachure";
 
 export interface IContour {
@@ -34,5 +35,7 @@ export interface IContour {
     weighedLengthToLength: (length: number) => number;
 
     getSvgData: () => string;
+
+    toLineString: () => LineString;
 
 }
