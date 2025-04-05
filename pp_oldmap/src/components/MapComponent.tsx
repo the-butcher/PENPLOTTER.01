@@ -13,7 +13,7 @@ import { Map } from "../map/Map";
 import { MapDefs } from "../map/MapDefs";
 import { MapLayerPoints } from "../map/point/MapLayerPoints";
 import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
-import { MapLayerRoads } from "../map/road/MapLayerRoads";
+import { MapLayerRoad2 } from "../map/road2/MapLayerRoad2";
 import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
 import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
@@ -180,44 +180,11 @@ function MapComponent() {
           }, l => l.multiPolyline025, [12, 4])
         },
         {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____ROADS_A, {
+          createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
             accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
+              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
               return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME___BRIDGE_A, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
-              return vectorTileKey.lod === 15 && isBridge && isCommonRoad;
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____ROADS_B, {
-            // 0 Autobahn, Schnellstrasse
-            // 1 Rampe
-            // 2 in Bau
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isHighway = vectorTileFeature.hasValue('_symbol', 0, 1, 2);
-              return vectorTileKey.lod === 15 && isGipOrBridge && isHighway;
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME___BRIDGE_B, {
-            // 0 Autobahn, Schnellstrasse
-            // 1 Rampe
-            // 2 in Bau
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isHighway = vectorTileFeature.hasValue('_symbol', 0, 1, 2);
-              return vectorTileKey.lod === 15 && isBridge && isHighway;
             }
           })
         },
@@ -316,6 +283,48 @@ function MapComponent() {
         //       return false;
         //     }
         //   }, [], 0)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____ROADS_A, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
+        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME___BRIDGE_A, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 3, 4, 5, 6, 7, 8);
+        //       return vectorTileKey.lod === 15 && isBridge && isCommonRoad;
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME____ROADS_B, {
+        //     // 0 Autobahn, Schnellstrasse
+        //     // 1 Rampe
+        //     // 2 in Bau
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isHighway = vectorTileFeature.hasValue('_symbol', 0, 1, 2);
+        //       return vectorTileKey.lod === 15 && isGipOrBridge && isHighway;
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerRoads(Map.LAYER__NAME___BRIDGE_B, {
+        //     // 0 Autobahn, Schnellstrasse
+        //     // 1 Rampe
+        //     // 2 in Bau
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isHighway = vectorTileFeature.hasValue('_symbol', 0, 1, 2);
+        //       return vectorTileKey.lod === 15 && isBridge && isHighway;
+        //     }
+        //   })
         // },
 
 

@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, GeoJsonProperties, Geometry, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
+import { BBox, Feature, FeatureCollection, GeoJsonProperties, Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon, Position } from "geojson";
 import { IRingDeviation } from '../map/IRingDeviation';
 import { CODE____LINE_TO, CODE____MOVE_TO, IVectorTileCoordinate } from "../protobuf/vectortile/geometry/IVectorTileCoordinate";
 import { Uid } from '../util/Uid';
@@ -8,6 +8,7 @@ import { VectorTileKey } from "./VectorTileKey";
 
 export type UnionPolygon = Polygon | MultiPolygon;
 export type UnionPolyline = LineString | MultiLineString;
+export type UnionPoint = Point | MultiPoint;
 
 export class VectorTileGeometryUtil {
 
@@ -551,6 +552,26 @@ export class VectorTileGeometryUtil {
         } else if (unionPolygon.type === 'Polygon') {
             result.push(unionPolygon);
         }
+        return result;
+
+    }
+
+    static destructureUnionPoint(unionPoints: FeatureCollection<UnionPoint>): Point[] {
+
+        const result: Point[] = [];
+        unionPoints.features.map(f => f.geometry).forEach(unionPoint => {
+            if (unionPoint.type === 'MultiPoint') {
+                unionPoint.coordinates.forEach(coordinates => {
+                    result.push({
+                        type: 'Point',
+                        coordinates
+                    });
+                });
+            } else if (unionPoint.type === 'Point') {
+                result.push(unionPoint);
+            }
+        });
+
         return result;
 
     }

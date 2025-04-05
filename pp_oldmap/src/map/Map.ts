@@ -30,10 +30,10 @@ export class Map {
     static readonly LAYER__NAME__SHIP_LINE = "l__ship_line";
     static readonly LAYER__NAME_____BORDER = "l_____border";
     static readonly LAYER__NAME__BORDER_TX = "l__border_tx";
-    static readonly LAYER__NAME____ROADS_A = "l____roads_a";
-    static readonly LAYER__NAME___BRIDGE_A = "l___bridge_a";
-    static readonly LAYER__NAME____ROADS_B = "l____roads_b";
-    static readonly LAYER__NAME___BRIDGE_B = "l___bridge_b";
+    static readonly LAYER__NAME______ROADS = "l______roads";
+    // static readonly LAYER__NAME___BRIDGE_A = "l___bridge_a";
+    // static readonly LAYER__NAME____ROADS_B = "l____roads_b";
+    // static readonly LAYER__NAME___BRIDGE_B = "l___bridge_b";
     static readonly LAYER__NAME_____TUNNEL = "l_____tunnel";
     static readonly LAYER__NAME____CONTOUR = "l____contour";
     static readonly LAYER__NAME_CONTOUR_TX = "l_contour_tx";
