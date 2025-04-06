@@ -599,6 +599,7 @@ export class VectorTileGeometryUtil {
         return (point[0] >= bbox[0] && point[0] <= bbox[2] && point[1] >= bbox[1] && point[1] <= bbox[3]);
     }
 
+
     static bufferCollect2(unionPolygon: UnionPolygon, includeInput: boolean, ...distances: number[]): Feature<LineString>[] {
 
         const results: Feature<LineString>[] = [];

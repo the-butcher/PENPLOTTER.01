@@ -94,13 +94,13 @@ export class SymbolUtil {
     static createWineSymbol = (coordinate4326: Position): Position[][] => { // coordinate4326: Position
 
         const baseRadius = 8;
-        const startRadius = - Math.PI / 2;
-        const endRadius = startRadius + Math.PI * 2;
+        const startAngle = - Math.PI / 2;
+        const endAngle = startAngle + Math.PI * 2;
 
         const coordinate3857 = turf.toMercator(coordinate4326);
 
         const wineCoordinates3857: Position[] = [];
-        for (let i = startRadius; i <= endRadius; i += Math.PI / 8) {
+        for (let i = startAngle; i <= endAngle; i += Math.PI / 8) {
             wineCoordinates3857.push([
                 coordinate3857[0] + Math.cos(i) * baseRadius,
                 coordinate3857[1] - Math.sin(i) * baseRadius

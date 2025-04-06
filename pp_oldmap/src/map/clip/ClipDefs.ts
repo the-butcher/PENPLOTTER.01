@@ -143,7 +143,10 @@ export class ClipDefs {
             layerNameDest: Map.LAYER__NAME____RAILWAY,
             layerNameClip: Map.LAYER__NAME_____BRIDGE,
             distance: 4,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
@@ -164,6 +167,51 @@ export class ClipDefs {
         /////////////////////////////////////////////
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME_____BORDER,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME__BORDER_TX,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
+            layerNameClip: Map.LAYER__NAME__BORDER_TX,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
+            layerNameClip: Map.LAYER__NAME__BORDER_TX,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__GREENAREA,
+            layerNameClip: Map.LAYER__NAME__BORDER_TX,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME______FRAME,

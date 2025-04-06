@@ -439,6 +439,16 @@ export class MapDefs {
                 idxvalid: () => false
             },
             {
+                tileName: 'Adneter Gries',
+                plotName: 'Adneter Gries',
+                distance: 75,
+                vertical: 60,
+                charsign: 1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
                 tileName: 'Salzach',
                 plotName: 'Salzach',
                 distance: 0.060,

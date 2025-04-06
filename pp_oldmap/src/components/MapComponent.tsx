@@ -86,13 +86,6 @@ function MapComponent() {
           }, _mapDef.labelDefs, '', 6, 7) // 2,
         },
         {
-          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
-            accepts: () => {
-              return false;
-            }
-          }, [2, -2], 500, {}, _mapDef.clippoly)
-        },
-        {
           createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX_GREENAREA, Map.SYMBOL_INDEX___LEISURE);
@@ -265,6 +258,13 @@ function MapComponent() {
               return false;
             }
           }, _mapDef.labelDefs, _mapDef.bordertx)
+        },
+        {
+          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
+            accepts: () => {
+              return false;
+            }
+          }, [2, -2], 500, {}, _mapDef.clippoly)
         },
         {
           createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
