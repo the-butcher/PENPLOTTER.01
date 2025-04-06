@@ -19,7 +19,7 @@ export interface IContourVertex extends IPositionProperties {
      */
     slope: number;
     /**
-     * weighed length (for density calculation) of this vertex along its contour
+     * scaled length (for density calculation) of this vertex along its contour
      */
-    weighedLength: number;
+    scaledLength: number;
 }

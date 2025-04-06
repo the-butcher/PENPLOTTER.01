@@ -21,18 +21,16 @@ export interface IContour {
      */
     intersectHachures(hachures: IHachure[]): IHachure[];
 
-    // getLength: () => number;
-
     /**
-     * get a weighed length at a given actual length
-     * the weighed length is used to calculate the amount of hachure lines that can be fitted and
+     * get a scaled length at a given actual length
+     * the scaled length is used to calculate the amount of hachure lines that can be fitted and
      * grows faster on the shadow side of a contour
      * @param length
      * @returns
      */
-    lengthToWeighedLength: (length: number) => number;
+    lengthToScaledLength: (length: number) => number;
 
-    weighedLengthToLength: (length: number) => number;
+    scaledLengthToLength: (length: number) => number;
 
     getSvgData: () => string;
 

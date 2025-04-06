@@ -10,12 +10,25 @@ import { IContourVertex } from "./IContourVertex";
 import { IHachure } from "./IHachure";
 import { ISubGeometry } from "./ISubGeometry";
 
+/**
+ * Implementation of {@link IContour}, holds a major part of the hachure implementation.
+ * One instance of this class holds a single contour. there may be other contours at the same height, but in a different geographical extent.
+ * When the contour is constructed, it is divided into equal length segments of i.e. 5m length.
+ * At each subdivision aspect and slope are calculated and a {@link IContourVertex} is contructed to hold that information for later hachure calculation.
+ * Additionally from aspect and slope a hillshade value is calculated and used to determine a "scaled-length" value.
+ * That "scaled-length" is later used to determine how many hachure lines can be fit along the contour.
+ * At spo
+ *
+ *
+ * @author h.fleischer
+ * @since 06.04.2025
+ */
 export class Contour implements IContour {
 
     private id: string;
     private height: number;
     private length: number;
-    private weighedLength: number;
+    private scaledLength: number;
 
     private subGeometries: ISubGeometry[];
 
@@ -50,7 +63,7 @@ export class Contour implements IContour {
         let length = 0;
         let slope = 0;
         let aspect = 0;
-        let weighedLength = 0;
+        let scaledLength = 0;
 
         const zenith = 45;
         const azimut = 135; // north-west
@@ -61,11 +74,10 @@ export class Contour implements IContour {
             length,
             slope, // start with 0, but later copy back or extrapolate
             aspect, // start with 0, but later copy back or extrapolate
-            weighedLength
+            scaledLength
         });
         const lenS = 5;
 
-        // console.log('weightCalcSegments', weightCalcSegments);
         for (let i = 1; i <= weightCalcSegments - 1; i++) {
 
             length = (i + 1) * this.weightCalcIncrement;
@@ -100,7 +112,7 @@ export class Contour implements IContour {
                 max: Hachure.CONFIG.contourDiv * 0.25
             });
 
-            weighedLength += incrmt;
+            scaledLength += incrmt;
 
             this.vertices.push({
                 position4326: position4326I,
@@ -108,7 +120,7 @@ export class Contour implements IContour {
                 length,
                 aspect,
                 slope,
-                weighedLength
+                scaledLength: scaledLength
             });
 
             // move forward
@@ -126,14 +138,14 @@ export class Contour implements IContour {
             length = this.length;
             aspect = this.vertices[this.vertices.length - 1].aspect;
             slope = this.vertices[this.vertices.length - 1].slope;
-            weighedLength = this.vertices[this.vertices.length - 1].weighedLength * 2 - this.vertices[this.vertices.length - 2].weighedLength;
+            scaledLength = this.vertices[this.vertices.length - 1].scaledLength * 2 - this.vertices[this.vertices.length - 2].scaledLength;
             this.vertices.push({
                 position4326: position4326B!,
                 positionPixl: positionPixlB!,
                 length,
                 slope,
                 aspect,
-                weighedLength
+                scaledLength: scaledLength
             });
         }
 
@@ -163,7 +175,7 @@ export class Contour implements IContour {
                 bbox: turf.bbox(subGeometry)
             });
         }
-        this.weighedLength = weighedLength;
+        this.scaledLength = scaledLength;
 
     }
 
@@ -179,8 +191,8 @@ export class Contour implements IContour {
 
         const extraHachures: IHachure[] = [];
 
-        const weighedLengths: number[] = []; // [0, this.weighedLength];
-        weighedLengths.push(0);
+        const scaledLengths: number[] = [];
+        scaledLengths.push(0);
 
         for (let i = 0; i < hachuresProgress.length; i++) {
 
@@ -191,41 +203,37 @@ export class Contour implements IContour {
             if (nearestPoint && nearestPoint.properties.dist < 0.01) {
 
                 const length = nearestPoint.properties.location;
-                const weighedLength = this.lengthToWeighedLength(length);
-                const hasWeightLengthSmallerThanMin = weighedLengths.find(w => Math.abs(weighedLength - w) < Hachure.CONFIG.minSpacing);
+                const scaledLength = this.lengthToScaledLength(length);
+                const hasWeightLengthSmallerThanMin = scaledLengths.find(w => Math.abs(scaledLength - w) < Hachure.CONFIG.minSpacing);
                 if (hasWeightLengthSmallerThanMin) {
                     // TODO :: depending on distances before or after it may also make sense to discontinue/complete the previous line
                     hachure.setComplete();
                 }
                 //  else {
-                weighedLengths.push(weighedLength); // weighedLength is added regardless of complete state that may just have been set, in some cases another line would be started right away otherwise
+                scaledLengths.push(scaledLength); // scaledLength is added regardless of complete state that may just have been set, in some cases another line would be started right away otherwise
                 // }
 
             }
 
         }
-        weighedLengths.push(this.weighedLength);
-        weighedLengths.sort();
-
-        // console.log('weighedLengths', weighedLengths);
-
+        scaledLengths.push(this.scaledLength);
+        scaledLengths.sort();
 
         let extraHachureAdded = true;
         let counter = 0;
         while (extraHachureAdded && counter++ < 25) {
 
-            const _weighedLengths = [...weighedLengths.sort((a, b) => a - b)];
-            // console.log('_weighedLengths', _weighedLengths);
+            const _scaledLengths = [...scaledLengths.sort((a, b) => a - b)];
 
             extraHachureAdded = false;
 
-            for (let i = 0; i < _weighedLengths.length - 1; i++) {
+            for (let i = 0; i < _scaledLengths.length - 1; i++) {
 
-                const weighedLengthDiff = _weighedLengths[i + 1] - _weighedLengths[i];
-                if (weighedLengthDiff > Hachure.CONFIG.maxSpacing * 2) { // enough space to fit one extra
+                const scaledLengthDiff = _scaledLengths[i + 1] - _scaledLengths[i];
+                if (scaledLengthDiff > Hachure.CONFIG.maxSpacing * 2) { // enough space to fit one extra
 
-                    const weighedLength = _weighedLengths[i] + weighedLengthDiff / 2;
-                    const length = this.weighedLengthToLength(weighedLength);
+                    const scaledLength = _scaledLengths[i] + scaledLengthDiff / 2;
+                    const length = this.scaledLengthToLength(scaledLength);
 
                     const position4326 = this.findPointAlong(length);
                     if (position4326) {
@@ -263,7 +271,7 @@ export class Contour implements IContour {
                             extraHachureAdded = true;
 
                             // console.log('adding extra hachure', i, i + 1, weighedLength, extraHachure);
-                            weighedLengths.push(weighedLength);
+                            scaledLengths.push(scaledLength);
 
                         }
 
@@ -497,17 +505,17 @@ export class Contour implements IContour {
 
     }
 
-    weighedLengthToLength(_weighedLength: number): number {
+    scaledLengthToLength(_weighedLength: number): number {
         if (_weighedLength < 0) {
             return 0;
-        } else if (_weighedLength > this.weighedLength) {
+        } else if (_weighedLength > this.scaledLength) {
             return this.length;
         } else {
             for (let i = 1; i < this.vertices.length; i++) {
-                if (this.vertices[i].weighedLength > _weighedLength) {
+                if (this.vertices[i].scaledLength > _weighedLength) {
                     return ObjectUtil.mapValues(_weighedLength, {
-                        min: this.vertices[i - 1].weighedLength,
-                        max: this.vertices[i].weighedLength
+                        min: this.vertices[i - 1].scaledLength,
+                        max: this.vertices[i].scaledLength
                     }, {
                         min: this.vertices[i - 1].length,
                         max: this.vertices[i].length
@@ -518,11 +526,11 @@ export class Contour implements IContour {
         }
     }
 
-    lengthToWeighedLength(_length: number): number {
+    lengthToScaledLength(_length: number): number {
         if (_length < 0) {
             return 0;
         } else if (_length > this.length) {
-            return this.weighedLength;
+            return this.scaledLength;
         } else {
             for (let i = 1; i < this.vertices.length; i++) {
                 if (this.vertices[i].length > _length) {
@@ -530,12 +538,12 @@ export class Contour implements IContour {
                         min: this.vertices[i - 1].length,
                         max: this.vertices[i].length
                     }, {
-                        min: this.vertices[i - 1].weighedLength,
-                        max: this.vertices[i].weighedLength
+                        min: this.vertices[i - 1].scaledLength,
+                        max: this.vertices[i].scaledLength
                     });
                 }
             }
-            return this.weighedLength;
+            return this.scaledLength;
         }
     }
 
