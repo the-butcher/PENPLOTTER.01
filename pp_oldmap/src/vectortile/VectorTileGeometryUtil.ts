@@ -12,7 +12,7 @@ export type UnionPoint = Point | MultiPoint;
 
 export class VectorTileGeometryUtil {
 
-    static readonly DEFAULT_SIMPLIFY_TOLERANCE = 0.000005;
+    static readonly DEFAULT_SIMPLIFY_TOLERANCE = 0.000001;
 
     static bboxAtCenter(center: Position, width: number, height: number): BBox {
         return [

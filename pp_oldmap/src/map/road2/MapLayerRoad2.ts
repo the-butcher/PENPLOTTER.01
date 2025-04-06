@@ -1,19 +1,29 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Point, Polygon } from "geojson";
+import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Point, Polygon, Position } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { UnionPolygon, VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
 import { ISymbolProperties } from '../common/ISymbolProperties';
+import { SymbolUtil } from '../../util/SymbolUtil';
+import { Line } from 'd3';
 
+interface IOpenEnd {
+    categoryIndex: number;
+    polylineIndex: number;
+    coordinateEnd: '0' | 'L';
+}
 
 export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
     bridgePolygons: MultiPolygon[];
     roadPolygons: MultiPolygon[];
+
+    roadOutlines: MultiLineString[];
     roadPolylines: MultiLineString[];
     bridgePolylines: MultiLineString[];
+
     bufferDistances: number[] = [
         6, // heighway
         6, // ramp
@@ -30,6 +40,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         super(name, filter);
         this.bridgePolygons = [];
         this.roadPolygons = [];
+        this.roadOutlines = [];
         this.roadPolylines = [];
         this.bridgePolylines = [];
     }
@@ -111,14 +122,20 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                     units: 'meters'
                 }) as Feature<Polygon | MultiPolygon>;
                 this.roadPolygons.push(VectorTileGeometryUtil.restructureMultiPolygon(VectorTileGeometryUtil.destructureUnionPolygon(roadBuffer.geometry)));
-                if (this.bufferDistances[i] > 2) {
-                    this.roadPolylines.push({
-                        type: 'MultiLineString',
-                        coordinates: this.roadPolygons[i].coordinates.reduce((prev, curr) => [...prev, ...curr], [])
-                    });
-                } else {
-                    this.roadPolylines.push(_roadMultiPolyline);
-                }
+                this.roadOutlines.push({
+                    type: 'MultiLineString',
+                    coordinates: this.roadPolygons[i].coordinates.reduce((prev, curr) => [...prev, ...curr], [])
+                });
+                this.roadPolylines.push(_roadMultiPolyline);
+
+                // if (this.bufferDistances[i] > 2) {
+                //     this.roadOutlines.push({
+                //         type: 'MultiLineString',
+                //         coordinates: this.roadPolygons[i].coordinates.reduce((prev, curr) => [...prev, ...curr], [])
+                //     });
+                // } else {
+                //     this.roadOutlines.push(_roadMultiPolyline);
+                // }
 
                 // } else {
                 //     console.log('zero dim polyline', i, _roadMultiPolyline);
@@ -128,6 +145,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
             } else {
                 this.roadPolygons.push(VectorTileGeometryUtil.emptyMultiPolygon());
+                this.roadOutlines.push(VectorTileGeometryUtil.emptyMultiPolyline());
                 this.roadPolylines.push(VectorTileGeometryUtil.emptyMultiPolyline());
             }
 
@@ -184,8 +202,6 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                                 for (let intersectIndex = startIndex; intersectIndex < roadIntersects.features.length - 1; intersectIndex += 2) {
 
-
-
                                     const intersectA = roadIntersects.features[intersectIndex].geometry.coordinates;
                                     const intersectB = roadIntersects.features[intersectIndex + 1].geometry.coordinates;
                                     const nearestA = turf.nearestPointOnLine(_bridgePolyline, intersectA, {
@@ -221,7 +237,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                 const bridgeBufferMultiPolygon = turf.feature(VectorTileGeometryUtil.restructureMultiPolygon(bridgeBufferPolygons));
 
-                this.roadPolylines[roadCategoryIndex] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadCategoryIndex], bridgeBufferMultiPolygon);
+                this.roadOutlines[roadCategoryIndex] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadCategoryIndex], bridgeBufferMultiPolygon);
 
                 const featureCollection = turf.featureCollection([turf.feature(this.roadPolygons[roadCategoryIndex]), bridgeBufferMultiPolygon]);
                 const difference = turf.difference(featureCollection);
@@ -237,25 +253,267 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
     }
 
+    findOpenEnds(roadCategoryIndexA: number, roadPolylineIndexA: number, bboxMap4326: BBox): IOpenEnd[] {
+
+        const results: IOpenEnd[] = [];
+
+        const polylineCoordinateA0 = this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA][0];
+        const polylineCoordinateAL = this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA][this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA].length - 1];
+
+        let openEnd0 = VectorTileGeometryUtil.booleanWithin(bboxMap4326, polylineCoordinateA0);
+        let openEndL = VectorTileGeometryUtil.booleanWithin(bboxMap4326, polylineCoordinateAL);
+
+        const maxDistance = 5;
+
+        // road forming a loop (like in a roundabout)
+        if (turf.distance(polylineCoordinateA0, polylineCoordinateAL, {
+            units: 'meters'
+        }) < maxDistance) {
+            openEnd0 = false;
+            openEndL = false;
+        };
+
+        let polylineA: LineString = {
+            type: 'LineString',
+            coordinates: this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA]
+        };
+        turf.cleanCoords(polylineA, {
+            mutate: true
+        });
+        const lengthA = turf.length(turf.feature(polylineA), {
+            units: 'meters'
+        });
+
+        if (lengthA >= maxDistance * 4) {
+
+            polylineA = turf.lineSliceAlong(polylineA, maxDistance * 1.5, lengthA - maxDistance * 1.5, {
+                units: 'meters'
+            }).geometry;
+
+            for (let coordinateIndex = 0; coordinateIndex < polylineA.coordinates.length; coordinateIndex++) {
+
+                const polylineCoordinateAI = polylineA.coordinates[coordinateIndex];
+                if (openEnd0) {
+                    if (turf.distance(polylineCoordinateA0, polylineCoordinateAI, {
+                        units: 'meters'
+                    }) < maxDistance) {
+                        openEnd0 = false;
+                    }
+                }
+                if (openEndL) {
+                    if (turf.distance(polylineCoordinateAL, polylineCoordinateAI, {
+                        units: 'meters'
+                    }) < maxDistance) {
+                        openEndL = false;
+                    }
+                }
+
+            }
+
+        }
+
+
+
+        if (openEnd0 || openEndL) {
+
+            // first, faster, search
+            for (let roadCategoryIndexB = 2; roadCategoryIndexB < this.bufferDistances.length - 3; roadCategoryIndexB++) {
+
+                for (let roadPolylineIndexB = 0; roadPolylineIndexB < this.roadPolylines[roadCategoryIndexB].coordinates.length; roadPolylineIndexB++) {
+
+                    // dont check agains to own polyline, would always find a hit
+                    if (roadCategoryIndexA === roadCategoryIndexB && roadPolylineIndexA === roadPolylineIndexB) {
+                        continue;
+                    }
+
+                    for (let coordinateIndex = 0; coordinateIndex < this.roadPolylines[roadCategoryIndexB].coordinates[roadPolylineIndexB].length; coordinateIndex++) {
+
+                        const polylineCoordinateBI = this.roadPolylines[roadCategoryIndexB].coordinates[roadPolylineIndexB][coordinateIndex];
+                        if (openEnd0) {
+                            if (turf.distance(polylineCoordinateA0, polylineCoordinateBI, {
+                                units: 'meters'
+                            }) < maxDistance) {
+                                openEnd0 = false;
+                            }
+                        }
+                        if (openEndL) {
+                            if (turf.distance(polylineCoordinateAL, polylineCoordinateBI, {
+                                units: 'meters'
+                            }) < maxDistance) {
+                                openEndL = false;
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        // is still open, second, slower, search
+        if (openEnd0 || openEndL) {
+
+            for (let roadCategoryIndexB = 2; roadCategoryIndexB < this.bufferDistances.length - 3; roadCategoryIndexB++) {
+
+                for (let roadPolylineIndexB = 0; roadPolylineIndexB < this.roadPolylines[roadCategoryIndexB].coordinates.length; roadPolylineIndexB++) {
+
+                    // dont check agains to own polyline, would always find a hit
+                    if (roadCategoryIndexA === roadCategoryIndexB && roadPolylineIndexA === roadPolylineIndexB) {
+                        continue;
+                    }
+
+                    const polylineB: LineString = {
+                        type: 'LineString',
+                        coordinates: this.roadPolylines[roadCategoryIndexB].coordinates[roadPolylineIndexB]
+                    };
+                    turf.cleanCoords(polylineB, {
+                        mutate: true
+                    });
+
+                    if (turf.length(turf.feature(polylineB), {
+                        units: 'meters'
+                    }) < 5) {
+                        continue;
+                    }
+
+                    const bboxB = turf.bbox(polylineB);
+
+                    if (openEnd0 && VectorTileGeometryUtil.booleanWithin(bboxB, polylineCoordinateA0)) {
+                        // console.log(polylineB)
+                        const nearest0 = turf.nearestPointOnLine(polylineB, polylineCoordinateA0, {
+                            units: 'meters'
+                        });
+                        if (nearest0.properties.dist < maxDistance) {
+                            openEnd0 = false;
+                        }
+                    }
+                    if (openEndL && VectorTileGeometryUtil.booleanWithin(bboxB, polylineCoordinateAL)) {
+                        // console.log(polylineB)
+                        const nearestL = turf.nearestPointOnLine(polylineB, polylineCoordinateAL, {
+                            units: 'meters'
+                        });
+                        if (nearestL.properties.dist < maxDistance) {
+                            openEndL = false;
+                        }
+                    }
+
+
+                }
+
+            }
+
+        }
+
+        if (openEnd0) {
+            results.push({
+                categoryIndex: roadCategoryIndexA,
+                polylineIndex: roadPolylineIndexA,
+                coordinateEnd: '0'
+            });
+        }
+        if (openEndL) {
+            results.push({
+                categoryIndex: roadCategoryIndexA,
+                polylineIndex: roadPolylineIndexA,
+                coordinateEnd: 'L'
+            });
+        }
+
+        return results;
+
+    }
+
+
     async processLine(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing line ...`);
 
+        const openEnds: IOpenEnd[] = [];
+        // start with index 2 to skip highways and ramps and also end early because we do not need to handle line only ends
+        for (let roadCategoryIndexA = 2; roadCategoryIndexA < this.bufferDistances.length - 3; roadCategoryIndexA++) {
+            for (let roadPolylineIndexA = 0; roadPolylineIndexA < this.roadPolylines[roadCategoryIndexA].coordinates.length; roadPolylineIndexA++) {
+                openEnds.push(...this.findOpenEnds(roadCategoryIndexA, roadPolylineIndexA, bboxMap4326));
+            }
+        }
+        console.log('openEnds', openEnds);
+
+        const openPoly: MultiPolygon = VectorTileGeometryUtil.emptyMultiPolygon();
+        openEnds.forEach(openEnd => {
+
+            let polylineCoordinateE4326: Position;
+            let polylineCoordinateD4326: Position;
+
+            if (openEnd.coordinateEnd === '0') {
+
+                polylineCoordinateE4326 = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][0];
+                polylineCoordinateD4326 = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][1];
+
+            } else {
+
+                polylineCoordinateE4326 = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex].length - 1];
+                polylineCoordinateD4326 = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex].length - 2];
+
+                // const polylineCoordinateAL = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex].length - 1];
+                // this.multiPolyline018.coordinates.push(...SymbolUtil.createWineSymbol(polylineCoordinateAL));
+
+            }
+
+            const polylineCoordinateE3857 = turf.toMercator(polylineCoordinateE4326);
+            const polylineCoordinateD3857 = turf.toMercator(polylineCoordinateD4326);
+
+            const diffX = polylineCoordinateE3857[0] - polylineCoordinateD3857[0];
+            const diffY = polylineCoordinateE3857[1] - polylineCoordinateD3857[1];
+
+            const radius = this.bufferDistances[openEnd.categoryIndex] * 2;
+            const angleS = Math.atan2(diffY, diffX);
+            const angleA = angleS - Math.PI / 2;
+            const angleB = angleS + Math.PI / 2 + Math.PI / 16;
+            const capCoordinates3857: Position[] = [];
+            capCoordinates3857.push(polylineCoordinateE3857);
+            for (let angle = angleA; angle <= angleB; angle += Math.PI / 8) {
+                capCoordinates3857.push([
+                    polylineCoordinateE3857[0] + Math.cos(angle) * radius,
+                    polylineCoordinateE3857[1] + Math.sin(angle) * radius
+                ]);
+            }
+            capCoordinates3857.push(polylineCoordinateE3857);
+            const capCoordinates4326 = capCoordinates3857.map(c => turf.toWgs84(c));
+
+            // this.multiPolyline018.coordinates.push(capCoordinates4326);
+
+            openPoly.coordinates.push([capCoordinates4326]);
+
+        });
+
+        // TODO :: could be faster if openPoly were split by category
+        this.roadOutlines[3] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[3], turf.feature(openPoly));
+        this.roadOutlines[4] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[4], turf.feature(openPoly));
+        this.roadOutlines[5] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[5], turf.feature(openPoly));
+
         for (let roadIndexA = this.bufferDistances.length - 1; roadIndexA >= 1; roadIndexA--) {
+            if (this.bufferDistances[roadIndexA] <= 2) {
+                continue;
+            }
             const roadAFeature = turf.feature(this.roadPolygons[roadIndexA]);
             for (let roadIndexB = roadIndexA - 1; roadIndexB >= 0; roadIndexB--) {
-
-                this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
-
+                if (this.bufferDistances[roadIndexB] <= 2) {
+                    this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
+                } else {
+                    this.roadOutlines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
+                }
             }
         }
 
         for (let roadIndexA = 0; roadIndexA < this.bufferDistances.length - 1; roadIndexA++) {
             const roadAFeature = turf.feature(this.roadPolygons[roadIndexA]);
             for (let roadIndexB = roadIndexA + 1; roadIndexB < this.bufferDistances.length; roadIndexB++) {
-
-                this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
-
+                if (this.bufferDistances[roadIndexB] <= 2) {
+                    this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
+                } else {
+                    this.roadOutlines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
+                }
             }
         }
 
@@ -270,7 +528,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.roadPolygons[7]),
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.roadPolygons[8]),
         ];
-        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polgons);
+        this.polyData = openPoly; // VectorTileGeometryUtil.restructureMultiPolygon(polgons);
 
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
@@ -279,12 +537,22 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[4].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[5].coordinates);
 
-        this.multiPolyline035.coordinates.push(...this.roadPolylines[0].coordinates);
-        this.multiPolyline035.coordinates.push(...this.roadPolylines[1].coordinates);
-        this.multiPolyline035.coordinates.push(...this.roadPolylines[2].coordinates);
-        this.multiPolyline035.coordinates.push(...this.roadPolylines[3].coordinates);
-        this.multiPolyline035.coordinates.push(...this.roadPolylines[4].coordinates);
-        this.multiPolyline035.coordinates.push(...this.roadPolylines[5].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[0].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[1].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[2].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[3].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[4].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[5].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[6].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[7].coordinates);
+        // this.multiPolyline035.coordinates.push(...this.roadPolylines[8].coordinates);
+
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[0].coordinates);
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[1].coordinates);
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[2].coordinates);
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[3].coordinates);
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[4].coordinates);
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[5].coordinates);
 
         this.multiPolyline050.coordinates.push(...this.roadPolylines[6].coordinates);
         this.multiPolyline035.coordinates.push(...this.roadPolylines[7].coordinates);
@@ -292,7 +560,6 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
         this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
         this.multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);
-        // this.multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline025, bboxMap4326);
 
     }
 
