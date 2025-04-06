@@ -12,13 +12,6 @@ import { ISubGeometry } from "./ISubGeometry";
 
 /**
  * Implementation of {@link IContour}, holds a major part of the hachure implementation.
- * One instance of this class holds a single contour. there may be other contours at the same height, but in a different geographical extent.
- * When the contour is constructed, it is divided into equal length segments of i.e. 5m length.
- * At each subdivision aspect and slope are calculated and a {@link IContourVertex} is contructed to hold that information for later hachure calculation.
- * Additionally from aspect and slope a hillshade value is calculated and used to determine a "scaled-length" value.
- * That "scaled-length" is later used to determine how many hachure lines can be fit along the contour.
- * At spo
- *
  *
  * @author h.fleischer
  * @since 06.04.2025
@@ -270,7 +263,6 @@ export class Contour implements IContour {
                             extraHachures.push(extraHachure);
                             extraHachureAdded = true;
 
-                            // console.log('adding extra hachure', i, i + 1, weighedLength, extraHachure);
                             scaledLengths.push(scaledLength);
 
                         }
@@ -426,94 +418,18 @@ export class Contour implements IContour {
                 }
             }
         }
-        // console.error('failed to find nearest point');
-
-        // // const tolerance = 0.0001;
-        // const anyBBoxContainsCoordinate = (): boolean => {
-        //     for (let i = 0; i < this.bboxes.length; i++) {
-        //         if (GeometryUtil.booleanWithinBbox(this.bboxes[i], positionA)) {
-        //             return true;
-        //         }
-        //     }
-        //     return false;
-        // }
-        // if (anyBBoxContainsCoordinate()) {
-
-        //     Contour.FIND_CASE++;
-
-        //     // const isCoordinateCandidate = (positionB: Position): boolean => {
-        //     //     return Math.abs(positionB[0] - positionA[0]) < tolerance && Math.abs(positionB[1] - positionA[1]) < tolerance;
-        //     // }
-        //     // const hasCoordinateCandidates = this.contourVertices.some(v => isCoordinateCandidate(v.position4326));
-        //     // if (hasCoordinateCandidates) {
-        //     return turf.nearestPointOnLine(this.geometry, positionA, {
-        //         units: 'meters'
-        //     });
-        //     // } else {
-        //     //     // let a = '';
-        //     // }
-
-        // } else {
-        //     Contour.BBOX_CASE++;
-        // }
-
-        // let bbox: BBox;
-        // let pntA: Position;
-        // let pntB: Position;
-        // const tolerance = 0.00000; // 5;
-        // // let locationLocal = 0;
-        // let locationTotal = 0;
-        // for (let i = 0; i < this.contourVertices.length - 1; i++) {
-        //     pntA = this.contourVertices[i].position4326;
-        //     pntB = this.contourVertices[i + 1].position4326;
-        //     bbox = [
-        //         Math.min(pntA[0], pntB[0]) - tolerance,
-        //         Math.min(pntA[1], pntB[1]) - tolerance,
-        //         Math.max(pntA[0], pntB[0]) + tolerance,
-        //         Math.max(pntA[1], pntB[1]) + tolerance
-        //     ];
-        //     if (GeometryUtil.booleanWithinBbox(bbox, position)) {
-        //         // const segmentGeometry = turf.lineSliceAlong(this.geometry, this.contourVertices[i].length, this.contourVertices[i + 1].length, {
-        //         //     units: 'meters'
-        //         // });
-        //         const segmentGeometry: LineString = {
-        //             type: 'LineString',
-        //             coordinates: [
-        //                 pntA,
-        //                 pntB
-        //             ]
-        //         }
-        //         const nearestPoint = turf.nearestPointOnLine(segmentGeometry, position, {
-        //             units: 'meters'
-        //         });
-        //         // const nearestPoint = this.findNearestPointOnLine(position)!;
-        //         const location = nearestPoint.properties.location;
-        //         if (location < Contour.SEGMENT_BASE_LENGTH) {
-        //             return turf.feature(nearestPoint.geometry, {
-        //                 ...nearestPoint.properties,
-        //                 location: locationTotal + location
-        //             });
-        //         }
-        //     }
-        //     locationTotal += turf.distance(pntA, pntB, {
-        //         units: 'meters'
-        //     });
-        // }
-        // console.log('fallback to full geometry');
-
-
 
     }
 
-    scaledLengthToLength(_weighedLength: number): number {
-        if (_weighedLength < 0) {
+    scaledLengthToLength(_scaledLength: number): number {
+        if (_scaledLength < 0) {
             return 0;
-        } else if (_weighedLength > this.scaledLength) {
+        } else if (_scaledLength > this.scaledLength) {
             return this.length;
         } else {
             for (let i = 1; i < this.vertices.length; i++) {
-                if (this.vertices[i].scaledLength > _weighedLength) {
-                    return ObjectUtil.mapValues(_weighedLength, {
+                if (this.vertices[i].scaledLength > _scaledLength) {
+                    return ObjectUtil.mapValues(_scaledLength, {
                         min: this.vertices[i - 1].scaledLength,
                         max: this.vertices[i].scaledLength
                     }, {

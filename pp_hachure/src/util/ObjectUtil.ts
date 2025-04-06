@@ -16,10 +16,6 @@ export class ObjectUtil {
         return Math.round(Math.random() * 100000000000).toString(16).substring(0, 16);
     }
 
-    // static mapValues(valI: number, minI: number, maxI: number, minO: number, maxO: number): number {
-    //     return Math.max(minO, Math.min(maxO, minO + (valI - minI) * (maxO - minO) / (maxI - minI))); // Math.max(minO, Math.min(maxO, minO + (valI - minI) * (maxO - minO) / (maxI - minI)));
-    // }
-
     static mapValues(valI: number, srcRange: IRange, dstRange: IRange): number {
         // return Math.max(dstRange.min, Math.min(dstRange.max, dstRange.min + (valI - srcRange.min) * (dstRange.max - dstRange.min) / (srcRange.max - srcRange.min)));
         return dstRange.min + (valI - srcRange.min) * (dstRange.max - dstRange.min) / (srcRange.max - srcRange.min);

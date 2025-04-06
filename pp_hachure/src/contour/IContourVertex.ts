@@ -2,6 +2,7 @@ import { IPositionProperties } from "./IPositionProperties";
 
 /**
  * definition for a vertex along a contour line
+ *
  * @since 03.04.2025
  * @author h.fleischer
  */

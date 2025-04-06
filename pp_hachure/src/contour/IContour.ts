@@ -1,10 +1,19 @@
 import { LineString } from "geojson";
 import { IHachure } from "./IHachure";
 
+/**
+ * definition for types describing a single contour line at a given height
+ *
+ * @author h.fleischer
+ * @since 06.04.2025
+ */
 export interface IContour {
 
     getId(): string;
 
+    /**
+     * get the height of this contour in meters
+     */
     getHeight(): number;
 
     /**
@@ -32,8 +41,16 @@ export interface IContour {
 
     scaledLengthToLength: (length: number) => number;
 
+    /**
+     * get this contour ready to populate the "d" attribute of a {@link SVGPathElement}
+     * @returns
+     */
     getSvgData: () => string;
 
+    /**
+     * get this contour as a geojson {@link LineString} holding WGS84 (epsg:4326) coordinates
+     * @returns
+     */
     toLineString: () => LineString;
 
 }
