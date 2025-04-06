@@ -1,10 +1,9 @@
--- slope hatching
--- have 2 rgb caches, slope and aspect and come up with pixel format convention for each
--- use stretch in ArcGIS Pro and use the valuesprovided by that
--- copy respective raters to png_16 so they can be read in java
--- read png_16 rasters with java and write png_r8_g8 rasters for usage in javascript
--- invent hachure generation algorithm on top of the png_r8_g8 rasters
--- store as geojson (maybe in some tiled structure, so pp_oldmap can get what it needs)
+OK slope hatching
+NO have 2 rgb caches, slope and aspect and come up with pixel format convention for each
+OK use stretch in ArcGIS Pro and use the valuesprovided by that
+OK copy respective raters to png_16 so they can be read in java
+OK read png_16 rasters with java and write png_r8_g8 rasters for usage in javascript
+OK invent hachure generation algorithm on top of the png_r8_g8 rasters
 
 OK have some kind of error feedback when a step fails
 OK error in the hainburg extent (changed cleanAndSimplify code)
@@ -55,16 +54,16 @@ https://basemap.at/standard-5/
 -- basemap höhenlinien
 https://basemap.at/standard-3/
 
--- be able to convert a single typeface.js character to geojson geometry
--- like in the client project this could be done with temporary paths and getPointAtLength
--- be able to put multiple characters next to each other, find out if this should rather be done before or after conversion to geojson
+OK be able to convert a single typeface.js character to geojson geometry
+OK like in the client project this could be done with temporary paths and getPointAtLength
+OK be able to put multiple characters next to each other, find out if this should rather be done before or after conversion to geojson
 
--- be able to create shapes in tile-space (=output svg space), then convert back to webmercator, then to wgs84 to have shapes that can be applied as clip geometries onto the geometries acquired from vector tiles
+OK be able to create shapes in tile-space (=output svg space), then convert back to webmercator, then to wgs84 to have shapes that can be applied as clip geometries onto the geometries acquired from vector tiles
 
 https://github.com/mikolalysenko/vectorize-text?tab=readme-ov-file
 
 -- OK :: be able to find tiles by coordinates
--- OK :: ba able to union features from multiple tiles
+-- OK :: be able to union features from multiple tiles
 -- OK :: find an appropriate free font :: https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSerif/NotoSerif-Regular.ttf
 
 -- TODO :: identify layers to be drawn and how to draw them
