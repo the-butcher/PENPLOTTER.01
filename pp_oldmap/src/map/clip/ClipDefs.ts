@@ -62,7 +62,7 @@ export class ClipDefs {
             status: 'pending'
         },
         /////////////////////////////////////////////
-        // WOOD
+        // VEGETATION
         /////////////////////////////////////////////
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
@@ -136,6 +136,12 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME_______TRAM,
+            distance: 4,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____RAILWAY,
+            layerNameClip: Map.LAYER__NAME_____BRIDGE,
             distance: 4,
             status: 'pending'
         },

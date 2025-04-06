@@ -31,6 +31,7 @@ export class Map {
     static readonly LAYER__NAME_____BORDER = "l_____border";
     static readonly LAYER__NAME__BORDER_TX = "l__border_tx";
     static readonly LAYER__NAME______ROADS = "l______roads";
+    static readonly LAYER__NAME_____BRIDGE = "l_____bridge";
     // static readonly LAYER__NAME___BRIDGE_A = "l___bridge_a";
     // static readonly LAYER__NAME____ROADS_B = "l____roads_b";
     // static readonly LAYER__NAME___BRIDGE_B = "l___bridge_b";

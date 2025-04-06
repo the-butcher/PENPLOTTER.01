@@ -6,8 +6,6 @@ import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { UnionPolygon, VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
 import { ISymbolProperties } from '../common/ISymbolProperties';
-import { SymbolUtil } from '../../util/SymbolUtil';
-import { Line } from 'd3';
 
 interface IOpenEnd {
     categoryIndex: number;
@@ -24,7 +22,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
     roadPolylines: MultiLineString[];
     bridgePolylines: MultiLineString[];
 
-    bufferDistances: number[] = [
+    static bufferDistances: number[] = [
         6, // heighway
         6, // ramp
         6, // speedway
@@ -64,7 +62,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
     }
 
-    async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox
+    async processPoly(): Promise<void> { // bboxMap4326: BBox
 
         console.log(`${this.name}, processing data ...`);
 
@@ -94,7 +92,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         // const bridgePolylines: MultiLineString[] = [];
         const bridgeBufferExtraMeters = 2; //0.90;
 
-        for (let i = 0; i < this.bufferDistances.length; i++) {
+        for (let i = 0; i < MapLayerRoad2.bufferDistances.length; i++) {
 
             let _bridgeMultiPolyline = filterByLayerAndSymbol(['GIP_BAUWERK_L_BRÜCKE'], [i]);
             const _bridgeMultiPolylines = VectorTileGeometryUtil.destructureMultiPolyline(_bridgeMultiPolyline).filter(p => turf.length(turf.feature(p), {
@@ -105,7 +103,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             const _roadMultiPolyline = filterByLayerAndSymbol(['GIP_BAUWERK_L_BRÜCKE', 'GIP_L_GIP_144'], [i]);
 
             if (_bridgeMultiPolyline.coordinates.length > 0) {
-                const bridgeBuffer = turf.buffer(_bridgeMultiPolyline, this.bufferDistances[i] + bridgeBufferExtraMeters, {
+                const bridgeBuffer = turf.buffer(_bridgeMultiPolyline, MapLayerRoad2.bufferDistances[i] + bridgeBufferExtraMeters, {
                     units: 'meters'
                 }) as Feature<Polygon | MultiPolygon>;
                 this.bridgePolygons.push(VectorTileGeometryUtil.restructureMultiPolygon(VectorTileGeometryUtil.destructureUnionPolygon(bridgeBuffer.geometry)));
@@ -118,7 +116,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             if (_roadMultiPolyline.coordinates.length > 0) {
 
                 // if (this.bufferDistances[i] > 0) {
-                const roadBuffer = turf.buffer(_roadMultiPolyline, this.bufferDistances[i], {
+                const roadBuffer = turf.buffer(_roadMultiPolyline, MapLayerRoad2.bufferDistances[i], {
                     units: 'meters'
                 }) as Feature<Polygon | MultiPolygon>;
                 this.roadPolygons.push(VectorTileGeometryUtil.restructureMultiPolygon(VectorTileGeometryUtil.destructureUnionPolygon(roadBuffer.geometry)));
@@ -127,21 +125,6 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                     coordinates: this.roadPolygons[i].coordinates.reduce((prev, curr) => [...prev, ...curr], [])
                 });
                 this.roadPolylines.push(_roadMultiPolyline);
-
-                // if (this.bufferDistances[i] > 2) {
-                //     this.roadOutlines.push({
-                //         type: 'MultiLineString',
-                //         coordinates: this.roadPolygons[i].coordinates.reduce((prev, curr) => [...prev, ...curr], [])
-                //     });
-                // } else {
-                //     this.roadOutlines.push(_roadMultiPolyline);
-                // }
-
-                // } else {
-                //     console.log('zero dim polyline', i, _roadMultiPolyline);
-                //     this.roadPolygons.push(VectorTileGeometryUtil.emptyMultiPolygon());
-                //     this.roadPolylines.push(_roadMultiPolyline);
-                // }
 
             } else {
                 this.roadPolygons.push(VectorTileGeometryUtil.emptyMultiPolygon());
@@ -153,16 +136,10 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
         }
 
-        // let _bridgeMultiPolyline6 = filterByLayerAndSymbol(['GIP_BAUWERK_L_BRÜCKE'], [i]);
-
-        // for (let bridgeCategoryIndex = 0; bridgeCategoryIndex < this.bufferDistances.length; bridgeCategoryIndex++) {
-        //     this.bridgePolylines[bridgeCategoryIndex] = VectorTileGeometryUtil.connectMultiPolyline(this.bridgePolylines[bridgeCategoryIndex], 5);
-        // }
-
         // clip bridges away from roads
-        for (let bridgeCategoryIndex = 0; bridgeCategoryIndex < this.bufferDistances.length; bridgeCategoryIndex++) {
+        for (let bridgeCategoryIndex = 0; bridgeCategoryIndex < MapLayerRoad2.bufferDistances.length; bridgeCategoryIndex++) {
 
-            for (let roadCategoryIndex = 0; roadCategoryIndex < this.bufferDistances.length; roadCategoryIndex++) {
+            for (let roadCategoryIndex = 0; roadCategoryIndex < MapLayerRoad2.bufferDistances.length; roadCategoryIndex++) {
 
                 const _bridgePolylines = VectorTileGeometryUtil.destructureMultiPolyline(this.bridgePolylines[bridgeCategoryIndex]);
                 const bridgeBufferPolygons: Polygon[] = [];
@@ -182,7 +159,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                             if (roadIntersects.features.length % 2 === 0) { // specific bridge is passing in AND out of road feature => assume it actually crosses over
 
-                                const bridgeBuffer: Feature<Polygon | MultiPolygon> = turf.buffer(_bridgePolyline, this.bufferDistances[bridgeCategoryIndex] + bridgeBufferExtraMeters, {
+                                const bridgeBuffer: Feature<Polygon | MultiPolygon> = turf.buffer(_bridgePolyline, MapLayerRoad2.bufferDistances[bridgeCategoryIndex] + bridgeBufferExtraMeters, {
                                     units: 'meters'
                                 }) as Feature<Polygon | MultiPolygon>;
                                 bridgeBufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(bridgeBuffer.geometry));
@@ -220,7 +197,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                                         units: 'meters'
                                     });
 
-                                    const bridgeBuffer: Feature<Polygon | MultiPolygon> = turf.buffer(_subbridgePolyline, this.bufferDistances[bridgeCategoryIndex] + bridgeBufferExtraMeters, {
+                                    const bridgeBuffer: Feature<Polygon | MultiPolygon> = turf.buffer(_subbridgePolyline, MapLayerRoad2.bufferDistances[bridgeCategoryIndex] + bridgeBufferExtraMeters, {
                                         units: 'meters'
                                     }) as Feature<Polygon | MultiPolygon>;
                                     bridgeBufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(bridgeBuffer.geometry));
@@ -317,7 +294,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         if (openEnd0 || openEndL) {
 
             // first, faster, search
-            for (let roadCategoryIndexB = 2; roadCategoryIndexB < this.bufferDistances.length - 3; roadCategoryIndexB++) {
+            for (let roadCategoryIndexB = 2; roadCategoryIndexB < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexB++) {
 
                 for (let roadPolylineIndexB = 0; roadPolylineIndexB < this.roadPolylines[roadCategoryIndexB].coordinates.length; roadPolylineIndexB++) {
 
@@ -355,7 +332,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         // is still open, second, slower, search
         if (openEnd0 || openEndL) {
 
-            for (let roadCategoryIndexB = 2; roadCategoryIndexB < this.bufferDistances.length - 3; roadCategoryIndexB++) {
+            for (let roadCategoryIndexB = 2; roadCategoryIndexB < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexB++) {
 
                 for (let roadPolylineIndexB = 0; roadPolylineIndexB < this.roadPolylines[roadCategoryIndexB].coordinates.length; roadPolylineIndexB++) {
 
@@ -432,7 +409,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
         const openEnds: IOpenEnd[] = [];
         // start with index 2 to skip highways and ramps and also end early because we do not need to handle line only ends
-        for (let roadCategoryIndexA = 2; roadCategoryIndexA < this.bufferDistances.length - 3; roadCategoryIndexA++) {
+        for (let roadCategoryIndexA = 2; roadCategoryIndexA < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexA++) {
             for (let roadPolylineIndexA = 0; roadPolylineIndexA < this.roadPolylines[roadCategoryIndexA].coordinates.length; roadPolylineIndexA++) {
                 openEnds.push(...this.findOpenEnds(roadCategoryIndexA, roadPolylineIndexA, bboxMap4326));
             }
@@ -455,9 +432,6 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                 polylineCoordinateE4326 = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex].length - 1];
                 polylineCoordinateD4326 = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex].length - 2];
 
-                // const polylineCoordinateAL = this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex][this.roadPolylines[openEnd.categoryIndex].coordinates[openEnd.polylineIndex].length - 1];
-                // this.multiPolyline018.coordinates.push(...SymbolUtil.createWineSymbol(polylineCoordinateAL));
-
             }
 
             const polylineCoordinateE3857 = turf.toMercator(polylineCoordinateE4326);
@@ -466,7 +440,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             const diffX = polylineCoordinateE3857[0] - polylineCoordinateD3857[0];
             const diffY = polylineCoordinateE3857[1] - polylineCoordinateD3857[1];
 
-            const radius = this.bufferDistances[openEnd.categoryIndex] * 2;
+            const radius = MapLayerRoad2.bufferDistances[openEnd.categoryIndex] * 2;
             const angleS = Math.atan2(diffY, diffX);
             const angleA = angleS - Math.PI / 2;
             const angleB = angleS + Math.PI / 2 + Math.PI / 16;
@@ -492,13 +466,13 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         this.roadOutlines[4] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[4], turf.feature(openPoly));
         this.roadOutlines[5] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[5], turf.feature(openPoly));
 
-        for (let roadIndexA = this.bufferDistances.length - 1; roadIndexA >= 1; roadIndexA--) {
-            if (this.bufferDistances[roadIndexA] <= 2) {
+        for (let roadIndexA = MapLayerRoad2.bufferDistances.length - 1; roadIndexA >= 1; roadIndexA--) {
+            if (MapLayerRoad2.bufferDistances[roadIndexA] <= 2) {
                 continue;
             }
             const roadAFeature = turf.feature(this.roadPolygons[roadIndexA]);
             for (let roadIndexB = roadIndexA - 1; roadIndexB >= 0; roadIndexB--) {
-                if (this.bufferDistances[roadIndexB] <= 2) {
+                if (MapLayerRoad2.bufferDistances[roadIndexB] <= 2) {
                     this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
                 } else {
                     this.roadOutlines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
@@ -506,10 +480,10 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             }
         }
 
-        for (let roadIndexA = 0; roadIndexA < this.bufferDistances.length - 1; roadIndexA++) {
+        for (let roadIndexA = 0; roadIndexA < MapLayerRoad2.bufferDistances.length - 1; roadIndexA++) {
             const roadAFeature = turf.feature(this.roadPolygons[roadIndexA]);
-            for (let roadIndexB = roadIndexA + 1; roadIndexB < this.bufferDistances.length; roadIndexB++) {
-                if (this.bufferDistances[roadIndexB] <= 2) {
+            for (let roadIndexB = roadIndexA + 1; roadIndexB < MapLayerRoad2.bufferDistances.length; roadIndexB++) {
+                if (MapLayerRoad2.bufferDistances[roadIndexB] <= 2) {
                     this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
                 } else {
                     this.roadOutlines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
@@ -528,7 +502,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.roadPolygons[7]),
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.roadPolygons[8]),
         ];
-        this.polyData = openPoly; // VectorTileGeometryUtil.restructureMultiPolygon(polgons);
+        this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polgons);
 
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
@@ -566,7 +540,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
     async processPlot(): Promise<void> {
 
         console.log(`${this.name}, connecting polylines ...`);
-
+        this.connectPolylines(5);
 
     }
 
