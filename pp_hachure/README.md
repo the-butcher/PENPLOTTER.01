@@ -12,7 +12,7 @@ run each contour increment in a web-worker, as such keeping the application resp
 
 ### illustration of how it works
 
-[<img src="https://img.youtube.com/vi/v_oW226pDBg/maxresdefault.jpg" width="50%">](https://youtu.be/v_oW226pDBg)
+https://github.com/user-attachments/assets/6c7db4a7-6e03-49f7-99aa-86bca37f9e61
 
 ### Simple description of the steps performed to build hachure lines:
 
