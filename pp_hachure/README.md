@@ -12,7 +12,7 @@ run each contour increment in a web-worker, as such keeping the application resp
 
 ### illustration of how it works
 
-<video controls src="public/pp_hachure_fast.webm" title="Title"></video>
+<video src="public/pp_hachure_fast.mp4" width="800" title="hachure generation"/>
 
 ### Simple description of the steps performed to build hachure lines:
 
