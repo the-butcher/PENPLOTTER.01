@@ -10,6 +10,10 @@ run each contour increment in a web-worker, as such keeping the application resp
 
 ![alt text](public/pp_hachure.png)
 
+### illustration of how it works
+
+<video controls src="public/pp_hachure_fast.mp4" title="Title"></video>
+
 ### Simple description of the steps performed to build hachure lines:
 
 - Load a specially prepared DEM raster.
