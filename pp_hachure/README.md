@@ -41,4 +41,4 @@ Due to the inability of browsers to load images in formats other than 32 bit RGB
 The lower 8 bits are written to the blue channel, the higher 8 bits are written to the green channel. The resulting images are hard to read, but after loading the
 image its full 16 bits are restored.
 
-![alt text](public/png_10_10_height_scaled_pynb_r8g8_duer.png)
+![alt text](public/png_10_10_height_scaled_pynb_r8g8_duernstein.png)
