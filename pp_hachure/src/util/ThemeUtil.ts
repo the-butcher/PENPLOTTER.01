@@ -13,6 +13,15 @@ export class ThemeUtil {
                 }
             },
             components: {
+                // MuiSlider: {
+                //     styleOverrides: {
+                //         valueLabel: {
+                //             left: '30px',
+                //             top: '25px',
+                //             padding: '5px 20px'
+                //         }
+                //     }
+                // },
                 MuiAccordion: {
                     styleOverrides: {
                         root: {

@@ -1,4 +1,4 @@
-import { LineString } from "geojson";
+import { IContent } from "./IContent";
 import { IHachureVertex } from "./IHachureVertex";
 
 /**
@@ -7,9 +7,7 @@ import { IHachureVertex } from "./IHachureVertex";
  * @since 06.04.2025
  * @author h.fleischer
  */
-export interface IHachure {
-
-    getId(): string;
+export interface IHachure extends IContent {
 
     /**
      * get the current count of vertices in this hachure line
@@ -30,28 +28,6 @@ export interface IHachure {
     getLastVertex: () => IHachureVertex;
     addVertex: (vertex: IHachureVertex) => void;
 
-    /**
-     * mark this hachure as completed
-     * @returns
-     */
-    setComplete: () => void;
-
-    /**
-     * check if this hachure is complete
-     * @returns
-     */
-    isComplete: () => boolean;
-
-    /**
-     * get this hachure ready to populate the "d" attribute of a {@link SVGPathElement}
-     * @returns
-     */
-    getSvgData: () => string;
-
-    /**
-     * get this hachure as a geojson {@link LineString} holding WGS84 (epsg:4326) coordinates
-     * @returns
-     */
-    toLineString: () => LineString;
+    complete: boolean;
 
 }

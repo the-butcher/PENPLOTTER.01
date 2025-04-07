@@ -18,7 +18,9 @@ import { ISubGeometry } from "./ISubGeometry";
  */
 export class Contour implements IContour {
 
-    private id: string;
+    readonly id: string;
+    readonly svgData: string;
+    complete: boolean;
     private height: number;
     private length: number;
     private scaledLength: number;
@@ -170,6 +172,9 @@ export class Contour implements IContour {
         }
         this.scaledLength = scaledLength;
 
+        this.svgData = this.getSvgData();
+        this.complete = false;
+
     }
 
     getId(): string {
@@ -200,7 +205,7 @@ export class Contour implements IContour {
                 const hasWeightLengthSmallerThanMin = scaledLengths.find(w => Math.abs(scaledLength - w) < Hachure.CONFIG.minSpacing);
                 if (hasWeightLengthSmallerThanMin) {
                     // TODO :: depending on distances before or after it may also make sense to discontinue/complete the previous line
-                    hachure.setComplete();
+                    hachure.complete = true;
                 }
                 //  else {
                 scaledLengths.push(scaledLength); // scaledLength is added regardless of complete state that may just have been set, in some cases another line would be started right away otherwise
@@ -521,7 +526,7 @@ export class Contour implements IContour {
         let command = 'M';
         let d = '';
         this.vertices.forEach(vertex => {
-            d += `${command}${vertex.positionPixl[0]} ${vertex.positionPixl[1]} `;
+            d += `${command}${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)} `;
             command = 'L';
         });
 

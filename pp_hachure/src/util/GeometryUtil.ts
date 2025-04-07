@@ -8,6 +8,7 @@ import { IRange } from "./IRange";
 export class GeometryUtil {
 
     // vigaun
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_vigaun.png';
     // static rasterOrigin3857: Position = [
     //     1459299.6402537469,
     //     6052689.4598493706
@@ -16,20 +17,21 @@ export class GeometryUtil {
     // static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };
 
     // wolfgang
-    // static rasterOrigin3857: Position = [
-    //     1459299.6402537469,
-    //     6052689.4598493706
+    // static rasterOrigin3857: Position = [ // TODO :: invalid extent
+    //     1493499.6402537469,
+    //     6065269.4598493706
     // ];
     // static heightRangeSample: IRange = { min: 8607.0, max: 18487.0 };
     // static heightRangeRaster: IRange = { min: 537.80029296875, max: 1155.19140625 };
 
     // hallstatt
-    // static rasterOrigin3857: Position = [
-    //     1516999.6402537469,
-    //     6035869.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
-    // static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
+    static rasterName = 'png_10_10_height_scaled_pynb_r8g8_hallstatt.png';
+    static rasterOrigin3857: Position = [
+        1516999.6402537469,
+        6035869.4598493706
+    ];
+    static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
+    static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
 
     // bad gastein
     // static rasterOrigin3857: Position = [
@@ -40,14 +42,15 @@ export class GeometryUtil {
     // static heightRangeRaster: IRange = { min: 865.78936767578, max: 1835.9188232422 };
 
     // hallein
-    static rasterOrigin3857: Position = [
-        1455149.6402537469,
-        6055969.4598493706
-    ];
-    static heightRangeSample: IRange = { min: 6951.0, max: 13762.0 };
-    static heightRangeRaster: IRange = { min: 434.31433105469, max: 859.93572998047 };
+    // static rasterOrigin3857: Position = [
+    //     1455149.6402537469,
+    //     6055969.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 6951.0, max: 13762.0 };
+    // static heightRangeRaster: IRange = { min: 434.31433105469, max: 859.93572998047 };
 
     // duernstein
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_duernstein.png';
     // static rasterOrigin3857: Position = [
     //     1724199.6402537469,
     //     6175169.4598493706

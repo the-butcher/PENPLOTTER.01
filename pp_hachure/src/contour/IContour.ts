@@ -1,4 +1,4 @@
-import { LineString } from "geojson";
+import { IContent } from "./IContent";
 import { IHachure } from "./IHachure";
 
 /**
@@ -7,9 +7,7 @@ import { IHachure } from "./IHachure";
  * @author h.fleischer
  * @since 06.04.2025
  */
-export interface IContour {
-
-    getId(): string;
+export interface IContour extends IContent {
 
     /**
      * get the height of this contour in meters
@@ -41,16 +39,5 @@ export interface IContour {
 
     scaledLengthToLength: (length: number) => number;
 
-    /**
-     * get this contour ready to populate the "d" attribute of a {@link SVGPathElement}
-     * @returns
-     */
-    getSvgData: () => string;
-
-    /**
-     * get this contour as a geojson {@link LineString} holding WGS84 (epsg:4326) coordinates
-     * @returns
-     */
-    toLineString: () => LineString;
 
 }

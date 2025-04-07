@@ -30,21 +30,22 @@ export class Hachure implements IHachure {
     // }
 
 
-    private id: string;
+    id: string;
+    svgData: string;
     private readonly vertices: IHachureVertex[];
-    private complete: boolean;
+    complete: boolean;
     private maxVertices: number;
 
     constructor(firstVertex: IHachureVertex) {
+
         this.id = ObjectUtil.createId();
+        this.svgData = `M${firstVertex.positionPixl[0].toFixed(2)} ${firstVertex.positionPixl[1].toFixed(2)}`;
         this.vertices = [];
         this.complete = false;
         this.vertices.push(firstVertex);
-        this.maxVertices = 10000 + (Math.random() - 0.5) * 75;
-    }
+        this.maxVertices = 10000 + (Math.random() - 0.5) * 75; // unlimited length, but could be used to limit
 
-    getId(): string {
-        return this.id;
+
     }
 
     getVertexCount(): number {
@@ -56,26 +57,21 @@ export class Hachure implements IHachure {
         this.complete = false;
         this.vertices.push(vertex);
         if (this.vertices.length >= this.maxVertices) {
-            this.setComplete();
+            this.complete = true;
         }
+        this.svgData += `L${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)}`;
+        // this.id = ObjectUtil.createId();
 
     };
 
     popLastVertex() {
         this.vertices.pop();
+        this.svgData = this.svgData.substring(0, this.svgData.lastIndexOf('L'));
     };
 
     getLastVertex() {
         return this.vertices[this.vertices.length - 1];
     };
-
-    setComplete() {
-        this.complete = true;
-    }
-
-    isComplete() {
-        return this.complete;
-    }
 
     toLineString(): LineString {
 
@@ -87,26 +83,6 @@ export class Hachure implements IHachure {
         for (let i = this.vertices.length - 1; i >= 0; i--) {
             lineString.coordinates.push(this.vertices[i].position4326);
         }
-
-        // const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
-        // if (offsetMetersTop > 1) { // if a rectangular edge would be visible
-        //     lineString.coordinates.push(this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2).position4326);
-        // }
-
-        // for (let i = this.vertices.length - 1; i >= 0; i--) {
-        //     lineString.coordinates.push(this.getOffsetPosition(this.vertices[i], -1).position4326);
-        // }
-
-        // const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
-        // if (offsetMetersBot > 1) { // if a rectangular edge would be visible
-        //     lineString.coordinates.push(this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2).position4326);
-        // }
-
-        // for (let i = 0; i < this.vertices.length; i++) {
-        //     lineString.coordinates.push(this.getOffsetPosition(this.vertices[i], 1).position4326);
-        // }
-
-        // lineString.coordinates.push(lineString.coordinates[0]); // close polygon (actually is linestring, but for better shape)
 
         return lineString;
 
@@ -146,80 +122,5 @@ export class Hachure implements IHachure {
             max: 2 * sign
         });
     }
-
-    getSvgData(): string {
-
-        let d = '';
-        let command: string;
-
-        // the line going down
-        command = 'M';
-
-        for (let i = this.vertices.length - 1; i >= 0; i--) {
-            d += `${command}${this.vertices[i].positionPixl[0]} ${this.vertices[i].positionPixl[1]} `;
-            command = 'L';
-        }
-
-        // const offsetMetersTop = this.getOffsetMeters(this.vertices[this.vertices.length - 1], 1)
-        // if (offsetMetersTop > 1) { // if a rectangular edge would be visible
-        //     const offsetPosition = this.getOffsetPositionAlong(this.vertices[this.vertices.length - 1], offsetMetersTop / 2);
-        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-        //     command = 'L';
-        // }
-
-        // for (let i = this.vertices.length - 1; i >= 0; i--) {
-        //     const offsetPosition = this.getOffsetPosition(this.vertices[i], -1);
-        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-        //     command = 'L';
-        // }
-
-        // const offsetMetersBot = this.getOffsetMeters(this.vertices[0], 1);
-        // if (offsetMetersBot > 1) { // if a rectangular edge would be visible
-        //     const offsetPosition = this.getOffsetPositionAlong(this.vertices[0], -offsetMetersBot / 2);
-        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-        //     command = 'L'; // first vertex closes the lower end
-        // }
-
-        // // the line going up
-        // for (let i = 0; i < this.vertices.length; i++) {
-        //     const offsetPosition = this.getOffsetPosition(this.vertices[i], 1);
-        //     d += `${command}${offsetPosition.positionPixl[0]} ${offsetPosition.positionPixl[1]} `;
-        //     command = 'L'; // first vertex closes the lower end
-        // }
-
-        // d += `Z`; // closing the upper end
-
-        return d;
-
-    }
-
-    // getSvgDataSteep(): string {
-
-    //     let command = 'M';
-    //     let d = '';
-
-    //     let position4326A: Position = this.vertices[0].position4326;
-    //     d += `${command}${this.vertices[0].positionPixl[0]} ${this.vertices[0].positionPixl[1]}`;
-
-    //     let position4326B: Position;
-    //     for (let i = 1; i < this.vertices.length; i++) {
-
-    //         position4326B = this.vertices[i].position4326;
-    //         const distance = turf.distance(position4326A, position4326B, {
-    //             units: 'meters'
-    //         })
-    //         if (distance < Hachure.CONFIG.contourDiv / 2) {
-    //             command = 'L';
-    //         } else {
-    //             command = 'M';
-    //         }
-    //         d += `${command}${this.vertices[i].positionPixl[0]} ${this.vertices[i].positionPixl[1]}`;
-    //         position4326A = position4326B;
-
-    //     }
-
-    //     return d;
-
-    // }
 
 }
