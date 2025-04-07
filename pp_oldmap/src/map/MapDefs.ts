@@ -129,36 +129,42 @@ export class MapDefs {
         ]
     }
 
-    // static MAP_DEF_____HAINBURG: IMapDef = {
-    //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
-    //         1885950,
-    //         6131500
-    //     ],
-    //         4000,
-    //         2828
-    //     ),
-    //     padding: 200,
-    //     labelDefs: [
-    //         {
-    //             tileName: 'Donau',
-    //             plotName: 'Donau',
-    //             distance: 0.15,
-    //             vertical: 8,
-    //             charsign: -1,
-    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
-    //             idxvalid: (index: number) => index === 1
-    //         },
-    //         {
-    //             tileName: 'Hainburg an der Donau',
-    //             plotName: 'Hainburg',
-    //             distance: 350,
-    //             vertical: -160,
-    //             charsign: 0,
-    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
-    //             idxvalid: () => true
-    //         }
-    //     ]
-    // }
+    static MAP_DEF_____HAINBURG: IMapDef = {
+        hachures: 'hachures_hainburg.geojson',
+        contours: 'contours_hainburg.geojson',
+        clippoly: '',
+        bordertx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1885950,
+            6131500
+        ],
+            4000,
+            2828
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: 'Donau',
+                plotName: 'Donau',
+                distance: 0.15,
+                vertical: 8,
+                charsign: -1,
+                fonttype: 'italic',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                idxvalid: (index: number) => index === 1
+            },
+            {
+                tileName: 'Hainburg an der Donau',
+                plotName: 'Hainburg',
+                distance: 350,
+                vertical: -160,
+                charsign: 0,
+                fonttype: 'regular',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                idxvalid: () => true
+            }
+        ]
+    }
 
     static MAP_DEF____OLDDANUBE: IMapDef = {
         contours: 'contours_altedonau.geojson',
@@ -215,114 +221,124 @@ export class MapDefs {
         ]
     }
 
-    // static MAP_DEF_____WOLFGANG: IMapDef = {
-    //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
-    //         1496000,
-    //         6063500
-    //     ],
-    //         4000,
-    //         2828
-    //     ),
-    //     padding: 1200,
-    //     labelDefs: [
-    //         {
-    //             tileName: 'Markt',
-    //             plotName: '',
-    //             distance: 0,
-    //             vertical: 0,
-    //             charsign: 0,
-    //             txtscale: 0,
-    //             idxvalid: () => false
-    //         },
-    //         {
-    //             tileName: 'Au',
-    //             plotName: '',
-    //             distance: 0,
-    //             vertical: 0,
-    //             charsign: 0,
-    //             txtscale: 0,
-    //             idxvalid: () => false
-    //         },
-    //         {
-    //             tileName: 'Auer',
-    //             plotName: '',
-    //             distance: 0,
-    //             vertical: 0,
-    //             charsign: 0,
-    //             txtscale: 0,
-    //             idxvalid: () => false
-    //         },
-    //         {
-    //             tileName: 'Pointhäusl',
-    //             plotName: '',
-    //             distance: 0,
-    //             vertical: 0,
-    //             charsign: 0,
-    //             txtscale: 0,
-    //             idxvalid: () => false
-    //         },
-    //         {
-    //             tileName: 'St. Wolfgang',
-    //             plotName: 'St. Wolfgang',
-    //             distance: 100,
-    //             vertical: -30,
-    //             charsign: 0,
-    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
-    //             idxvalid: () => false
-    //         },
-    //         {
-    //             tileName: 'WOLFGANGSEE',
-    //             plotName: 'WOLFGANGSEE',
-    //             distance: 0.25,
-    //             vertical: 0,
-    //             charsign: 0.8,
-    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER * 1.5,
-    //             idxvalid: () => true,
-    //             geometry: [
-    //                 [
-    //                     13.439543460347924,
-    //                     47.736844561911148
-    //                 ],
-    //                 [
-    //                     13.441857650775541,
-    //                     47.73590580155475
-    //                 ],
-    //                 [
-    //                     13.443822794511297,
-    //                     47.734753491991448
-    //                 ],
-    //                 [
-    //                     13.445359004376982,
-    //                     47.733292973176191
-    //                 ],
-    //                 [
-    //                     13.4463706556089,
-    //                     47.731780241805801
-    //                 ],
-    //                 [
-    //                     13.447705975227615,
-    //                     47.730272292448099
-    //                 ],
-    //                 [
-    //                     13.44916819894819,
-    //                     47.729182253179758
-    //                 ],
-    //                 [
-    //                     13.451018241546583,
-    //                     47.728214248566324
-    //                 ],
-    //                 [
-    //                     13.4531551341815,
-    //                     47.727442299353626
-    //                 ],
-    //                 [
-    //                     13.45524339292526,
-    //                     47.727107406991934
-    //                 ]
-    //             ]
-    //         }
-    //     ]
-    // }
+    static MAP_DEF_____WOLFGANG: IMapDef = {
+        contours: 'contours_wolfgang.geojson',
+        hachures: 'hachures_wolfgang.geojson',
+        clippoly: '',
+        bordertx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1496000,
+            6063500
+        ],
+            4000,
+            2828
+        ),
+        padding: 1200,
+        labelDefs: [
+            {
+                tileName: 'Markt',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Au',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Auer',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Pointhäusl',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: 'St. Wolfgang',
+                plotName: 'St. Wolfgang',
+                distance: 100,
+                vertical: -30,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: 'WOLFGANGSEE',
+                plotName: 'WOLFGANGSEE',
+                distance: 0.25,
+                vertical: 0,
+                charsign: 0.8,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER * 1.5,
+                idxvalid: () => true,
+                fonttype: 'italic',
+                geometry: [
+                    [
+                        13.439543460347924,
+                        47.736844561911148
+                    ],
+                    [
+                        13.441857650775541,
+                        47.73590580155475
+                    ],
+                    [
+                        13.443822794511297,
+                        47.734753491991448
+                    ],
+                    [
+                        13.445359004376982,
+                        47.733292973176191
+                    ],
+                    [
+                        13.4463706556089,
+                        47.731780241805801
+                    ],
+                    [
+                        13.447705975227615,
+                        47.730272292448099
+                    ],
+                    [
+                        13.44916819894819,
+                        47.729182253179758
+                    ],
+                    [
+                        13.451018241546583,
+                        47.728214248566324
+                    ],
+                    [
+                        13.4531551341815,
+                        47.727442299353626
+                    ],
+                    [
+                        13.45524339292526,
+                        47.727107406991934
+                    ]
+                ]
+            }
+        ]
+    }
 
     // static MAP_DEF______BLUNTAU: IMapDef = {
     //     bbox3857: [

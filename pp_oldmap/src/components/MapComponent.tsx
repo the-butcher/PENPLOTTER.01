@@ -62,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
+    const _mapDef = MapDefs.MAP_DEF_____WOLFGANG;
 
     const _map = new Map({
 
