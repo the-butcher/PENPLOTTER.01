@@ -187,11 +187,13 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                                     const nearestB = turf.nearestPointOnLine(_bridgePolyline, intersectB, {
                                         units: 'meters'
                                     });
-                                    const locations: number[] = [
+                                    let locations: number[] = [
                                         nearestA.properties.location,
                                         nearestB.properties.location
                                     ];
-                                    locations.sort();
+                                    locations = locations.sort((a, b) => a - b);
+
+                                    console.log('locations', locations);
 
                                     const _subbridgePolyline = turf.lineSliceAlong(_bridgePolyline, locations[0], locations[1], {
                                         units: 'meters'

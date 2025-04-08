@@ -25,13 +25,13 @@ export class GeometryUtil {
     // static heightRangeRaster: IRange = { min: 537.80029296875, max: 1155.19140625 };
 
     // hallstatt
-    static rasterName = 'png_10_10_height_scaled_pynb_r8g8_hallstatt.png';
-    static rasterOrigin3857: Position = [
-        1516999.6402537469,
-        6035869.4598493706
-    ];
-    static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
-    static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_hallstatt.png';
+    // static rasterOrigin3857: Position = [
+    //     1516999.6402537469,
+    //     6035869.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
+    // static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
 
     // bad gastein
     // static rasterOrigin3857: Position = [
@@ -66,13 +66,33 @@ export class GeometryUtil {
     // static heightRangeSample: IRange = { min: 6611.0, max: 10202.0 };
     // static heightRangeRaster: IRange = { min: 413.08285522461, max: 637.49353027344 };
 
-    // alte donau
+    // // alte donau
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_olddanube.png';
     // static rasterOrigin3857: Position = [
     //     1825299.6402537469,
     //     6147039.4598493706
     // ];
     // static heightRangeSample: IRange = { min: 2482.0, max: 2826.0 };
     // static heightRangeRaster: IRange = { min: 155.12026977539, max: 176.60583496094 };
+
+    // // kahlenbergerdorf
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_kahlenbergerdorf.png';
+    // static rasterOrigin3857: Position = [
+    //     1818119.6402537469,
+    //     6154459.4598493706
+    // ];
+    // static heightRangeSample: IRange = { min: 2514.0, max: 7761.0 };;
+    // static heightRangeRaster: IRange = { min: 157.08058166504, max: 484.93157958984 };
+
+    // schoenbrunn
+    static rasterName = 'png_10_10_height_scaled_pynb_r8g8_schoenbrunn.png';
+    static rasterOrigin3857: Position = [
+        1813099.6402537469,
+        6138969.459849371
+    ];
+    static heightRangeRaster: IRange = { min: 173.29022216797, max: 263.4274597168 };
+    static heightRangeSample: IRange = { min: 2773.0, max: 4216.0 };
+
 
     // hainburg
     // static rasterOrigin3857: Position = [

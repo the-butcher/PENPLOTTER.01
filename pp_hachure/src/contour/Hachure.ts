@@ -15,7 +15,7 @@ export class Hachure implements IHachure {
         blurFactor: 0.5,
         contourOff: 1, // vertical difference of contours
         contourDiv: 2.5, // the subdivisions along a contour
-        hachureRay: (1 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize, // larger value -> flatter surfaces get hachures
+        hachureRay: (1 / Math.tan(4 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize, // larger value -> flatter surfaces get hachures
         contourDsp: 50
     }
 

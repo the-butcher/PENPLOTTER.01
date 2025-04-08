@@ -221,6 +221,51 @@ export class MapDefs {
         ]
     }
 
+    static MAP_DEF___KAHLENBERG: IMapDef = {
+        contours: 'contours_kahlenberg.geojson',
+        hachures: 'hachures_kahlenberg.geojson',
+        clippoly: '',
+        bordertx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1819800,
+            6152510
+        ],
+            4000,
+            2828
+        ),
+        padding: 200,
+        labelDefs: [
+
+        ]
+    }
+
+    static MAP_DEF__SCHOENBRUNN: IMapDef = {
+        contours: 'contours_schoenbrunn.geojson',
+        hachures: 'hachures_schoenbrunn.geojson',
+        clippoly: '',
+        bordertx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1815600,
+            6137200
+        ],
+            4000,
+            2828
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: 'Schönbrunn',
+                plotName: 'Schönbrunn',
+                distance: -20,
+                vertical: -275,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => false
+            }
+        ]
+    }
+
     static MAP_DEF_____WOLFGANG: IMapDef = {
         contours: 'contours_wolfgang.geojson',
         hachures: 'hachures_wolfgang.geojson',

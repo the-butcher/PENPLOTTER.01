@@ -222,6 +222,8 @@ function ImageLoaderComponent() {
                 } else { // done
 
                     _contours.forEach(c => c.complete = true);
+                    hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 2)
+                    hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
                     hachuresProgressRef.current.forEach(h => h.complete = true);
                     rebuildHachureRefs();
                     setTimeout(() => {

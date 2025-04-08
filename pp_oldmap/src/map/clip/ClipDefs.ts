@@ -148,6 +148,16 @@ export class ClipDefs {
                 skipMlt: false
             }
         },
+        // can not clip tram with bridges, because otherwise it would hide trams running on bridges
+        // {
+        //     layerNameDest: Map.LAYER__NAME_______TRAM,
+        //     layerNameClip: Map.LAYER__NAME_____BRIDGE,
+        //     distance: 4,
+        //     status: 'pending',
+        //     options: {
+        //         skipMlt: false
+        //     }
+        // },
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME____RAILWAY,

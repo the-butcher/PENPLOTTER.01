@@ -62,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF_____WOLFGANG;
+    const _mapDef = MapDefs.MAP_DEF__SCHOENBRUNN;
 
     const _map = new Map({
 
@@ -130,7 +130,7 @@ function MapComponent() {
             },
             '9': {
               gridType: 'rectangle',
-              gridSize: 25,
+              gridSize: 22,
               randSize: 0.000075,
               symbolFactory: 'createWineSymbol',
               outerDim: 50
@@ -160,9 +160,9 @@ function MapComponent() {
               // 13 Seilbahn
               // 16 Strassenbahn
               // Naturbestand :: Wien
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
+              return false; //(vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
             }
-          }, l => l.multiPolyline018)
+          }, l => l.multiPolyline018, [0, 0], 0, 'tram_schoenbrunn.geojson')
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {

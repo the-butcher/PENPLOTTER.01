@@ -106,9 +106,21 @@ export class VectorTileGeometryUtil {
 
     static cleanAndSimplify(geometry: Geometry) {
 
-        turf.cleanCoords(geometry, {
-            mutate: true
-        });
+        // there could be a bug in turf when cleaning MultilineStrings where single lines collapse to less than 3 points
+        if (geometry.type === 'MultiLineString') {
+            const polylines = VectorTileGeometryUtil.destructureMultiPolyline(geometry);
+            polylines.forEach(polyline => {
+                turf.cleanCoords(polyline, {
+                    mutate: true
+                });
+            })
+            geometry = VectorTileGeometryUtil.restructureMultiPolyline(polylines);
+        } else {
+            turf.cleanCoords(geometry, {
+                mutate: true
+            });
+        }
+
         turf.simplify(geometry, {
             mutate: true,
             tolerance: VectorTileGeometryUtil.DEFAULT_SIMPLIFY_TOLERANCE,
