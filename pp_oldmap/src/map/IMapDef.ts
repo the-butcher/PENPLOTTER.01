@@ -7,7 +7,14 @@ export interface IMapDef {
     hachures: string;
     contours: string;
     clippoly: string;
+    /**
+     * path to geojson lines to be used for matching against label-defs
+     */
     bordertx: string;
+    /**
+     * path to geojson lines to be used for matching against label-defs
+     */
+    water_tx: string;
     padding: number;
     labelDefs: ILabelDef[];
 }

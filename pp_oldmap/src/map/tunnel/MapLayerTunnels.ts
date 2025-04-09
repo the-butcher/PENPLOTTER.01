@@ -81,7 +81,7 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
         console.log(`${this.name}, creating dashes ...`);
 
         this.multiPolyline04 = VectorTileGeometryUtil.dashMultiPolyline(this.multiPolyline04, [10, 12]);
-        this.multiPolyline035.coordinates = this.multiPolyline04.coordinates;
+        this.multiPolyline025.coordinates = this.multiPolyline04.coordinates;
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClipLayer(bboxMap4326);

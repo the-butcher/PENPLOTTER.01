@@ -94,6 +94,7 @@ export class MapLayerBridge2 extends AMapLayer<LineString, ISymbolProperties> {
 
         console.log(`${this.name}, processing line ...`);
 
+        // no lines, for clipping only
         const polgons: Polygon[] = [
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.bridgePolygons[0]),
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.bridgePolygons[1]),
@@ -106,6 +107,13 @@ export class MapLayerBridge2 extends AMapLayer<LineString, ISymbolProperties> {
             ...VectorTileGeometryUtil.destructureMultiPolygon(this.bridgePolygons[8]),
         ];
         this.polyData = VectorTileGeometryUtil.restructureMultiPolygon(polgons);
+
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[2].coordinates);
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[3].coordinates);
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[4].coordinates);
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[5].coordinates);
 
     }
 

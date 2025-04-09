@@ -36,6 +36,7 @@ export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
                 lod: vectorTileKey.lod,
                 col: vectorTileKey.col,
                 row: vectorTileKey.row,
+                layer: feature.layerName,
                 symbol: symbolValue
             }));
         });

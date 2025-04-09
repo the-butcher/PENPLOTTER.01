@@ -1,4 +1,3 @@
-import { Position } from "geojson";
 
 export interface ILabelDef {
     tileName: string;
@@ -9,6 +8,4 @@ export interface ILabelDef {
     txtscale: number;
     idxvalid: (index: number) => boolean;
     fonttype: 'regular' | 'italic';
-    geometry?: Position[]; // deprecated, to be replaced with attributed geojson
-
 }

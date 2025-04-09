@@ -62,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF__SCHOENBRUNN;
+    const _mapDef = MapDefs.MAP_DEF_______VIGAUN;
 
     const _map = new Map({
 
@@ -83,7 +83,7 @@ function MapComponent() {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
               return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
             }
-          }, _mapDef.labelDefs, '', 6, 7) // 2,
+          }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
         },
         {
           createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
@@ -160,9 +160,14 @@ function MapComponent() {
               // 13 Seilbahn
               // 16 Strassenbahn
               // Naturbestand :: Wien
-              return false; //(vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
+              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
             }
-          }, l => l.multiPolyline018, [0, 0], 0, 'tram_schoenbrunn.geojson')
+          }, l => l.multiPolyline025, [0, 0], 0, {
+            '13': {
+              symbolFactory: 'createCableCarSymbol',
+              dashSize: 50
+            }
+          }) // tram_schoenbrunn.geojson
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
@@ -236,14 +241,14 @@ function MapComponent() {
             accepts: () => {
               return false;
             }
-          }, l => l.multiPolyline018, [0, 0], 0, _mapDef.hachures)
+          }, l => l.multiPolyline018, [0, 0], 0, {}, _mapDef.hachures)
         },
         {
           createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____CONTOUR, {
             accepts: () => {
               return false;
             }
-          }, l => l.multiPolyline025, [0, 0], 0, _mapDef.contours)
+          }, l => l.multiPolyline025, [0, 0], 0, {}, _mapDef.contours)
         },
         {
           createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME_CONTOUR_TX, {

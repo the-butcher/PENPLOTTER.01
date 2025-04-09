@@ -83,6 +83,24 @@ export class ClipDefs {
             }
         },
         {
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
+            layerNameClip: Map.LAYER__NAME______WATER,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
+            layerNameClip: Map.LAYER__NAME______WATER,
+            distance: 6,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME______ROADS,
             distance: 4,
@@ -118,13 +136,10 @@ export class ClipDefs {
                 skipMlt: false
             }
         },
-        /////////////////////////////////////////////
-        // WATER
-        /////////////////////////////////////////////
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 4,
+            distance: 2,
             status: 'pending'
         },
         {
@@ -148,16 +163,6 @@ export class ClipDefs {
                 skipMlt: false
             }
         },
-        // can not clip tram with bridges, because otherwise it would hide trams running on bridges
-        // {
-        //     layerNameDest: Map.LAYER__NAME_______TRAM,
-        //     layerNameClip: Map.LAYER__NAME_____BRIDGE,
-        //     distance: 4,
-        //     status: 'pending',
-        //     options: {
-        //         skipMlt: false
-        //     }
-        // },
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME____RAILWAY,
@@ -167,7 +172,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
-            distance: 8,
+            distance: 4,
             status: 'pending',
             // options: {
             //     skip025: true,

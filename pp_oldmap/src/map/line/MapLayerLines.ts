@@ -9,31 +9,39 @@ import { AMapLayer } from '../AMapLayer';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
-import { IWorkerLineInputLine } from './IWorkerLineInputLine';
+import { ISymbolDefPointDash, IWorkerLineInputLine } from './IWorkerLineInputLine';
+import { ISymbolProperties } from '../common/ISymbolProperties';
 
 
-export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
+export class MapLayerLines extends AMapLayer<LineString, ISymbolProperties> {
 
     private getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString;
     private dashArray: [number, number];
     private offset: number;
     private geoJsonPath: string;
+    symbolDefinitions: { [K in string]: ISymbolDefPointDash } = {};
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0], offset: number = 0, geoJsonPath: string = '') {
+    constructor(name: string, filter: IVectorTileFeatureFilter, getDefaultPolylineContainer: (mapLayerLines: MapLayerLines) => MultiLineString, dashArray: [number, number] = [0, 0], offset: number = 0, symbolDefinitions: { [K in string]: ISymbolDefPointDash } = {}, geoJsonPath: string = '') {
         super(name, filter);
         this.getDefaultPolylineContainer = getDefaultPolylineContainer;
         this.dashArray = dashArray;
         this.offset = offset;
+        this.symbolDefinitions = symbolDefinitions;
         this.geoJsonPath = geoJsonPath;
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
+
         const polylines = VectorTileGeometryUtil.toPolylines(vectorTileKey, feature.coordinates);
+        const symbolValue = feature.getValue('_symbol')?.getValue() as number;
+
         polylines.forEach(polyline => {
             this.tileData.push(turf.feature(polyline, {
                 lod: vectorTileKey.lod,
                 col: vectorTileKey.col,
-                row: vectorTileKey.row
+                row: vectorTileKey.row,
+                layer: feature.layerName,
+                symbol: symbolValue
             }));
         });
     }
@@ -43,7 +51,7 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
         console.log(`${this.name}, processing data ...`);
 
         if (this.geoJsonPath !== '') {
-            const featureCollection = await new GeoJsonLoader().load<LineString, GeoJsonProperties>(this.geoJsonPath);
+            const featureCollection = await new GeoJsonLoader().load<LineString, ISymbolProperties>(this.geoJsonPath);
             featureCollection.features.forEach(f => this.tileData.push(f));
         }
 
@@ -64,7 +72,7 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);
@@ -82,6 +90,7 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
             polyData: this.polyData,
             dashArray: this.dashArray,
             offset: this.offset,
+            symbolDefinitions: this.symbolDefinitions,
             bboxClp4326,
             bboxMap4326
         };
@@ -96,7 +105,7 @@ export class MapLayerLines extends AMapLayer<LineString, GeoJsonProperties> {
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

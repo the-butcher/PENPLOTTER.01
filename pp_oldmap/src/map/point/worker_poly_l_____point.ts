@@ -51,7 +51,7 @@ self.onmessage = (e) => {
                     plotName: name,
                     distance: 12.00,
                     vertical: -12.00,
-                    charsign: 0,
+                    charsign: 1.02,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION
                 };
                 for (let i = 0; i < workerInput.labelDefs.length; i++) {
@@ -72,6 +72,7 @@ self.onmessage = (e) => {
 
                     let charCoordinates = labelBuilder.getMultiPolygonChar(chars[i], scale, charOffset).coordinates;
                     charOffset = labelBuilder.getCharOffset(chars[i], scale, zeroOffset, charOffset);
+                    charOffset[0] = charOffset[0] * labelDef.charsign;
 
                     const angle = 0; //Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
                     const matrixA = GeometryUtil.matrixRotationInstance(-angle);

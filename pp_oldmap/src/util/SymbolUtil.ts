@@ -93,7 +93,18 @@ export class SymbolUtil {
 
     static createWineSymbol = (coordinate4326: Position): Position[][] => { // coordinate4326: Position
 
-        const baseRadius = 8;
+        return this.createRingSymbol(coordinate4326, 8);
+
+    }
+
+    static createCableCarSymbol = (coordinate4326: Position): Position[][] => { // coordinate4326: Position
+
+        return this.createRingSymbol(coordinate4326, 6);
+
+    }
+
+    static createRingSymbol = (coordinate4326: Position, baseRadius: number): Position[][] => { // coordinate4326: Position
+
         const angleA = Math.PI / 4;
         const angleB = angleA + Math.PI * 2;
 

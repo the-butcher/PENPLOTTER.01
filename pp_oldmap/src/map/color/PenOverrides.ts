@@ -27,8 +27,8 @@ export class ColorOverrides {
 
         {
             name: Map.LAYER__NAME______WATER,
-            orig: "p018",
-            dest: "w018"
+            orig: "p025",
+            dest: "w025"
         },
         {
             name: Map.LAYER__NAME______WATER,
