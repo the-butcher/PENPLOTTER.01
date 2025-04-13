@@ -261,10 +261,10 @@ export class Contour implements IContour {
 
                         const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
                             const lastVertex = h.getLastVertex();
-                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > Hachure.CONFIG.minSpacing / GeometryUtil.cellSize) {
+                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > Hachure.CONFIG.minSpacing * 3 / GeometryUtil.cellSize) {
                                 return false;
                             }
-                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > Hachure.CONFIG.minSpacing / GeometryUtil.cellSize) {
+                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > Hachure.CONFIG.minSpacing * 3 / GeometryUtil.cellSize) {
                                 return false;
                             }
                             const distance = turf.distance(position4326, lastVertex.position4326, {

@@ -1,20 +1,27 @@
-import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Position } from "geojson";
-import { IMatrix2D } from "./Interfaces";
 import * as turf from "@turf/turf";
+import { BBox, Feature, LineString, MultiLineString, MultiPolygon, Position } from "geojson";
+import simplify from "simplify-js";
 import { IContourProperties } from "../contour/IContourProperties";
-import { ObjectUtil } from "./ObjectUtil";
+import { IPositionProperties } from "../contour/IPositionProperties";
+import { IMatrix2D } from "./Interfaces";
 import { IRange } from "./IRange";
+import { ObjectUtil } from "./ObjectUtil";
+
+interface IPositionAtLength {
+    position: Position;
+    length: number;
+}
 
 export class GeometryUtil {
 
     // fuschertoerl
-    static rasterName = 'png_10_10_height_scaled_pynb_fuschertoerl.png';
-    static heightRangeRaster: IRange = { min: 1522.8586425781, max: 2586.3706054688 };
-    static rasterOrigin3857: Position = [
-        1424999.6402537469,
-        5963749.459849371
-    ];
-    static heightRangeSample: IRange = { min: 24371.0, max: 41391.0 };
+    // static rasterName = 'png_10_10_height_scaled_pynb_fuschertoerl.png';
+    // static heightRangeRaster: IRange = { min: 1522.8586425781, max: 2586.3706054688 };
+    // static rasterOrigin3857: Position = [
+    //     1424999.6402537469,
+    //     5963749.459849371
+    // ];
+    // static heightRangeSample: IRange = { min: 24371.0, max: 41391.0 };
 
     // vigaun
     // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_vigaun.png';
@@ -59,13 +66,13 @@ export class GeometryUtil {
     // static heightRangeRaster: IRange = { min: 434.31433105469, max: 859.93572998047 };
 
     // duernstein
-    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_duernstein.png';
-    // static rasterOrigin3857: Position = [
-    //     1724199.6402537469,
-    //     6175169.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
-    // static heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
+    static rasterName = 'png_10_10_height_scaled_pynb_duernstein.png';
+    static rasterOrigin3857: Position = [
+        1724199.6402537469,
+        6175169.4598493706
+    ];
+    static heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
+    static heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
 
     // salzburg
     // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_salzburg.png';
@@ -221,6 +228,126 @@ export class GeometryUtil {
         return results.map(p => turf.cleanCoords(p, {
             mutate: true
         }));
+
+    }
+
+    static position3857ToPositionProperties(position3857: Position): IPositionProperties {
+        const position4326 = turf.toWgs84(position3857);
+        const positionPixl = GeometryUtil.position4326ToPixel(position4326);
+        return {
+            position4326,
+            positionPixl,
+        };
+    }
+
+    static smooth1(positionsA: IPositionProperties[]): IPositionProperties[] {
+
+        const coordinates3857A = positionsA.map(p => turf.toMercator(p.position4326));
+
+        const coordinates3857ALength: IPositionAtLength[] = [];
+
+        // build an array of positions at their lengths along the path
+        let length = 0;
+        coordinates3857ALength.push({
+            length,
+            position: coordinates3857A[0]
+        });
+        for (let i = 0; i < coordinates3857A.length - 1; i++) {
+            const xDiff = coordinates3857A[i + 1][0] - coordinates3857A[i][0];
+            const yDiff = coordinates3857A[i + 1][1] - coordinates3857A[i][1];
+            length += Math.sqrt(xDiff ** 2 + yDiff ** 2);
+            coordinates3857ALength.push({
+                length,
+                position: coordinates3857A[i + 1]
+            });
+        }
+
+        const lMax = 25;
+
+        const positionsB: IPositionProperties[] = [];
+
+        positionsB.push(GeometryUtil.position3857ToPositionProperties(coordinates3857ALength[0].position));
+        for (let i = 0; i < coordinates3857ALength.length; i++) {
+
+            let xSum = 0;
+            let ySum = 0;
+            let wSum = 0;
+
+            for (let j = 0; j < coordinates3857ALength.length; j++) {
+
+                const lCur = Math.abs(coordinates3857ALength[i].length - coordinates3857ALength[j].length);
+                if (lCur <= lMax) {
+
+                    // const wCur = (lMax - lCur) / lMax;
+                    // https://www.desmos.com/calculator/abn1jhhprz
+                    const wCur = (Math.cos(lCur * Math.PI / lMax) + 1) / 2;
+
+                    xSum += coordinates3857ALength[j].position[0] * wCur;
+                    ySum += coordinates3857ALength[j].position[1] * wCur;
+                    wSum += wCur;
+                }
+
+            }
+
+            const position3857: Position = [
+                xSum / wSum,
+                ySum / wSum
+            ];
+            positionsB.push(GeometryUtil.position3857ToPositionProperties(position3857));
+
+        }
+        positionsB.push(GeometryUtil.position3857ToPositionProperties(coordinates3857ALength[coordinates3857ALength.length - 1].position));
+
+        return positionsB;
+
+    }
+
+
+    static smoothPositions2(coordinatesPixlA: Position[]): Position[] {
+
+        const coordinatesPixlB: Position[] = [];
+        let q: Position;
+        let r: Position;
+        coordinatesPixlB.push(coordinatesPixlA[0]);
+        for (let i = 0; i < coordinatesPixlA.length - 1; i++) {
+            const c0 = coordinatesPixlA[i];
+            const c1 = coordinatesPixlA[i + 1];
+            q = [0.75 * c0[0] + 0.25 * c1[0], 0.75 * c0[1] + 0.25 * c1[1]];
+            r = [0.25 * c0[0] + 0.75 * c1[0], 0.25 * c0[1] + 0.75 * c1[1]];
+            coordinatesPixlB.push(q);
+            coordinatesPixlB.push(r);
+        }
+        coordinatesPixlB.push(coordinatesPixlA[coordinatesPixlA.length - 1]);
+        return coordinatesPixlB;
+
+
+    }
+
+    static smooth2(positionsA: IPositionProperties[]): IPositionProperties[] {
+
+        let coordinatesPixlA = positionsA.map(p => p.positionPixl);
+
+        let coordinatesXY = coordinatesPixlA.map(c => {
+            return {
+                x: c[0],
+                y: c[1]
+            }
+        });
+        coordinatesXY = simplify(coordinatesXY, 0.25, true);
+        coordinatesPixlA = coordinatesXY.map(c => {
+            return [
+                c.x,
+                c.y
+            ]
+        });
+
+        const coordinatesPixlB = GeometryUtil.smoothPositions2(GeometryUtil.smoothPositions2(coordinatesPixlA));
+        return coordinatesPixlB.map(c => {
+            return {
+                position4326: GeometryUtil.pixelToPosition4326(c),
+                positionPixl: c
+            }
+        });
 
     }
 

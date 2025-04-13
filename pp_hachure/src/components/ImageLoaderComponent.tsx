@@ -1,5 +1,6 @@
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Button, Slider, Stack } from "@mui/material";
+import { Mark } from '@mui/material/Slider/useSlider.types';
 import * as turf from "@turf/turf";
 import * as d3Array from 'd3-array';
 import * as d3Contour from 'd3-contour';
@@ -13,11 +14,9 @@ import { IHachure } from '../contour/IHachure';
 import { GeometryUtil } from '../util/GeometryUtil';
 import { IRasterData } from '../util/IRasterData';
 import { ObjectUtil } from '../util/ObjectUtil';
-import { RasterLoader } from '../util/RasterLoader';
+import { Png16Loader } from '../util/Png16Loader';
 import { RasterUtil } from '../util/RasterUtil';
 import ContentComponent from './ContentComponent';
-import { Mark } from '@mui/material/Slider/useSlider.types';
-import { Png16Loader } from '../util/Png16Loader';
 
 function ImageLoaderComponent() {
 
