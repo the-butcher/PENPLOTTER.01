@@ -562,8 +562,8 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         this.multiPolyline025.coordinates.push(...this.roadOutlines[5].coordinates);
 
         this.multiPolyline025.coordinates.push(...this.roadPolylines[6].coordinates);
-        this.multiPolyline025.coordinates.push(...VectorTileGeometryUtil.dashMultiPolyline(this.roadPolylines[7], [6, 4]).coordinates);
-        this.multiPolyline025.coordinates.push(...VectorTileGeometryUtil.dashMultiPolyline(this.roadPolylines[8], [6, 4]).coordinates);
+        this.multiPolyline025.coordinates.push(...VectorTileGeometryUtil.dashMultiPolyline(this.roadPolylines[7], [8, 4]).coordinates);
+        this.multiPolyline025.coordinates.push(...VectorTileGeometryUtil.dashMultiPolyline(this.roadPolylines[8], [6, 6]).coordinates);
 
         this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
         this.multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);

@@ -32,20 +32,20 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
         this.labelClasses = labelClasses;
         this.geoJsonPath = geoJsonPath;
 
-        for (let i = 0; i < this.labelDefs.length; i++) {
-            if (this.labelDefs[i].geometry) {
-                const polyline: LineString = {
-                    type: 'LineString',
-                    coordinates: this.labelDefs[i].geometry!
-                }
-                this.tileData.push(turf.feature(polyline, {
-                    lod: 0,
-                    col: 0,
-                    row: 0,
-                    name: this.labelDefs[i].tileName
-                }));
-            }
-        }
+        // for (let i = 0; i < this.labelDefs.length; i++) {
+        //     if (this.labelDefs[i].geometry) {
+        //         const polyline: LineString = {
+        //             type: 'LineString',
+        //             coordinates: this.labelDefs[i].geometry!
+        //         }
+        //         this.tileData.push(turf.feature(polyline, {
+        //             lod: 0,
+        //             col: 0,
+        //             row: 0,
+        //             name: this.labelDefs[i].tileName
+        //         }));
+        //     }
+        // }
 
     }
 
@@ -167,26 +167,19 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
     async processPlot(): Promise<void> {
 
-        // console.log(`${this.name}, connecting polylines ...`, this.linesByName);
+        // const polygonCount018 = 3;
+        // const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
 
-        const polygonCount018 = 3;
-        const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
+        // // TODO :: remove code duplication
+        // const distances018: number[] = [];
+        // for (let i = 0; i < polygonCount018; i++) {
+        //     distances018.push(polygonDelta018);
+        // }
+        // console.log(`${this.name}, buffer collect 018 ...`, distances018);
+        // const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
 
-        // TODO :: remove code duplication
-        const distances018: number[] = [];
-        for (let i = 0; i < polygonCount018; i++) {
-            distances018.push(polygonDelta018);
-        }
-        console.log(`${this.name}, buffer collect 018 ...`, distances018);
-        const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
-
-        const connected018 = VectorTileGeometryUtil.connectBufferFeatures(features018);
-        this.multiPolyline018 = VectorTileGeometryUtil.restructureMultiPolyline(connected018);
-
-
-
-        //
-        // this.connectPolylines(2);
+        // const connected018 = VectorTileGeometryUtil.connectBufferFeatures(features018);
+        // this.multiPolyline018 = VectorTileGeometryUtil.restructureMultiPolyline(connected018);
 
     }
 

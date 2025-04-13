@@ -93,7 +93,7 @@ export class SymbolUtil {
 
     static createWineSymbol = (coordinate4326: Position): Position[][] => { // coordinate4326: Position
 
-        return this.createRingSymbol(coordinate4326, 8);
+        return this.createRingSymbol(coordinate4326, 7);
 
     }
 

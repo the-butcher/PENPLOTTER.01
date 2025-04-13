@@ -52,7 +52,7 @@ self.onmessage = (e) => {
                     distance: 12.00,
                     vertical: -12.00,
                     charsign: 1.02,
-                    txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION
+                    txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION
                 };
                 for (let i = 0; i < workerInput.labelDefs.length; i++) {
                     if (workerInput.labelDefs[i].plotName === name) {
@@ -107,7 +107,7 @@ self.onmessage = (e) => {
 
     });
 
-    const bufferDist = 10;
+    const bufferDist = 6;
 
     // buffer around symbols
     let bufferPolygons: Polygon[] = [];

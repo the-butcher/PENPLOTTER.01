@@ -12,6 +12,7 @@ import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 import { LabelBuilder } from '../../vectortile/LabelBuilder';
 import { noto_serif_regular } from '../../util/NotoSerifRegular';
 import { noto_serif_italic } from '../../util/NotoSerifItalic';
+import { MapDefs } from '../MapDefs';
 
 self.onmessage = (e) => {
 
@@ -66,7 +67,7 @@ self.onmessage = (e) => {
                     distance: 0.50,
                     vertical: 12,
                     charsign: 0,
-                    txtscale: 0.022,
+                    txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
                     fonttype: 'regular',
                     idxvalid: () => true
                 };

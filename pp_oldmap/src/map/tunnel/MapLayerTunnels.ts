@@ -72,7 +72,7 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
         // no worker, just copying some coordinates
 
-        this.multiPolyline035.coordinates.push(...this.multiPolyline04.coordinates);
+        this.multiPolyline025.coordinates.push(...this.multiPolyline04.coordinates);
 
     }
 

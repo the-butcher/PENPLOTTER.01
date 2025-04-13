@@ -1,16 +1,14 @@
 import * as turf from '@turf/turf';
-import { BBox, GeoJsonProperties, MultiPolygon, Point } from "geojson";
+import { BBox, GeoJsonProperties, MultiPolygon, Point, Position } from "geojson";
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
-import { Map } from '../Map';
-import { Pen } from '../Pen';
-import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
-import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
 import { ILabelDef } from '../ILabelDef';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
+import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
+import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
 
 
 export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
@@ -130,20 +128,23 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     async processPlot(): Promise<void> {
 
-        const polygonCount018 = 3;
-        const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
+        const coordinates018: Position[][] = this.polyText.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+        this.multiPolyline018.coordinates.push(...coordinates018);
 
-        // TODO :: remove code duplication
-        const distances018: number[] = [];
-        for (let i = 0; i < polygonCount018; i++) {
-            distances018.push(polygonDelta018);
-        }
-        console.log(`${this.name}, buffer collect 018 ...`, distances018);
-        const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
+        // const polygonCount018 = 3;
+        // const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
 
-        const connected018A = VectorTileGeometryUtil.connectBufferFeatures(features018);
-        const connected018B = VectorTileGeometryUtil.restructureMultiPolyline(connected018A);
-        this.multiPolyline018.coordinates.push(...connected018B.coordinates);
+        // // TODO :: remove code duplication
+        // const distances018: number[] = [];
+        // for (let i = 0; i < polygonCount018; i++) {
+        //     distances018.push(polygonDelta018);
+        // }
+        // console.log(`${this.name}, buffer collect 018 ...`, distances018);
+        // const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
+
+        // const connected018A = VectorTileGeometryUtil.connectBufferFeatures(features018);
+        // const connected018B = VectorTileGeometryUtil.restructureMultiPolyline(connected018A);
+        // this.multiPolyline018.coordinates.push(...connected018B.coordinates);
 
     }
 

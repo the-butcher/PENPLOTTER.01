@@ -7,7 +7,7 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInput<Polygon, GeoJsonProperties> = e.data;
 
-    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
     let multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
 
     /**
@@ -28,22 +28,22 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, clipping to bboxClp4326 (2) ...`);
     multiPolygonB = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonB, workerInput.bboxClp4326); // with buffered rings
 
-    const coordinates025: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-    multiPolyline025.coordinates.push(...coordinates025);
+    const coordinates018: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
+    multiPolyline018.coordinates.push(...coordinates018);
 
     // first ring is 0.3 for a more distinct water line
     const coordinates035: Position[][] = workerInput.polyData.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
     multiPolyline035.coordinates.push(...coordinates035);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+    multiPolyline018 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline018, workerInput.bboxMap4326);
     multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
+    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline018);
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline035);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline025,
+        multiPolyline018,
         multiPolyline035
     };
     self.postMessage(workerOutput);

@@ -131,7 +131,7 @@ self.onmessage = (e) => {
                             hexCoordinatesB.push(...getHexPoints(outerPolygonFeature.geometry, bbox, symbolDefinition));
                             hexCoordinatesB.push(...getHexPoints(centerMultipolygonOd, bbox, {
                                 ...symbolDefinition,
-                                gridSize: symbolDefinition.gridSize * 2
+                                gridSize: symbolDefinition.gridSize * 1.6
                             }));
                         } else { // no difference feature
                             hexCoordinatesB.push(...getHexPoints(symbolizablePolygons, bbox, symbolDefinition));

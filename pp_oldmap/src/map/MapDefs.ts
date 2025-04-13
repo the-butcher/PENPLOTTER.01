@@ -3,8 +3,127 @@ import { IMapDef } from "./IMapDef"
 
 export class MapDefs {
 
-    static DEFAULT_TEXT_SCALE_LOCATION = 0.032;
-    static DEFAULT_TEXT_SCALE____WATER = 0.036;
+    static DEFAULT_TEXT_SCALE_LINELABEL = 0.022;
+    static DEFAULT_TEXT_SCALE__LOCATION = 0.032;
+    static DEFAULT_TEXT_SCALE_____WATER = 0.036;
+
+    static MAP_DEF_FUSCHERTOERL: IMapDef = {
+        hachures: 'hachures_fuschertoerl.geojson',
+        contours: 'contours_fuschertoerl.geojson',
+        clippoly: '',
+        bordertx: '',
+        water_tx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1427500,
+            5961980
+        ],
+            4000,
+            2828
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: '2550',
+                plotName: '2550',
+                distance: 0.75,
+                vertical: 12,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '2450',
+                plotName: '2450',
+                distance: 0.47,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '2400',
+                plotName: '2400',
+                distance: 0.60,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '2250',
+                plotName: '2250',
+                distance: 0.25,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Aussichtswarte Edelweißspitze',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Fuschertörl',
+                plotName: 'Fuschertörl',
+                distance: 25,
+                vertical: -20,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '2455 m',
+                plotName: '2455 m',
+                distance: 20,
+                vertical: 15,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Edelweißhütte',
+                plotName: 'Edelweißhütte',
+                distance: -350,
+                vertical: -40,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Fuscher Törl',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+            {
+                tileName: '2428 m',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'regular',
+                idxvalid: () => false
+            },
+        ]
+    }
 
     // static MAP_DEF_________TEST: IMapDef = {
     //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
@@ -18,28 +137,84 @@ export class MapDefs {
     //     labelDefs: []
     // }
 
-    // static MAP_DEF__DUERRNSTEIN: IMapDef = {
-    //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
-    //         1726700,
-    //         6173400
-    //     ],
-    //         4000,
-    //         2828
-    //     ),
-    //     padding: 200,
-    //     labelDefs: [
-    //         {
-    //             tileName: 'Donau',
-    //             plotName: 'Donau',
-    //             distance: 0.17,
-    //             vertical: 0,
-    //             charsign: -1.1,
-    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
-    //             idxvalid: (index: number) => index === 1
-    //         },
+    static MAP_DEF___DUERNSTEIN: IMapDef = {
+        hachures: 'hachures_duernstein.geojson',
+        contours: 'contours_duernstein.geojson',
+        clippoly: '',
+        bordertx: '',
+        water_tx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            1726700,
+            6173400
+        ],
+            4000,
+            2828
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: 'Dürnstein',
+                plotName: 'Dürnstein',
+                distance: 110,
+                vertical: -110,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Rossatz',
+                plotName: 'Rossatz',
+                distance: 65,
+                vertical: 25,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '200',
+                plotName: '200',
+                distance: 0.50,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: (index: number) => index === 6
+            },
+            {
+                tileName: '400',
+                plotName: '400',
+                distance: 0.70,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '450',
+                plotName: '450',
+                distance: 0.80,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL * 1.2,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Donau',
+                plotName: 'Donau',
+                distance: 0.17,
+                vertical: 0,
+                charsign: -1.1,
+                fonttype: 'italic',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
+                idxvalid: (index: number) => index === 1
+            },
 
-    //     ]
-    // }
+        ]
+    }
 
     // static MAP_DEF_________1010: IMapDef = {
     //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
@@ -87,22 +262,62 @@ export class MapDefs {
         padding: 1000,
         labelDefs: [
             {
+                tileName: '850',
+                plotName: '850',
+                distance: 0.47,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '800',
+                plotName: '800',
+                distance: 0.45,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '600',
+                plotName: '600',
+                distance: 0.46,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
+                tileName: '550',
+                plotName: '550',
+                distance: 0.435,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'regular',
+                idxvalid: () => true
+            },
+            {
                 tileName: 'Hallstatt',
                 plotName: 'Hallstatt',
                 distance: 170,
                 vertical: 120,
                 charsign: 1.02,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => true
             },
             {
                 tileName: 'Salzberg',
                 plotName: 'Salzberg',
-                distance: 0,
-                vertical: -20,
+                distance: 20,
+                vertical: -30,
                 charsign: 1.02,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => true
             },
@@ -112,7 +327,7 @@ export class MapDefs {
                 distance: 0,
                 vertical: -20,
                 charsign: 1.02,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => true
             },
@@ -142,7 +357,7 @@ export class MapDefs {
                 distance: 0.25,
                 vertical: 40,
                 charsign: 1.05,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER * 1.5,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.5,
                 fonttype: 'italic',
                 idxvalid: () => true,
             }
@@ -171,7 +386,7 @@ export class MapDefs {
                 vertical: 8,
                 charsign: -1,
                 fonttype: 'italic',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 idxvalid: (index: number) => index === 1
             },
             {
@@ -181,7 +396,7 @@ export class MapDefs {
                 vertical: -160,
                 charsign: 0,
                 fonttype: 'regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => true
             }
         ]
@@ -208,7 +423,7 @@ export class MapDefs {
                 distance: 0.15,
                 vertical: 20,
                 charsign: -1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 fonttype: 'italic',
                 idxvalid: () => true
             },
@@ -218,7 +433,7 @@ export class MapDefs {
                 distance: 0.15,
                 vertical: 20,
                 charsign: -1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 fonttype: 'italic',
                 idxvalid: () => true
             },
@@ -284,7 +499,7 @@ export class MapDefs {
                 distance: -20,
                 vertical: -275,
                 charsign: 0,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => false
             }
@@ -352,7 +567,7 @@ export class MapDefs {
                 distance: 100,
                 vertical: -30,
                 charsign: 0,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => false
             },
@@ -362,7 +577,7 @@ export class MapDefs {
                 distance: 0.25,
                 vertical: 0,
                 charsign: 0.8,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER * 1.5,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.5,
                 idxvalid: () => true,
                 fonttype: 'italic'
             }
@@ -399,7 +614,7 @@ export class MapDefs {
                 distance: 0.45,
                 vertical: 23,
                 charsign: -1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 fonttype: 'italic',
                 idxvalid: (index: number) => index === 1
             },
@@ -441,7 +656,7 @@ export class MapDefs {
                 distance: 0.30,
                 vertical: 12,
                 charsign: 0,
-                txtscale: 0.022,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
                 fonttype: 'regular',
                 idxvalid: () => true
             },
@@ -451,7 +666,7 @@ export class MapDefs {
                 distance: 0.78,
                 vertical: -28,
                 charsign: -1.1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => true
             },
@@ -461,7 +676,7 @@ export class MapDefs {
                 distance: 0.78,
                 vertical: 50,
                 charsign: -1.1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => true
             },
@@ -471,7 +686,7 @@ export class MapDefs {
                 distance: 50,
                 vertical: -12,
                 charsign: 1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => false
             },
@@ -481,7 +696,7 @@ export class MapDefs {
                 distance: -150,
                 vertical: 20,
                 charsign: 1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => false
             },
@@ -491,7 +706,7 @@ export class MapDefs {
                 distance: 75,
                 vertical: 60,
                 charsign: 1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'regular',
                 idxvalid: () => false
             },
@@ -501,7 +716,7 @@ export class MapDefs {
                 distance: 0.060,
                 vertical: -5,
                 charsign: -1.1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 fonttype: 'italic',
                 idxvalid: () => true
             },
@@ -536,21 +751,41 @@ export class MapDefs {
             {
                 tileName: 'Bad Vigaun',
                 plotName: 'Bad Vigaun',
-                distance: 40,
-                vertical: -12,
+                distance: 130,
+                vertical: 0,
                 charsign: 1.02,
                 fonttype: 'regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => false
             },
             {
                 tileName: 'Langwies',
                 plotName: 'Langwies',
-                distance: 40,
+                distance: 60,
                 vertical: -90,
                 charsign: 1.02,
                 fonttype: 'regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LOCATION,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Weinleiten',
+                plotName: 'Weinleiten',
+                distance: -40,
+                vertical: 30,
+                charsign: 1.02,
+                fonttype: 'regular',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                idxvalid: () => false
+            },
+            {
+                tileName: 'Brettstein',
+                plotName: 'Brettstein',
+                distance: -50,
+                vertical: -30,
+                charsign: 1.02,
+                fonttype: 'regular',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => false
             },
             {
@@ -590,7 +825,7 @@ export class MapDefs {
                 vertical: 24,
                 charsign: 1.02,
                 fonttype: 'italic',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE____WATER,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 idxvalid: (index: number) => index === 1
             },
         ]

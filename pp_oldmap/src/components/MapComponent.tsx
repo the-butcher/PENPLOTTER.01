@@ -62,7 +62,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF_______VIGAUN;
+    const _mapDef = MapDefs.MAP_DEF___DUERNSTEIN;
 
     const _map = new Map({
 
@@ -74,7 +74,7 @@ function MapComponent() {
           createLayerInstance: () =>
             new MapLayerWater(Map.LAYER__NAME______WATER, {
               accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-                return (vectorTileKey.lod === 15 && vectorTileFeature.layerName === "GEWAESSER_F_GEWF");
+                return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === "GEWAESSER_F_GEWF" || vectorTileFeature.layerName === "GEWAESSER_L_GEWL ");
               },
             }),
         },
@@ -897,18 +897,18 @@ function MapComponent() {
 
     if (svg) {
       svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-      svg.style.width = `${svgRef.current.width}`;
-      svg.style.height = `${svgRef.current.height}`;
-      svg.style.maxWidth = `${svgRef.current.width}`;
-      svg.style.maxHeight = `${svgRef.current.height}`;
+      svg.style.width = `${svg.width}`;
+      svg.style.height = `${svg.height}`;
+      svg.style.maxWidth = `${svg.width}`;
+      svg.style.maxHeight = `${svg.height}`;
       svg.style.transform = "";
 
-      const outerSVG = svg!.outerHTML;
+      const outerSVG = svg.parentElement!.innerHTML; //!.outerHTML;
 
-      svg.style.width = `${svgRef.current.width}`;
-      svg.style.height = `${svgRef.current.height}`;
-      svg.style.maxWidth = `${svgRef.current.width}`;
-      svg.style.maxHeight = `${svgRef.current.height}`;
+      svg.style.width = `${svg.width}`;
+      svg.style.height = `${svg.height}`;
+      svg.style.maxWidth = `${svg.width}`;
+      svg.style.maxHeight = `${svg.height}`;
 
       const base64doc = btoa(unescape(encodeURIComponent(outerSVG)));
       const a = document.createElement("a");
@@ -1011,9 +1011,7 @@ function MapComponent() {
         ) : null}
 
         {map ? (
-          <svg
-            viewBox={`0, 0, ${map.tileDim14[0] * VectorTileKey.DIM}, ${map.tileDim14[1] * VectorTileKey.DIM}`}
-            ref={svgRef}
+          <div
             style={{
               position: 'relative',
               minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
@@ -1022,9 +1020,19 @@ function MapComponent() {
               gridRow: 1
             }}
           >
-            {mapContainer === 'canvas' ? mapRectangleProps.map((l) => <SvgRectangleComponent key={l.id} {...l} />) : null}
-            {mapLayerProps.map((l) => <SvgMapLayerComponent key={l.id} {...l} />)}
-          </svg>
+            <svg
+              viewBox={`0, 0, ${map.tileDim14[0] * VectorTileKey.DIM}, ${map.tileDim14[1] * VectorTileKey.DIM}`}
+              ref={svgRef}
+              style={{
+                position: 'relative',
+                minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
+                minHeight: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
+              }}
+            >
+              {mapContainer === 'canvas' ? mapRectangleProps.map((l) => <SvgRectangleComponent key={l.id} {...l} />) : null}
+              {mapLayerProps.map((l) => <SvgMapLayerComponent key={l.id} {...l} />)}
+            </svg>
+          </div>
         ) : null}
 
       </div>
