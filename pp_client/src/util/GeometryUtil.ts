@@ -7,7 +7,7 @@ export class GeometryUtil {
     static BT___BUFF_BLK = 24; // bluetooth buffer size
     static BT___BUFF_MAX = 512; // device buffer size
 
-    static PEN___MIN_MMS = 1;
+    static PEN___MIN_MMS = 0.5;
 
     static PEN_____WIDTH = 0.1; // mm
     static IMAGE___SCALE = 4;
@@ -28,6 +28,7 @@ export class GeometryUtil {
         let coordA3D: ICoordinate3D | undefined;
         let coordB3D: ICoordinate3D | undefined;
         const basicLift = (GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D) * 0.66;
+        const maxExtraLift = GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D - basicLift;
 
         let penId = '';
         for (let i = 0; i < linepaths.length; i++) {
@@ -39,7 +40,14 @@ export class GeometryUtil {
                 const segmentId = linepaths[i].segments[0].id;
                 penId = linepaths[i].penId;
                 const segmentLength2D = GeometryUtil.getDistance2D(coordA2D, coordB2D);
-                const extraLift = Math.min(basicLift, segmentLength2D / 4);
+
+                const extraLift = Math.min(segmentLength2D / 4, maxExtraLift);
+
+                // if (GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift > 0) {
+                //     console.warn('lift error', extraLift, GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift)
+                // } else if (GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift === 0) {
+                //     console.log('lift', extraLift, GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift)
+                // }
 
                 coordA3D = {
                     ...coordA2D,
