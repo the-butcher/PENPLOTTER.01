@@ -32,7 +32,7 @@ function ContentComponent(props: IContentComponentProps) {
         <path
             style={{
                 stroke: complete ? `rgba(50, 50, 50, 0.75)` : `rgba(255, 50, 50, 0.75)`,
-                strokeWidth: complete ? strokeWidth : 1,
+                strokeWidth: complete ? strokeWidth : strokeWidth * 2,
                 fill: 'none',
                 strokeLinecap: 'round',
                 strokeLinejoin: 'round'

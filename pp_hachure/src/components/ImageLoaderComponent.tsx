@@ -17,6 +17,7 @@ import { RasterLoader } from '../util/RasterLoader';
 import { RasterUtil } from '../util/RasterUtil';
 import ContentComponent from './ContentComponent';
 import { Mark } from '@mui/material/Slider/useSlider.types';
+import { Png16Loader } from '../util/Png16Loader';
 
 function ImageLoaderComponent() {
 
@@ -79,7 +80,17 @@ function ImageLoaderComponent() {
 
         if (canvasElement && svgElement) {
 
-            new RasterLoader().load(GeometryUtil.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
+            // new RasterLoader().load(GeometryUtil.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
+
+            //     console.log('_imageDataHeight', _imageDataHeight);
+
+            //     // initial blur of height raster to desired resolution
+            //     d3Array.blur2({ data: _imageDataHeight.data, width: _imageDataHeight.width }, Hachure.CONFIG.blurFactor);
+            //     setRasterDataHeight(_imageDataHeight);
+
+            // });
+
+            new Png16Loader().load(GeometryUtil.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
 
                 console.log('_imageDataHeight', _imageDataHeight);
 
@@ -224,7 +235,13 @@ function ImageLoaderComponent() {
                     _contours.forEach(c => c.complete = true);
                     hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 2)
                     hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
-                    hachuresProgressRef.current.forEach(h => h.complete = true);
+                    hachuresProgressRef.current.forEach(h => {
+                        if (!h.complete) {
+                            h.complete = true;
+                            h.popLastVertex();
+                        }
+
+                    });
                     rebuildHachureRefs();
                     setTimeout(() => {
                         setContours(_contours);
@@ -374,12 +391,6 @@ function ImageLoaderComponent() {
                         {
                             contours.filter(c => c.getHeight() % Hachure.CONFIG.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
                         }
-                        {/* {
-                    hachuresCompleteRef.current.map(h => <ContentComponent key={h.id} content={h} strokeWidth='0.25' />)
-                }
-                {
-                    hachuresProgressRef.current.map(h => <ContentComponent key={h.id} content={h} strokeWidth='0.25' />)
-                } */}
                         {
                             hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
                         }

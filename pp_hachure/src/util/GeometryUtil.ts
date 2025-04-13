@@ -7,6 +7,15 @@ import { IRange } from "./IRange";
 
 export class GeometryUtil {
 
+    // fuschertoerl
+    static rasterName = 'png_10_10_height_scaled_pynb_fuschertoerl.png';
+    static heightRangeRaster: IRange = { min: 1522.8586425781, max: 2586.3706054688 };
+    static rasterOrigin3857: Position = [
+        1424999.6402537469,
+        5963749.459849371
+    ];
+    static heightRangeSample: IRange = { min: 24371.0, max: 41391.0 };
+
     // vigaun
     // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_vigaun.png';
     // static rasterOrigin3857: Position = [
@@ -59,6 +68,7 @@ export class GeometryUtil {
     // static heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
 
     // salzburg
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_salzburg.png';
     // static rasterOrigin3857: Position = [
     //     1450099.6402537469,
     //     6075369.4598493706
@@ -85,13 +95,13 @@ export class GeometryUtil {
     // static heightRangeRaster: IRange = { min: 157.08058166504, max: 484.93157958984 };
 
     // schoenbrunn
-    static rasterName = 'png_10_10_height_scaled_pynb_r8g8_schoenbrunn.png';
-    static rasterOrigin3857: Position = [
-        1813099.6402537469,
-        6138969.459849371
-    ];
-    static heightRangeRaster: IRange = { min: 173.29022216797, max: 263.4274597168 };
-    static heightRangeSample: IRange = { min: 2773.0, max: 4216.0 };
+    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_schoenbrunn.png';
+    // static rasterOrigin3857: Position = [
+    //     1813099.6402537469,
+    //     6138969.459849371
+    // ];
+    // static heightRangeRaster: IRange = { min: 173.29022216797, max: 263.4274597168 };
+    // static heightRangeSample: IRange = { min: 2773.0, max: 4216.0 };
 
 
     // hainburg

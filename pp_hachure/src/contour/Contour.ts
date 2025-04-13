@@ -61,7 +61,12 @@ export class Contour implements IContour {
         let scaledLength = 0;
 
         const zenith = 45;
-        const azimut = 135; // north-west
+        let azimut = 280; // north-west
+        azimut = 360 - azimut + 90;
+        while (azimut > 360) {
+            azimut -= 360;
+        }
+        console.log('azimuth', azimut);
 
         this.vertices.push({
             position4326: position4326A,
@@ -84,7 +89,7 @@ export class Contour implements IContour {
 
             const dX = positionPixlB[0] - positionPixlA[0];
             const dY = positionPixlB[1] - positionPixlA[1];
-            aspect = Math.atan2(dY, dX) * RasterUtil.RAD2DEG - 90; // upwards
+            aspect = Math.atan2(dY, dX) * RasterUtil.RAD2DEG - 90;
 
             positionPixlS = [
                 positionPixlI[0] - Math.cos(aspect * RasterUtil.DEG2RAD) * lenS / GeometryUtil.cellSize,
@@ -94,18 +99,34 @@ export class Contour implements IContour {
             const heightS = heightFunction(positionPixlS);
             slope = Math.atan2(heightI - heightS, lenS) * RasterUtil.RAD2DEG;
 
+            // // aspect += 180;
+            // if (aspect < 0) {
+            //     aspect += 360;
+            // }
+            // aspect += 180
+
             // https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
             // aspect is pointing "inwards" for this apps concerns, 180deg need to be added to let it face "outwards"
             const hillshade = (Math.cos(zenith * RasterUtil.DEG2RAD) * Math.cos(slope * RasterUtil.DEG2RAD) +
                 Math.sin(zenith * RasterUtil.DEG2RAD) * Math.sin(slope * RasterUtil.DEG2RAD) * Math.cos((azimut - aspect + 180) * RasterUtil.DEG2RAD));
 
+
+            // hillshade = 1 - Math.pow(1 - hillshade, 1 / 2);
+
             const incrmt = ObjectUtil.mapValues(hillshade, {
                 min: 0,
                 max: 1
             }, {
-                min: Hachure.CONFIG.contourDiv * 1.75, // larger means tighter spacing
-                max: Hachure.CONFIG.contourDiv * 0.25
+                min: Hachure.CONFIG.contourDiv * 2.10, // larger means tighter spacing
+                max: Hachure.CONFIG.contourDiv * 0.30
             });
+            // const incrmt = ObjectUtil.mapValues(slope, {
+            //     min: 75,
+            //     max: 5
+            // }, {
+            //     min: Hachure.CONFIG.contourDiv * 2.00 * 0.5, // larger means tighter spacing
+            //     max: Hachure.CONFIG.contourDiv * 0.33 * 0.5
+            // });
 
             scaledLength += incrmt;
 
