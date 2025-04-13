@@ -110,13 +110,13 @@ function MapComponent() {
             '3': {
               gridType: 'hexagon',
               gridSize: 25,
-              randSize: 0.00020,
+              randSize: 0.0002,
               symbolFactory: 'createTreeSymbol',
               outerDim: 75
             },
             '6': {
               gridType: 'triangle',
-              gridSize: 30,
+              gridSize: 28,
               randSize: 0.0002,
               symbolFactory: 'createMarshSymbol',
               outerDim: 0
