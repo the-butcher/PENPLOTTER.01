@@ -76,14 +76,22 @@ export class Hachure implements IHachure {
         }
 
         if (smooth) {
-            offsetPositionsA = GeometryUtil.smooth1(offsetPositionsA);
-            offsetPositionsB = GeometryUtil.smooth1(offsetPositionsB);
+
+            offsetPositionsA = GeometryUtil.smoothPositions(offsetPositionsA);
+            offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB);
+
+
         }
 
-        return [
+        let mergedPositions: IPositionProperties[] = [
             ...offsetPositionsA,
             ...offsetPositionsB.slice(1)
         ];
+        if (smooth) {
+            mergedPositions = GeometryUtil.simplifyPositions(mergedPositions);
+        }
+
+        return mergedPositions;
 
     }
 

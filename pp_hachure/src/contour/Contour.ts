@@ -66,7 +66,7 @@ export class Contour implements IContour {
         while (azimut > 360) {
             azimut -= 360;
         }
-        console.log('azimuth', azimut);
+        // console.log('azimuth', azimut);
 
         this.vertices.push({
             position4326: position4326A,

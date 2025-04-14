@@ -332,7 +332,9 @@ function ImageLoaderComponent() {
         const a = document.createElement("a");
         const e = new MouseEvent("click");
         a.download = `${prefix}_${ObjectUtil.createId()}.geojson`;
-        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(featureCollection));
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(featureCollection, (_key, val) => {
+            return val.toFixed ? Number(val.toFixed(7)) : val;
+        }));
         a.dispatchEvent(e);
 
     }
