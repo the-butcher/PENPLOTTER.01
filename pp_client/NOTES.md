@@ -1,3 +1,14 @@
+- ## possible updated pen change workflow
+
+  4. pen list
+     - click on pen in list
+     - a preview of the pen-path appears (speed diagram only by activating with i.e. a checkbox)
+     - arrows for pen adjustments appear
+     - continue button (=reste here)
+  5. plot position
+     - a slider (+input) for the start position appears (to continue i.e. aborted plots)
+     - plot button appers (= reset here + execute plot)
+
 PROCESS:
 
 - ## in pp_oldmap svg
@@ -11,16 +22,16 @@ PROCESS:
 
 TBD:
 
-- merge paths that are close enough (aka pen diameter) to eliminate pen-up -> no-move -> pen-down movements
-- output scale / simplify tolerance
+OK merge paths that are close enough (aka pen diameter) to eliminate pen-up -> no-move -> pen-down movements
+OK output scale / simplify tolerance
 
-  - visual display of scale
-  - ui-controls for scale(or output-dim respectively)
-  - ui-controls for simplification
-  - data-structures to have original data and the ability to change ui on the fly
+- visual display of scale
+- ui-controls for scale(or output-dim respectively)
+- ui-controls for simplification
+- data-structures to have original data and the ability to change ui on the fly
 
-- acceleration-calculation / acceleration diagram
+OK acceleration-calculation / acceleration diagram
 
-  - connect preview and chart so that mouseover on either element visually indicates the same assets in the other element
+OK connect preview and chart so that mouseover on either element visually indicates the same assets in the other element
 
-- speed indication on preview
+OK speed indication on preview

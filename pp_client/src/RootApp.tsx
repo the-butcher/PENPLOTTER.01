@@ -353,7 +353,9 @@ function RootApp() {
         overallExtent.yMax = (fileSvgProperties.extent.yMax - fileSvgProperties.extent.yMin) * scale;
       }
 
-      // cnfBSvgProperties.penId = 'p050'
+      // TODO :: REMOVE (start at position)
+      // cnfBSvgProperties.penId = 'v025'
+
       const isPenIdSet = ObjectUtil.isPenIdSet(cnfBSvgProperties.penId);
 
       // filtering for penId
@@ -386,6 +388,14 @@ function RootApp() {
         y: overallExtent.yMin
       }, linepathNoShorts, cnfASvgProperties.connectSort);
 
+      // TODO :: REMOVE (start at position)
+      // const skipCount = 446;
+      // // linepathConnecteds.splice(skipCount, linepathConnecteds.length - skipCount);
+      // linepathConnecteds.splice(0, skipCount);
+      // if (linepathConnecteds.length > 0) {
+      //   // linepathConnecteds[0].segments.splice(0, 115)
+      // }
+
       rootSvgPropertiesRef.current = {
         lines: linepathConnecteds,
         extent: overallExtent,
@@ -398,6 +408,11 @@ function RootApp() {
 
       // now lets build a list of 3D lines (aka pen plotter lines)
       const plottableLines = GeometryUtil.linepathsToPlotpaths(linepathConnecteds, cnfBSvgProperties.penMaxSpeed);
+
+      // TODO :: REMOVE (start at position)
+      // if (plottableLines.length > 0) {
+      //   plottableLines[0].coordB.z = GeometryUtil.Z_VALUE_PEN_U;
+      // }
 
       timeSvgPropertiesRef.current = {
         ...timeSvgPropertiesRef.current,
