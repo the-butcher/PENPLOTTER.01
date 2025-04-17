@@ -1,5 +1,5 @@
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { Button, Slider, Stack } from "@mui/material";
+import { Button, Slider, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import { Mark } from '@mui/material/Slider/useSlider.types';
 import * as turf from "@turf/turf";
 import * as d3Array from 'd3-array';
@@ -33,6 +33,8 @@ function ImageLoaderComponent() {
 
     const hachuresProgressRef = useRef<IHachure[]>([]);
     const hachuresCompleteRef = useRef<IHachure[]>([]);
+
+    const imageMargin = 50;
 
     const getContourFeatures = (rasterData: IRasterData, thresholds: number[]): Feature<LineString, IContourProperties>[] => {
 
@@ -79,19 +81,14 @@ function ImageLoaderComponent() {
 
         if (canvasElement && svgElement) {
 
-            // new RasterLoader().load(GeometryUtil.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
+            new Png16Loader().load(Raster.CONFIG.rasterName).then(imageDataRaw => {
 
-            //     console.log('_imageDataHeight', _imageDataHeight);
+                const _imageDataHeight: IRasterData = {
+                    ...imageDataRaw,
+                    data: imageDataRaw.data.map(v => Raster.sampleToHeight(v))
+                }
 
-            //     // initial blur of height raster to desired resolution
-            //     d3Array.blur2({ data: _imageDataHeight.data, width: _imageDataHeight.width }, Hachure.CONFIG.blurFactor);
-            //     setRasterDataHeight(_imageDataHeight);
-
-            // });
-
-            new Png16Loader().load(Raster.CONFIG.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
-
-                console.log('_imageDataHeight', _imageDataHeight);
+                console.log('_imageDataHeight', _imageDataHeight, Raster.getSampleRange(_imageDataHeight));
 
                 // initial blur of height raster to desired resolution
                 d3Array.blur2({ data: _imageDataHeight.data, width: _imageDataHeight.width }, Hachure.CONFIG.blurFactor);
@@ -108,11 +105,13 @@ function ImageLoaderComponent() {
         const hachuresTemp: IHachure[] = [];
         hachuresProgressRef.current.forEach(h => {
             if (h.complete) {
+                // h.popLastVertex();
                 hachuresCompleteRef.current.push(h);
             } else {
                 hachuresTemp.push(h);
             }
         });
+        hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
         hachuresProgressRef.current = hachuresTemp;
 
     }
@@ -137,13 +136,11 @@ function ImageLoaderComponent() {
 
         if (rasterDataHeight) {
 
-            const margin = 50;
-
             // TODO :: as attributes on the element itself
             const svgElement = svgRef.current!;
-            svgElement.setAttribute('viewBox', `${-margin}, ${-margin}, ${rasterDataHeight.width + margin * 2}, ${rasterDataHeight.height + margin * 2}`);
-            svgElement.style.width = `${(rasterDataHeight.width + margin * 2) * 2}`;
-            svgElement.style.height = `${(rasterDataHeight.height + margin * 2) * 2}`;
+            svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterDataHeight.width + imageMargin * 2}, ${rasterDataHeight.height + imageMargin * 2}`);
+            svgElement.style.width = `${(rasterDataHeight.width + imageMargin * 2) * 2}`;
+            svgElement.style.height = `${(rasterDataHeight.height + imageMargin * 2) * 2}`;
 
             const _minHeight = Raster.CONFIG.valueRangeRaster.min - Raster.CONFIG.valueRangeRaster.min % Hachure.CONFIG.contourOff + Hachure.CONFIG.contourOff;
             const _maxHeight = Raster.CONFIG.valueRangeRaster.max - Raster.CONFIG.valueRangeRaster.max % Hachure.CONFIG.contourOff;
@@ -192,7 +189,7 @@ function ImageLoaderComponent() {
 
             const curHeight = contours[contours.length - 1].getHeight();
             const curContours = contours.filter(c => c.getHeight() === curHeight && !c.complete);
-            console.log('curHeight', curHeight, curContours.length);
+            // console.log('curHeight', curHeight, curContours.length);
 
             if (curContours.length > 0) {
 
@@ -211,7 +208,7 @@ function ImageLoaderComponent() {
 
                 const nxtHeight = curHeight + Hachure.CONFIG.contourOff;
                 const nxtContours = fetchContours(nxtHeight);
-                console.log('nxtHeight', nxtHeight, nxtContours.length);
+                // console.log('nxtHeight', nxtHeight, nxtContours.length);
 
                 if (nxtContours.length > 0) {
 
@@ -234,14 +231,13 @@ function ImageLoaderComponent() {
 
                     _contours.forEach(c => c.complete = true);
 
-                    hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 2)
-                    hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
+                    // hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 2)
+                    // hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
                     hachuresProgressRef.current.forEach(h => {
                         if (!h.complete) {
                             h.complete = true;
-                            h.popLastVertex();
+                            // h.popLastVertex();
                         }
-
                     });
 
                     rebuildHachureRefs();
@@ -356,6 +352,46 @@ function ImageLoaderComponent() {
             <Stack
                 direction={'row'}
             >
+                <div>
+                    <Stepper activeStep={1} orientation="vertical"
+                        sx={{
+                            width: '250px'
+                        }}
+                    >
+                        <Step key={'pickpng'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    content
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                {
+                                    !rasterDataHeight?.name ? <div>raster picker</div> : `${rasterDataHeight?.name}`
+                                }
+                            </StepContent>
+                        </Step>
+                        <Step key={'rasterconf'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    raster
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                origin, cellsize, valrange
+                            </StepContent>
+                        </Step>
+                    </Stepper>
+                </div>
                 <div
                     style={{
                         display: 'grid'
@@ -367,8 +403,9 @@ function ImageLoaderComponent() {
                             // position: 'absolute',
                             // left: '100px',
                             // top: '100px',
-                            opacity: 0.25,
+                            opacity: 1.0,
                             // paddingBottom: '20px',
+                            margin: `${(imageMargin - 0.5) * 2}px`,
                             gridColumn: 1,
                             gridRow: 1
                         }}

@@ -22,8 +22,8 @@ export class Hachure implements IHachure {
 
     // static readonly CONFIG: IHachureConfig = {
     //     minSpacing: 6,
-    //     maxSpacing: 6 * 1.66,
-    //     blurFactor: 0.5,
+    //     maxSpacing: 8,
+    //     blurFactor: 1,
     //     contourOff: 2.5, // vertical difference of contours
     //     contourDiv: 5, // the subdivisions along a contour
     //     hachureRay: (2.5 / Math.tan(5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
@@ -50,7 +50,7 @@ export class Hachure implements IHachure {
         this.vertices.push(firstVertex);
         // this.svgData = `M${firstVertex.positionPixl[0].toFixed(2)} ${firstVertex.positionPixl[1].toFixed(2)}`;
 
-        this.maxHeight = firstVertex.height + 100 + (Math.random() - 0.5) * 50; // (firstVertex.height + Hachure.CONFIG.contourDsp) - firstVertex.height % Hachure.CONFIG.contourDsp; // 25 + (Math.random() - 0.5) * 20; // unlimited length, but could be used to limit
+        this.maxHeight = firstVertex.height + 100 + (Math.random() - 0.5) * 50;
         this.maxLength = 100 + (Math.random() - 0.5) * 50; // meters
 
     }
@@ -78,17 +78,15 @@ export class Hachure implements IHachure {
         }
 
         if (smooth) {
-
             offsetPositionsA = GeometryUtil.smoothPositions(offsetPositionsA);
             offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB);
-
-
         }
 
         let mergedPositions: IPositionProperties[] = [
             ...offsetPositionsB,
             ...offsetPositionsA.slice(1),
         ];
+
         if (smooth) {
             mergedPositions = GeometryUtil.simplifyPositions(mergedPositions);
         }

@@ -1,17 +1,43 @@
+import { IRange } from "../util/IRange";
+import { ObjectUtil } from "../util/ObjectUtil";
 import { IRasterConfig } from "./IRasterConfig";
 import { IRasterData } from "./IRasterData";
 
 export class Raster {
 
     // hallein
+    // static CONFIG: IRasterConfig = {
+    //     rasterName: 'png_10_10_height_scaled_pynb_hallein.png',
+    //     cellsize: 10,
+    //     valueRangeSample: { min: 6951.0, max: 13762.0 },
+    //     valueRangeRaster: { min: 434.31433105469, max: 859.93572998047 },
+    //     rasterOrigin3857: [
+    //         1455149.6402537469,
+    //         6055969.459849371
+    //     ]
+    // }
+
+    // salzburg
+    // static CONFIG: IRasterConfig = {
+    //     rasterName: 'png_10_10_height_scaled_pynb_salzburg.png',
+    //     cellsize: 10,
+    //     valueRangeSample: { min: 6611.0, max: 10202.0 },
+    //     valueRangeRaster: { min: 413.08285522461, max: 637.49353027344 },
+    //     rasterOrigin3857: [
+    //         1450099.6402537469,
+    //         6075369.459849371
+    //     ]
+    // }
+
+    // hallstatt
     static CONFIG: IRasterConfig = {
-        rasterName: 'png_10_10_height_scaled_pynb_hallein.png',
+        rasterName: 'png_10_10_hallstatt.png',
         cellsize: 10,
-        valueRangeSample: { min: 6951.0, max: 13762.0 },
-        valueRangeRaster: { min: 434.31433105469, max: 859.93572998047 },
+        valueRangeSample: { min: 8109.0, max: 22266.0 },
+        valueRangeRaster: { min: 506.67636108398, max: 1391.3282470703 },
         rasterOrigin3857: [
-            1455149.6402537469,
-            6055969.459849371
+            1516999.6402537469,
+            6035869.459849371
         ]
     }
 
@@ -50,14 +76,7 @@ export class Raster {
     // static heightRangeSample: IRange = { min: 8607.0, max: 18487.0 };
     // static heightRangeRaster: IRange = { min: 537.80029296875, max: 1155.19140625 };
 
-    // hallstatt
-    // static rasterName = 'png_10_10_height_scaled_pynb_hallstatt.png';
-    // static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
-    // static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
-    // static rasterOrigin3857: Position = [
-    //     1516999.6402537469,
-    //     6035869.459849371
-    // ];
+
 
     // bad gastein
     // static rasterOrigin3857: Position = [
@@ -78,14 +97,6 @@ export class Raster {
     // static heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
     // static heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
 
-    // salzburg
-    // static rasterName = 'png_10_10_height_scaled_pynb_salzburg.png';
-    // static heightRangeSample: IRange = { min: 6611.0, max: 10202.0 };
-    // static heightRangeRaster: IRange = { min: 413.08285522461, max: 637.49353027344 };
-    // static rasterOrigin3857: Position = [
-    //     1450099.6402537469,
-    //     6075369.459849371
-    // ];
 
     // drosendorf
     // static rasterName = 'png_10_10_height_scaled_pynb_drosendorf.png';
@@ -134,6 +145,29 @@ export class Raster {
 
     static RAD2DEG = 180 / Math.PI;
     static DEG2RAD = Math.PI / 180;
+
+    static sampleToHeight = (sample: number): number => {
+        return ObjectUtil.mapValues(sample, Raster.CONFIG.valueRangeSample, Raster.CONFIG.valueRangeRaster);
+    }
+
+    static getSampleRange(rasterData: IRasterData): IRange {
+        let pixelIndex: number;
+        let valCur: number;
+        let valMin = Number.MAX_VALUE;
+        let valMax = Number.MIN_VALUE;
+        for (let y = 0; y < rasterData.height; y++) {
+            for (let x = 0; x < rasterData.width; x++) {
+                pixelIndex = (y * rasterData.width + x);
+                valCur = rasterData.data[pixelIndex];
+                valMin = Math.min(valMin, valCur);
+                valMax = Math.max(valMax, valCur);
+            }
+        }
+        return {
+            min: valMin,
+            max: valMax
+        };
+    }
 
     static getRasterValue(rasterData: IRasterData, x: number, y: number) {
 

@@ -14,14 +14,12 @@ export class Png16Loader {
      * load from the given url and return a promise resolving to an instance of Uint8Array
      * @param url
      */
-    async load(url: string, sampleToRaster: (sample: number) => number): Promise<IRasterData> {
+    async load(url: string): Promise<IRasterData> {
         return new Promise((resolve, reject) => {
 
             new ByteLoader().load(url).then(bytes => {
 
                 const decodedPng = decode(bytes);
-
-                // decodedPng.depth
 
                 const imageDimX = decodedPng.width;
                 const imageDimY = decodedPng.height;
@@ -31,11 +29,13 @@ export class Png16Loader {
                 for (let y = 0; y < imageDimY; y++) {
                     for (let x = 0; x < imageDimX; x++) {
                         pixelIndexRGB = y * imageDimX + x;
-                        data[pixelIndexRGB] = sampleToRaster(decodedPng.data[pixelIndexRGB]);
+                        // data[pixelIndexRGB] = sampleToRaster(decodedPng.data[pixelIndexRGB]);
+                        data[pixelIndexRGB] = decodedPng.data[pixelIndexRGB];
                     }
                 }
 
                 resolve({
+                    name: url,
                     data,
                     width: imageDimX,
                     height: imageDimY

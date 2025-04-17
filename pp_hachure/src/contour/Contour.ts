@@ -1,5 +1,6 @@
 import * as turf from "@turf/turf";
 import { Feature, LineString, Point, Position } from "geojson";
+import { Raster } from "../raster/Raster";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
 import { Hachure } from "./Hachure";
@@ -8,7 +9,6 @@ import { IContourProperties } from "./IContourProperties";
 import { IContourVertex } from "./IContourVertex";
 import { IHachure } from "./IHachure";
 import { ISubGeometry } from "./ISubGeometry";
-import { Raster } from "../raster/Raster";
 
 /**
  * Implementation of {@link IContour}, holds a major part of the hachure implementation.
@@ -34,6 +34,7 @@ export class Contour implements IContour {
 
         this.id = ObjectUtil.createId();
         this.height = feature.properties.height;
+
         this.length = turf.length(feature, {
             units: 'meters'
         });
@@ -44,10 +45,27 @@ export class Contour implements IContour {
         this.vertices = [];
         this.subGeometries = [];
 
+        const subGeometryCountA = Math.ceil(this.length / 100);
+        const subGeometryLengthIncr = this.length / subGeometryCountA;
+        for (let i = 0; i < subGeometryCountA; i++) {
+            const lengthMin = Math.max(0, i * subGeometryLengthIncr);
+            const lengthMax = Math.min(this.length, (i + 1) * subGeometryLengthIncr);
+            const subFeature = turf.lineSliceAlong(feature, lengthMin, lengthMax, {
+                units: 'meters'
+            }).geometry;
+            this.subGeometries.push({
+                geometry: subFeature,
+                lengthMin,
+                lengthMax,
+                bbox: turf.bbox(subFeature)
+            });
+        }
+
         let position4326A = feature.geometry.coordinates[0]; // start with initial coordinate
-        let position4326I = turf.along(feature, this.weightCalcIncrement, {
-            units: 'meters'
-        }).geometry.coordinates;
+        let position4326I = this.findPointAlong(this.weightCalcIncrement)!;
+        // let position4326I = turf.along(feature, this.weightCalcIncrement, {
+        //     units: 'meters'
+        // }).geometry.coordinates;
         let position4326B: Position | undefined; // positionB along contour (in terms of fixed vertex increment)
 
         let positionPixlA = GeometryUtil.position4326ToPixel(position4326A);
@@ -82,9 +100,10 @@ export class Contour implements IContour {
 
             length = (i + 1) * this.weightCalcIncrement;
 
-            position4326B = turf.along(feature, length, {
-                units: 'meters'
-            }).geometry.coordinates;
+            position4326B = this.findPointAlong(length)!;
+            // position4326B = turf.along(feature, length, {
+            //     units: 'meters'
+            // }).geometry.coordinates;
             positionPixlB = GeometryUtil.position4326ToPixel(position4326B);
 
             const dX = positionPixlB[0] - positionPixlA[0];
@@ -99,19 +118,10 @@ export class Contour implements IContour {
             const heightS = heightFunction(positionPixlS);
             slope = Math.atan2(heightI - heightS, lenS) * Raster.RAD2DEG;
 
-            // // aspect += 180;
-            // if (aspect < 0) {
-            //     aspect += 360;
-            // }
-            // aspect += 180
-
             // https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
             // aspect is pointing "inwards" for this apps concerns, 180deg need to be added to let it face "outwards"
             const hillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
                 Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimut - aspect + 180) * Raster.DEG2RAD));
-
-
-            // hillshade = 1 - Math.pow(1 - hillshade, 1 / 2);
 
             const incrmt = ObjectUtil.mapValues(hillshade, {
                 min: 0,
@@ -120,13 +130,6 @@ export class Contour implements IContour {
                 min: Hachure.CONFIG.contourDiv * 2.10, // larger means tighter spacing
                 max: Hachure.CONFIG.contourDiv * 0.30
             });
-            // const incrmt = ObjectUtil.mapValues(slope, {
-            //     min: 75,
-            //     max: 5
-            // }, {
-            //     min: Hachure.CONFIG.contourDiv * 2.00 * 0.5, // larger means tighter spacing
-            //     max: Hachure.CONFIG.contourDiv * 0.33 * 0.5
-            // });
 
             scaledLength += incrmt;
 
@@ -171,9 +174,9 @@ export class Contour implements IContour {
         });
 
         // split to multiple geometries to speed up calculations later
-        const subGeometryCount = Math.ceil(this.vertices.length / 50);
-        const subGeometryCoordIncr = this.vertices.length / subGeometryCount;
-        for (let i = 0; i < subGeometryCount; i++) {
+        const subGeometryCountB = Math.ceil(this.vertices.length / 50);
+        const subGeometryCoordIncr = this.vertices.length / subGeometryCountB;
+        for (let i = 0; i < subGeometryCountB; i++) {
             const indexMin = Math.max(0, Math.round(i * subGeometryCoordIncr));
             const indexMax = Math.min(this.vertices.length - 1, Math.round((i + 1) * subGeometryCoordIncr));
             const subCoordinates: Position[] = [];
@@ -368,40 +371,51 @@ export class Contour implements IContour {
 
     findIntersection(coordinate4326A: Position, coordinate4326B: Position, refPosition: Position): Position | undefined {
 
+        const rayGeom: LineString = {
+            type: 'LineString',
+            coordinates: [
+                coordinate4326A,
+                coordinate4326B
+            ]
+        };
+        const rayBbox = turf.bbox(rayGeom);
+        // console.log('rayBbox', rayBbox);
+
         for (let i = 0; i < this.subGeometries.length; i++) {
 
             const subGeometry = this.subGeometries[i];
 
-            const rayBGeom: LineString = {
-                type: 'LineString',
-                coordinates: [
-                    coordinate4326A,
-                    coordinate4326B
-                ]
-            };
+            if (GeometryUtil.booleanBboxOverlap(rayBbox, subGeometry.bbox)) {
+                // if (GeometryUtil.booleanWithinBbox(subGeometry.bbox, coordinate4326A) || GeometryUtil.booleanWithinBbox(subGeometry.bbox, coordinate4326B)) {
 
-            const intersections = turf.lineIntersect(subGeometry.geometry, rayBGeom);
-            if (intersections.features.length > 0) {
+                const intersections = turf.lineIntersect(subGeometry.geometry, rayGeom);
+                if (intersections.features.length > 0) {
 
-                // find the intersection nearest to the hachure's last vertex
-                let minIntersectionIndex = -1;
-                if (intersections.features.length === 1) {
-                    minIntersectionIndex = 0;
-                } else {
-                    let minIntersectionDistance = Number.MAX_VALUE;
-                    for (let j = 0; j < intersections.features.length; j++) {
-                        const intersectionDistance = turf.distance(refPosition, intersections.features[j].geometry.coordinates, {
-                            units: 'meters'
-                        });
-                        if (intersectionDistance < minIntersectionDistance) {
-                            minIntersectionDistance = intersectionDistance;
-                            minIntersectionIndex = j;
+                    // if (!GeometryUtil.booleanBboxOverlap(rayBbox, subGeometry.bbox)) {
+                    //     console.log(rayBbox, subGeometry.bbox);
+                    // }
+
+                    // find the intersection nearest to the hachure's last vertex
+                    let minIntersectionIndex = -1;
+                    if (intersections.features.length === 1) {
+                        minIntersectionIndex = 0;
+                    } else {
+                        let minIntersectionDistance = Number.MAX_VALUE;
+                        for (let j = 0; j < intersections.features.length; j++) {
+                            const intersectionDistance = turf.distance(refPosition, intersections.features[j].geometry.coordinates, {
+                                units: 'meters'
+                            });
+                            if (intersectionDistance < minIntersectionDistance) {
+                                minIntersectionDistance = intersectionDistance;
+                                minIntersectionIndex = j;
+                            }
                         }
+                        // console.log('minIntersectionIndex', minIntersectionIndex);
                     }
-                    // console.log('minIntersectionIndex', minIntersectionIndex);
-                }
 
-                return intersections.features[minIntersectionIndex].geometry.coordinates;
+                    return intersections.features[minIntersectionIndex].geometry.coordinates;
+
+                }
 
             }
 
@@ -420,6 +434,10 @@ export class Contour implements IContour {
                 }).geometry.coordinates;
             }
 
+        }
+        const lastSubGeometry = this.subGeometries[this.subGeometries.length - 1];
+        if (length > lastSubGeometry.lengthMax) {
+            return lastSubGeometry.geometry.coordinates[lastSubGeometry.geometry.coordinates.length - 1];
         }
 
     }
