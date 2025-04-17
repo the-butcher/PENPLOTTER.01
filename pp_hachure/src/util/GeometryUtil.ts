@@ -4,149 +4,34 @@ import simplify from "simplify-js";
 import { IContourProperties } from "../contour/IContourProperties";
 import { IPositionProperties } from "../contour/IPositionProperties";
 import { IMatrix2D } from "./Interfaces";
-import { IRange } from "./IRange";
 import { ObjectUtil } from "./ObjectUtil";
+import { Raster } from "../raster/Raster";
 
 interface IPositionAtLength {
     position: Position;
     length: number;
 }
 
+
+
 export class GeometryUtil {
 
-    // fuschertoerl
-    static rasterName = 'png_10_10_height_scaled_pynb_fuschertoerl.png';
-    static heightRangeRaster: IRange = { min: 1522.8586425781, max: 2586.3706054688 };
-    static rasterOrigin3857: Position = [
-        1424999.6402537469,
-        5963749.459849371
-    ];
-    static heightRangeSample: IRange = { min: 24371.0, max: 41391.0 };
-
-    // vigaun
-    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_vigaun.png';
-    // static rasterOrigin3857: Position = [
-    //     1459299.6402537469,
-    //     6052689.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 7057.0, max: 13529.0 };
-    // static heightRangeRaster: IRange = { min: 440.98001098633, max: 845.38366699219 };
-
-    // wolfgang
-    // static rasterOrigin3857: Position = [ // TODO :: invalid extent
-    //     1493499.6402537469,
-    //     6065269.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 8607.0, max: 18487.0 };
-    // static heightRangeRaster: IRange = { min: 537.80029296875, max: 1155.19140625 };
-
-    // hallstatt
-    // static rasterName = 'png_10_10_height_scaled_pynb_hallstatt.png';
-    // static heightRangeSample: IRange = { min: 8109.0, max: 22266.0 };
-    // static heightRangeRaster: IRange = { min: 506.67636108398, max: 1391.3282470703 };
-    // static rasterOrigin3857: Position = [
-    //     1516999.6402537469,
-    //     6035869.459849371
-    // ];
-
-    // bad gastein
-    // static rasterOrigin3857: Position = [
-    //     1459659.6402537469,
-    //     5962469.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 13856.0, max: 29381.0 };
-    // static heightRangeRaster: IRange = { min: 865.78936767578, max: 1835.9188232422 };
-
-    // hallein
-    // static rasterName = 'png_10_10_height_scaled_pynb_hallein.png';
-    // static heightRangeSample: IRange = { min: 6951.0, max: 13762.0 };
-    // static heightRangeRaster: IRange = { min: 434.31433105469, max: 859.93572998047 };
-    // static rasterOrigin3857: Position = [
-    //     1455149.6402537469,
-    //     6055969.459849371
-    // ];
-
-    // duernstein
-    // static rasterName = 'png_10_10_height_scaled_pynb_duernstein.png';
-    // static rasterOrigin3857: Position = [
-    //     1724199.6402537469,
-    //     6175169.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 3097.0, max: 9008.0 };;
-    // static heightRangeRaster: IRange = { min: 193.53433227539, max: 562.87243652344 };
-
-    // salzburg
-    // static rasterName = 'png_10_10_height_scaled_pynb_salzburg.png';
-    // static heightRangeSample: IRange = { min: 6611.0, max: 10202.0 };
-    // static heightRangeRaster: IRange = { min: 413.08285522461, max: 637.49353027344 };
-    // static rasterOrigin3857: Position = [
-    //     1450099.6402537469,
-    //     6075369.459849371
-    // ];
-
-    // drosendorf
-    // static rasterName = 'png_10_10_height_scaled_pynb_drosendorf.png';
-    // static heightRangeSample: IRange = { min: 5803.0, max: 7481.0 };
-    // static heightRangeRaster: IRange = { min: 362.63522338867, max: 467.44180297852 };
-    // static rasterOrigin3857: Position = [
-    //     1736089.6402537469,
-    //     6254389.459849371
-    // ];
-
-    // // alte donau
-    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_olddanube.png';
-    // static rasterOrigin3857: Position = [
-    //     1825299.6402537469,
-    //     6147039.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 2482.0, max: 2826.0 };
-    // static heightRangeRaster: IRange = { min: 155.12026977539, max: 176.60583496094 };
-
-    // // kahlenbergerdorf
-    // static rasterName = 'png_10_10_height_scaled_pynb_kahlenbergerdorf.png';
-    // static heightRangeSample: IRange = { min: 2514.0, max: 7761.0 };
-    // static heightRangeRaster: IRange = { min: 157.08058166504, max: 484.93157958984 };
-    // static rasterOrigin3857: Position = [
-    //     1818119.6402537469,
-    //     6154459.459849371
-    // ];
-
-    // schoenbrunn
-    // static rasterName = 'png_10_10_height_scaled_pynb_r8g8_schoenbrunn.png';
-    // static rasterOrigin3857: Position = [
-    //     1813099.6402537469,
-    //     6138969.459849371
-    // ];
-    // static heightRangeRaster: IRange = { min: 173.29022216797, max: 263.4274597168 };
-    // static heightRangeSample: IRange = { min: 2773.0, max: 4216.0 };
-
-
-    // hainburg
-    // static rasterOrigin3857: Position = [
-    //     1883449.6402537469,
-    //     6133269.4598493706
-    // ];
-    // static heightRangeSample: IRange = { min: 2197.0, max: 6553.0 };
-    // static heightRangeRaster: IRange = { min: 137.25184631348, max: 409.46697998047 };
-
-    static cellSize = 10;
-
     static sampleToHeight = (sample: number): number => {
-        return ObjectUtil.mapValues(sample, GeometryUtil.heightRangeSample, GeometryUtil.heightRangeRaster);
+        return ObjectUtil.mapValues(sample, Raster.CONFIG.valueRangeSample, Raster.CONFIG.valueRangeRaster);
     }
 
     static position4326ToPixel = (position4326: Position): Position => {
         const position3857 = turf.toMercator(position4326);
         return [
-            (position3857[0] - GeometryUtil.rasterOrigin3857[0]) / GeometryUtil.cellSize,
-            (GeometryUtil.rasterOrigin3857[1] - position3857[1]) / GeometryUtil.cellSize
+            (position3857[0] - Raster.CONFIG.rasterOrigin3857[0]) / Raster.CONFIG.cellsize,
+            (Raster.CONFIG.rasterOrigin3857[1] - position3857[1]) / Raster.CONFIG.cellsize
         ];
     }
 
     static pixelToPosition4326 = (pixel: Position): Position => {
         const position3857 = [
-            pixel[0] * GeometryUtil.cellSize + GeometryUtil.rasterOrigin3857[0],
-            GeometryUtil.rasterOrigin3857[1] - pixel[1] * GeometryUtil.cellSize
+            pixel[0] * Raster.CONFIG.cellsize + Raster.CONFIG.rasterOrigin3857[0],
+            Raster.CONFIG.rasterOrigin3857[1] - pixel[1] * Raster.CONFIG.cellsize
         ];
         return turf.toWgs84(position3857);
     }

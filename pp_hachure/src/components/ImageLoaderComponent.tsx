@@ -11,12 +11,13 @@ import { Hachure } from '../contour/Hachure';
 import { IContour } from '../contour/IContour';
 import { IContourProperties } from '../contour/IContourProperties';
 import { IHachure } from '../contour/IHachure';
+import { IRasterData } from '../raster/IRasterData';
+import { Png16Loader } from '../raster/Png16Loader';
+import { Raster } from '../raster/Raster';
 import { GeometryUtil } from '../util/GeometryUtil';
-import { IRasterData } from '../util/IRasterData';
 import { ObjectUtil } from '../util/ObjectUtil';
-import { Png16Loader } from '../util/Png16Loader';
-import { RasterUtil } from '../util/RasterUtil';
 import ContentComponent from './ContentComponent';
+import CropComponent from './CropComponent';
 
 function ImageLoaderComponent() {
 
@@ -26,7 +27,6 @@ function ImageLoaderComponent() {
     const [rasterDataHeight, setRasterDataHeight] = useState<IRasterData>();
     const [hachures, setHachures] = useState<IHachure[]>([]);
     const [contours, setContours] = useState<IContour[]>([]);
-    // const [contours, setContours] = useState<IContour[]>([]);
 
     const [minHeight, setMinHeight] = useState<number>(0);
     const [maxHeight, setMaxHeight] = useState<number>(0);
@@ -89,7 +89,7 @@ function ImageLoaderComponent() {
 
             // });
 
-            new Png16Loader().load(GeometryUtil.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
+            new Png16Loader().load(Raster.CONFIG.rasterName, GeometryUtil.sampleToHeight).then(_imageDataHeight => {
 
                 console.log('_imageDataHeight', _imageDataHeight);
 
@@ -125,7 +125,7 @@ function ImageLoaderComponent() {
             units: 'meters'
         }) > Hachure.CONFIG.contourDiv * 2); // skip very short contour lines
         contourFeatures.forEach(contourFeature => {
-            _contours.push(new Contour(contourFeature, p => RasterUtil.getRasterValue(rasterDataHeight!, p[0], p[1])));
+            _contours.push(new Contour(contourFeature, p => Raster.getRasterValue(rasterDataHeight!, p[0], p[1])));
         });
         return _contours;
 
@@ -137,14 +137,16 @@ function ImageLoaderComponent() {
 
         if (rasterDataHeight) {
 
+            const margin = 50;
+
             // TODO :: as attributes on the element itself
             const svgElement = svgRef.current!;
-            svgElement.setAttribute('viewBox', `0, 0, ${rasterDataHeight.width}, ${rasterDataHeight.height}`);
-            svgElement.style.width = `${rasterDataHeight.width * 2}`;
-            svgElement.style.height = `${rasterDataHeight.height * 2}`;
+            svgElement.setAttribute('viewBox', `${-margin}, ${-margin}, ${rasterDataHeight.width + margin * 2}, ${rasterDataHeight.height + margin * 2}`);
+            svgElement.style.width = `${(rasterDataHeight.width + margin * 2) * 2}`;
+            svgElement.style.height = `${(rasterDataHeight.height + margin * 2) * 2}`;
 
-            const _minHeight = GeometryUtil.heightRangeRaster.min - GeometryUtil.heightRangeRaster.min % Hachure.CONFIG.contourOff + Hachure.CONFIG.contourOff;
-            const _maxHeight = GeometryUtil.heightRangeRaster.max - GeometryUtil.heightRangeRaster.max % Hachure.CONFIG.contourOff;
+            const _minHeight = Raster.CONFIG.valueRangeRaster.min - Raster.CONFIG.valueRangeRaster.min % Hachure.CONFIG.contourOff + Hachure.CONFIG.contourOff;
+            const _maxHeight = Raster.CONFIG.valueRangeRaster.max - Raster.CONFIG.valueRangeRaster.max % Hachure.CONFIG.contourOff;
 
             setMinHeight(_minHeight);
             setMaxHeight(_maxHeight);
@@ -189,14 +191,13 @@ function ImageLoaderComponent() {
             const _contours = [...contours];
 
             const curHeight = contours[contours.length - 1].getHeight();
-            console.log('curHeight', curHeight);
+            const curContours = contours.filter(c => c.getHeight() === curHeight && !c.complete);
+            console.log('curHeight', curHeight, curContours.length);
 
-            const curContours = contours.filter(c => c.getHeight() === curHeight);
             if (curContours.length > 0) {
 
                 _contours.forEach(contour => contour.complete = contour.getHeight() !== curHeight);
 
-                // const extraHachuresA: IHachure[] = [];
                 for (let j = 0; j < curContours.length; j++) {
                     hachuresProgressRef.current.push(...curContours[j].handleHachures(hachuresProgressRef.current, hachuresCompleteRef.current));
                 }
@@ -209,22 +210,22 @@ function ImageLoaderComponent() {
                 rebuildHachureRefs();
 
                 const nxtHeight = curHeight + Hachure.CONFIG.contourOff;
-
-                // if (nxtHeight <= maxHeight) {
-
                 const nxtContours = fetchContours(nxtHeight);
+                console.log('nxtHeight', nxtHeight, nxtContours.length);
+
                 if (nxtContours.length > 0) {
 
-                    hachuresProgressRef.current.forEach(h => h.complete = true)
+                    // temporarily set to complete, if intersections are found, status may go back to incomplete
+                    hachuresProgressRef.current.forEach(h => h.complete = true);
                     for (let j = 0; j < nxtContours.length; j++) {
                         hachuresProgressRef.current = nxtContours[j].intersectHachures(hachuresProgressRef.current);
                     }
 
                     hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 1)
 
-                    rebuildHachureRefs();
-
                     _contours.push(...nxtContours);
+
+                    rebuildHachureRefs();
                     setTimeout(() => {
                         setContours(_contours);
                     }, 1);
@@ -232,6 +233,7 @@ function ImageLoaderComponent() {
                 } else { // done
 
                     _contours.forEach(c => c.complete = true);
+
                     hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 2)
                     hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
                     hachuresProgressRef.current.forEach(h => {
@@ -241,14 +243,13 @@ function ImageLoaderComponent() {
                         }
 
                     });
+
                     rebuildHachureRefs();
                     setTimeout(() => {
                         setContours(_contours);
                     }, 1);
 
                 }
-
-                // }
 
                 setHachures([
                     ...hachuresProgressRef.current,
@@ -292,8 +293,8 @@ function ImageLoaderComponent() {
 
                     pixelIndex = (y * rasterDataHeight.width + x);
                     valV = ObjectUtil.mapValues(rasterDataHeight.data[pixelIndex], {
-                        min: GeometryUtil.heightRangeRaster.min,
-                        max: GeometryUtil.heightRangeRaster.max
+                        min: Raster.CONFIG.valueRangeRaster.min,
+                        max: Raster.CONFIG.valueRangeRaster.max
                     }, {
                         min: 0,
                         max: 255
@@ -339,8 +340,6 @@ function ImageLoaderComponent() {
 
     }
 
-
-
     const createMark = (value: number): Mark => {
         return {
             value: value,
@@ -357,8 +356,6 @@ function ImageLoaderComponent() {
             <Stack
                 direction={'row'}
             >
-
-
                 <div
                     style={{
                         display: 'grid'
@@ -390,13 +387,20 @@ function ImageLoaderComponent() {
                         }}
                     >
                         {
+                            rasterDataHeight ? <CropComponent
+                                minPosition3857={Raster.CONFIG.rasterOrigin3857}
+                                maxPosition3857={[
+                                    Raster.CONFIG.rasterOrigin3857[0] + (rasterDataHeight.width - 1) * Raster.CONFIG.cellsize,
+                                    Raster.CONFIG.rasterOrigin3857[1] - (rasterDataHeight.height - 1) * Raster.CONFIG.cellsize,
+                                ]}></CropComponent> : null
+                        }
+                        {
                             contours.filter(c => c.getHeight() % Hachure.CONFIG.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
                         }
                         {
                             hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
                         }
                     </svg>
-
                 </div>
                 <div>
                     <Slider

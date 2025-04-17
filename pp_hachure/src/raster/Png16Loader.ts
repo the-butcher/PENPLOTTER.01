@@ -1,4 +1,4 @@
-import { ByteLoader } from "./ByteLoader";
+import { ByteLoader } from "../util/ByteLoader";
 import { IRasterData } from "./IRasterData";
 import { decode } from 'fast-png';
 
@@ -20,6 +20,8 @@ export class Png16Loader {
             new ByteLoader().load(url).then(bytes => {
 
                 const decodedPng = decode(bytes);
+
+                // decodedPng.depth
 
                 const imageDimX = decodedPng.width;
                 const imageDimY = decodedPng.height;

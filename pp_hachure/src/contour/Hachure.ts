@@ -1,12 +1,12 @@
 import { LineString, Position } from "geojson";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
-import { RasterUtil } from "../util/RasterUtil";
 import { IHachure } from "./IHachure";
 import { IHachureConfig } from "./IHachureConfig";
 import { IHachureVertex } from "./IHachureVertex";
 import { IPositionProperties } from "./IPositionProperties";
 import * as turf from "@turf/turf";
+import { Raster } from "../raster/Raster";
 
 export class Hachure implements IHachure {
 
@@ -16,7 +16,7 @@ export class Hachure implements IHachure {
         blurFactor: 0.10,
         contourOff: 0.5, // vertical difference of contours
         contourDiv: 2, // the subdivisions along a contour
-        hachureRay: (0.5 / Math.tan(2.5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize, // larger value -> flatter surfaces get hachures
+        hachureRay: (0.5 / Math.tan(2.5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
         contourDsp: 50
     }
 
@@ -26,7 +26,7 @@ export class Hachure implements IHachure {
     //     blurFactor: 0.5,
     //     contourOff: 2.5, // vertical difference of contours
     //     contourDiv: 5, // the subdivisions along a contour
-    //     hachureRay: (2.5 / Math.tan(5 * RasterUtil.DEG2RAD)) / GeometryUtil.cellSize, // larger value -> flatter surfaces get hachures
+    //     hachureRay: (2.5 / Math.tan(5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
     //     contourDsp: 50
     // }
 
@@ -65,13 +65,15 @@ export class Hachure implements IHachure {
 
         let offsetPositionsA: IPositionProperties[] = [];
         for (let i = 0; i < this.vertices.length; i++) { // upwards
-            const offset = (this.vertices[this.vertices.length - 1].height - this.vertices[i].height) * offsetScale;
+            // const offset = (this.vertices[this.vertices.length - 1].height - this.vertices[i].height) * offsetScale;
+            const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
             offsetPositionsA.push(this.getOffsetPosition(this.vertices[i], offset));
         }
 
         let offsetPositionsB: IPositionProperties[] = [];
         for (let i = this.vertices.length - 1; i >= 0; i--) { // downwards
-            const offset = (this.vertices[this.vertices.length - 1].height - this.vertices[i].height) * offsetScale;
+            // const offset = (this.vertices[this.vertices.length - 1].height - this.vertices[i].height) * offsetScale;
+            const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
             offsetPositionsB.push(this.getOffsetPosition(this.vertices[i], -offset));
         }
 
@@ -84,8 +86,8 @@ export class Hachure implements IHachure {
         }
 
         let mergedPositions: IPositionProperties[] = [
-            ...offsetPositionsA,
-            ...offsetPositionsB.slice(1)
+            ...offsetPositionsB,
+            ...offsetPositionsA.slice(1),
         ];
         if (smooth) {
             mergedPositions = GeometryUtil.simplifyPositions(mergedPositions);
@@ -158,8 +160,8 @@ export class Hachure implements IHachure {
 
     getOffsetPosition(hachureVertex: IHachureVertex, offset: number): IPositionProperties {
         const positionPixl: Position = [
-            hachureVertex.positionPixl[0] + Math.sin(hachureVertex.aspect * RasterUtil.DEG2RAD) * offset / GeometryUtil.cellSize,
-            hachureVertex.positionPixl[1] - Math.cos(hachureVertex.aspect * RasterUtil.DEG2RAD) * offset / GeometryUtil.cellSize,
+            hachureVertex.positionPixl[0] + Math.sin(hachureVertex.aspect * Raster.DEG2RAD) * offset / Raster.CONFIG.cellsize,
+            hachureVertex.positionPixl[1] - Math.cos(hachureVertex.aspect * Raster.DEG2RAD) * offset / Raster.CONFIG.cellsize,
         ];
         const position4326 = GeometryUtil.pixelToPosition4326(positionPixl);
         return {

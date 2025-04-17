@@ -2,13 +2,13 @@ import * as turf from "@turf/turf";
 import { Feature, LineString, Point, Position } from "geojson";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
-import { RasterUtil } from "../util/RasterUtil";
 import { Hachure } from "./Hachure";
 import { IContour } from "./IContour";
 import { IContourProperties } from "./IContourProperties";
 import { IContourVertex } from "./IContourVertex";
 import { IHachure } from "./IHachure";
 import { ISubGeometry } from "./ISubGeometry";
+import { Raster } from "../raster/Raster";
 
 /**
  * Implementation of {@link IContour}, holds a major part of the hachure implementation.
@@ -89,15 +89,15 @@ export class Contour implements IContour {
 
             const dX = positionPixlB[0] - positionPixlA[0];
             const dY = positionPixlB[1] - positionPixlA[1];
-            aspect = Math.atan2(dY, dX) * RasterUtil.RAD2DEG - 90;
+            aspect = Math.atan2(dY, dX) * Raster.RAD2DEG - 90;
 
             positionPixlS = [
-                positionPixlI[0] - Math.cos(aspect * RasterUtil.DEG2RAD) * lenS / GeometryUtil.cellSize,
-                positionPixlI[1] - Math.sin(aspect * RasterUtil.DEG2RAD) * lenS / GeometryUtil.cellSize
+                positionPixlI[0] - Math.cos(aspect * Raster.DEG2RAD) * lenS / Raster.CONFIG.cellsize,
+                positionPixlI[1] - Math.sin(aspect * Raster.DEG2RAD) * lenS / Raster.CONFIG.cellsize
             ];
             const heightI = heightFunction(positionPixlI);
             const heightS = heightFunction(positionPixlS);
-            slope = Math.atan2(heightI - heightS, lenS) * RasterUtil.RAD2DEG;
+            slope = Math.atan2(heightI - heightS, lenS) * Raster.RAD2DEG;
 
             // // aspect += 180;
             // if (aspect < 0) {
@@ -107,8 +107,8 @@ export class Contour implements IContour {
 
             // https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
             // aspect is pointing "inwards" for this apps concerns, 180deg need to be added to let it face "outwards"
-            const hillshade = (Math.cos(zenith * RasterUtil.DEG2RAD) * Math.cos(slope * RasterUtil.DEG2RAD) +
-                Math.sin(zenith * RasterUtil.DEG2RAD) * Math.sin(slope * RasterUtil.DEG2RAD) * Math.cos((azimut - aspect + 180) * RasterUtil.DEG2RAD));
+            const hillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
+                Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimut - aspect + 180) * Raster.DEG2RAD));
 
 
             // hillshade = 1 - Math.pow(1 - hillshade, 1 / 2);
@@ -261,10 +261,10 @@ export class Contour implements IContour {
 
                         const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
                             const lastVertex = h.getLastVertex();
-                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > Hachure.CONFIG.minSpacing * 3 / GeometryUtil.cellSize) {
+                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > Hachure.CONFIG.minSpacing * 3 / Raster.CONFIG.cellsize) {
                                 return false;
                             }
-                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > Hachure.CONFIG.minSpacing * 3 / GeometryUtil.cellSize) {
+                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > Hachure.CONFIG.minSpacing * 3 / Raster.CONFIG.cellsize) {
                                 return false;
                             }
                             const distance = turf.distance(position4326, lastVertex.position4326, {
@@ -323,8 +323,8 @@ export class Contour implements IContour {
 
             const pixelCoordinateA = lastHachureVertex.positionPixl;
             const pixelCoordinateB: Position = [
-                pixelCoordinateA[0] + Math.cos(lastHachureVertex.aspect * RasterUtil.DEG2RAD) * Hachure.CONFIG.hachureRay,
-                pixelCoordinateA[1] + Math.sin(lastHachureVertex.aspect * RasterUtil.DEG2RAD) * Hachure.CONFIG.hachureRay
+                pixelCoordinateA[0] + Math.cos(lastHachureVertex.aspect * Raster.DEG2RAD) * Hachure.CONFIG.hachureRay,
+                pixelCoordinateA[1] + Math.sin(lastHachureVertex.aspect * Raster.DEG2RAD) * Hachure.CONFIG.hachureRay
             ];
             const coordinate4326A = GeometryUtil.pixelToPosition4326(pixelCoordinateA);
             const coordinate4326B = GeometryUtil.pixelToPosition4326(pixelCoordinateB);
@@ -497,11 +497,11 @@ export class Contour implements IContour {
         } else {
             for (let i = 1; i < this.vertices.length; i++) {
                 if (this.vertices[i].length > _length) {
-                    const aspectA = this.vertices[i - 1].aspect * RasterUtil.DEG2RAD;
-                    const aspectB = this.vertices[i].aspect * RasterUtil.DEG2RAD;
+                    const aspectA = this.vertices[i - 1].aspect * Raster.DEG2RAD;
+                    const aspectB = this.vertices[i].aspect * Raster.DEG2RAD;
                     const cosSum = Math.cos(aspectA) + Math.cos(aspectB);
                     const sinSum = Math.sin(aspectA) + Math.sin(aspectB);
-                    return Math.atan2(sinSum, cosSum) * RasterUtil.RAD2DEG;
+                    return Math.atan2(sinSum, cosSum) * Raster.RAD2DEG;
                 }
             }
             return this.vertices[this.vertices.length - 1].aspect;
