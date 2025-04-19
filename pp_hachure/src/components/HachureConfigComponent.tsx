@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { IActiveStepProps } from './IActiveStepProps';
 import { IHachureConfigProps } from './IHachureConfigProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS, STEP_INDEX_RASTER_____DATA } from './ImageLoaderComponent';
+import { IRange } from '../util/IRange';
 
 /**
  * this component offerst inputs for the hachure configuration
@@ -29,6 +30,25 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
     const [contourDspInt, setContourDspInt] = useState<number>(contourDsp);
     const [azimuthDegInt, setAzimuthDegInt] = useState<number>(azimuthDeg);
     const [propsCheckInt, setPropsCheckInt] = useState<boolean>(propsCheck);
+
+    const blurFactorRange: IRange = {
+        min: 0.1,
+        max: 5
+    };
+    const minSpacingMin = 1;
+    const maxSpacingMax = 25;
+    const contourOffRange: IRange = {
+        min: 0.1,
+        max: 5
+    };
+    const contourDivRange: IRange = {
+        min: 1,
+        max: 10
+    };
+    const hachureDegRange: IRange = {
+        min: 1,
+        max: 20
+    };
 
     const handleHachureConfigToRef = useRef<number>(-1);
 
@@ -60,28 +80,32 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
     }, [minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt]);
 
+    const limitToRange = (value: number, range: IRange): number => {
+        return Math.max(range.min, Math.min(range.max, value));
+    };
+
     const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value));
+        setBlurFactorInt(event.target.value === '' ? blurFactorInt : limitToRange(Number(event.target.value), blurFactorRange));
     };
 
     const handleMinSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMinSpacingInt(event.target.value === '' ? minSpacingInt : Math.min(getMinSpacingLimit(), Number(event.target.value)));
+        setMinSpacingInt(event.target.value === '' ? minSpacingInt : Math.min(getMinSpacingMax(), Math.max(minSpacingMin, Number(event.target.value))));
     };
 
     const handleMaxSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMaxSpacingInt(event.target.value === '' ? maxSpacingInt : Math.max(getMaxSpacingLimit(), Number(event.target.value)));
+        setMaxSpacingInt(event.target.value === '' ? maxSpacingInt : Math.max(getMaxSpacingMin(), Math.min(maxSpacingMax, Number(event.target.value))));
     };
 
     const handleContourOffInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setContourOffInt(event.target.value === '' ? contourOffInt : Number(event.target.value));
+        setContourOffInt(event.target.value === '' ? contourOffInt : limitToRange(Number(event.target.value), contourOffRange));
     };
 
     const handleContourDivInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setContourDivInt(event.target.value === '' ? contourDivInt : Number(event.target.value));
+        setContourDivInt(event.target.value === '' ? contourDivInt : limitToRange(Number(event.target.value), contourDivRange));
     };
 
     const handleHachureDegInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setHachureDegInt(event.target.value === '' ? hachureDegInt : Number(event.target.value));
+        setHachureDegInt(event.target.value === '' ? hachureDegInt : limitToRange(Number(event.target.value), hachureDegRange));
     };
 
     const handleContourDspSelectChange = (event: SelectChangeEvent<number>) => {
@@ -92,11 +116,11 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         setAzimuthDegInt(newValue as number);
     };
 
-    const getMinSpacingLimit = () => {
+    const getMinSpacingMax = () => {
         return maxSpacingInt - 1;
     };
 
-    const getMaxSpacingLimit = () => {
+    const getMaxSpacingMin = () => {
         return minSpacingInt + 1;
     };
 
@@ -131,9 +155,8 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     }}
                     slotProps={{
                         htmlInput: {
+                            ...blurFactorRange,
                             step: 0.1,
-                            min: 0.1,
-                            max: 5,
                             type: 'number'
                         },
                         inputLabel: {
@@ -157,8 +180,8 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     slotProps={{
                         htmlInput: {
                             step: 0.1,
-                            min: 1,
-                            max: getMinSpacingLimit(),
+                            min: minSpacingMin,
+                            max: getMinSpacingMax(),
                             type: 'number'
                         },
                         inputLabel: {
@@ -182,8 +205,8 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     slotProps={{
                         htmlInput: {
                             step: 0.1,
-                            min: getMaxSpacingLimit(),
-                            max: 25,
+                            min: getMaxSpacingMin(),
+                            max: maxSpacingMax,
                             type: 'number'
                         },
                         inputLabel: {
@@ -206,9 +229,8 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     }}
                     slotProps={{
                         htmlInput: {
+                            ...contourOffRange,
                             step: 0.1,
-                            min: 0.1,
-                            max: 10,
                             type: 'number'
                         },
                         inputLabel: {
@@ -231,9 +253,8 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     }}
                     slotProps={{
                         htmlInput: {
+                            ...contourDivRange,
                             step: 0.5,
-                            min: 1,
-                            max: 10,
                             type: 'number'
                         },
                         inputLabel: {
@@ -256,9 +277,8 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     }}
                     slotProps={{
                         htmlInput: {
+                            ...hachureDegRange,
                             step: 0.1,
-                            min: 1,
-                            max: 20,
                             type: 'number'
                         },
                         inputLabel: {
