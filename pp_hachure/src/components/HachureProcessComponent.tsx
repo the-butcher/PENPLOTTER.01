@@ -16,16 +16,12 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
         console.debug('✨ building HachureConfigComponent');
     }, []);
 
-    // useEffect(() => {
-    //     console.log('⚙ updating HachureConfigComponent (value, valueRange)', value, valueRange);
-    // }, [value, valueRange]);
-
     const createMark = (value: number): Mark => {
         return {
             value: value,
             label: `${value.toFixed(1)}m`
         };
-    }
+    };
 
     return (
         <Grid container spacing={2}
@@ -37,10 +33,10 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
             {
                 valueRange.min > 0 && valueRange.max > valueRange.min ? <Grid item xs={12}
                     sx={{
-                        padding: '24px 24px 0px 36px !important',
-                        // paddingLeft: '48px !important'
+                        padding: '12px 24px 0px 30px !important',
                     }}
                 >
+                    <FormHelperText>progress</FormHelperText>
                     <Slider
                         valueLabelDisplay="on"
                         orientation={'horizontal'}
@@ -55,8 +51,7 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                             createMark(valueRange.max),
                         ]}
                         sx={{
-                            marginTop: '24px',
-                            // width: 'calc(100% - 24px)'
+                            marginTop: '36px',
                         }}
                     />
                 </Grid> : null

@@ -1,6 +1,7 @@
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { Button, Divider, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { Button, Divider, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, SelectChangeEvent, Slider, TextField } from "@mui/material";
+import { Mark } from '@mui/material/Slider/useSlider.types';
 import { useEffect, useRef, useState } from "react";
 import { IActiveStepProps } from './IActiveStepProps';
 import { IHachureConfigProps } from './IHachureConfigProps';
@@ -8,7 +9,7 @@ import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS, STEP_INDEX_RAST
 
 function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
-    const { minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, propsCheck, handleHachureConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
+    const { minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg, propsCheck, handleHachureConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
 
     const [minSpacingInt, setMinSpacingInt] = useState<number>(minSpacing);
     const [maxSpacingInt, setMaxSpacingInt] = useState<number>(maxSpacing);
@@ -17,6 +18,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
     const [contourDivInt, setContourDivInt] = useState<number>(contourDiv);
     const [hachureDegInt, setHachureDegInt] = useState<number>(hachureDeg);
     const [contourDspInt, setContourDspInt] = useState<number>(contourDsp);
+    const [azimuthDegInt, setAzimuthDegInt] = useState<number>(azimuthDeg);
     const [propsCheckInt, setPropsCheckInt] = useState<boolean>(propsCheck);
 
     const handleHachureConfigToRef = useRef<number>(-1);
@@ -25,16 +27,15 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         console.debug('✨ building HachureConfigComponent');
     }, []);
 
+    // useEffect(() => {
+
+    //     console.debug('⚙ updating HachureConfigComponent (minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg)', minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, azimuthDeg, contourDsp);
+
+    // }, [minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg]);
+
     useEffect(() => {
 
-        console.log('⚙ updating HachureConfigComponent (minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp)', minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp);
-
-
-    }, [minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp]);
-
-    useEffect(() => {
-
-        console.log('⚙ updating HachureConfigComponent (minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, propsCheckInt)', minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, propsCheckInt);
+        console.log('⚙ updating HachureConfigComponent (minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt)', minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt);
         window.clearTimeout(handleHachureConfigToRef.current);
         handleHachureConfigToRef.current = window.setTimeout(() => {
             handleHachureConfig({
@@ -45,56 +46,63 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 contourDiv: contourDivInt,
                 hachureDeg: hachureDegInt,
                 contourDsp: contourDspInt,
+                azimuthDeg: azimuthDegInt,
                 propsCheck: propsCheckInt
             });
         }, 100);
 
-    }, [minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, propsCheckInt]);
+    }, [minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt]);
 
     const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value))
+        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value));
     };
 
     const handleMinSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMinSpacingInt(event.target.value === '' ? minSpacingInt : Math.min(getMinSpacingLimit(), Number(event.target.value)))
+        setMinSpacingInt(event.target.value === '' ? minSpacingInt : Math.min(getMinSpacingLimit(), Number(event.target.value)));
     };
 
     const handleMaxSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMaxSpacingInt(event.target.value === '' ? maxSpacingInt : Math.max(getMaxSpacingLimit(), Number(event.target.value)))
+        setMaxSpacingInt(event.target.value === '' ? maxSpacingInt : Math.max(getMaxSpacingLimit(), Number(event.target.value)));
     };
 
     const handleContourOffInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setContourOffInt(event.target.value === '' ? contourOffInt : Number(event.target.value))
+        setContourOffInt(event.target.value === '' ? contourOffInt : Number(event.target.value));
     };
 
     const handleContourDivInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setContourDivInt(event.target.value === '' ? contourDivInt : Number(event.target.value))
+        setContourDivInt(event.target.value === '' ? contourDivInt : Number(event.target.value));
     };
 
     const handleHachureDegInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setHachureDegInt(event.target.value === '' ? hachureDegInt : Number(event.target.value))
+        setHachureDegInt(event.target.value === '' ? hachureDegInt : Number(event.target.value));
     };
 
-    // const handleContourDspInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setContourDspInt(event.target.value === '' ? contourDspInt : Number(event.target.value))
-    // };
-
     const handleContourDspSelectChange = (event: SelectChangeEvent<number>) => {
-        setContourDspInt(event.target.value === '' ? contourDspInt : Number(event.target.value))
+        setContourDspInt(event.target.value === '' ? contourDspInt : Number(event.target.value));
+    };
+
+    const handleAzimuthDegSliderChange = (_event: Event, newValue: number | number[]) => {
+        setAzimuthDegInt(newValue as number);
     };
 
     const getMinSpacingLimit = () => {
         return maxSpacingInt - 1;
-    }
+    };
 
     const getMaxSpacingLimit = () => {
         return minSpacingInt + 1;
-    }
+    };
 
     const areAllValuesValid = () => {
-        // setPropsCheckInt(true);
         return true;
-    }
+    };
+
+    const createMark = (value: number): Mark => {
+        return {
+            value: value,
+            label: `${value.toFixed(0)}deg`
+        };
+    };
 
     return (
         <Grid container spacing={2}
@@ -277,31 +285,35 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                         showHelperTexts ? <FormHelperText>the vertical distance in meters between contours to be added to the output.</FormHelperText> : null
                     }
                 </FormControl>
-
-
-                {/* <TextField
-                    label={'contour display interval (m)'}
-                    value={hachureDegInt}
-                    type="number"
-                    variant="outlined"
-                    onChange={handleHachureDegInputChange}
+            </Grid>
+            <Grid item xs={12}
+                sx={{
+                    padding: '12px 24px 0px 30px !important',
+                }}
+            >
+                <FormHelperText>illumination azimuth (deg)</FormHelperText>
+                <Slider
+                    valueLabelDisplay="on"
+                    orientation={'horizontal'}
+                    aria-label="azimuth"
+                    value={azimuthDegInt}
+                    step={1}
+                    min={0}
+                    max={360}
+                    valueLabelFormat={value => `${value.toFixed(0)}deg`}
+                    onChange={handleAzimuthDegSliderChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                    marks={[
+                        createMark(0),
+                        createMark(360),
+                    ]}
                     sx={{
-                        width: '100%'
+                        marginTop: '36px',
                     }}
-                    slotProps={{
-                        htmlInput: {
-                            step: 1,
-                            min: 5,
-                            max: 500,
-                            type: 'number'
-                        },
-                        inputLabel: {
-                            shrink: true
-                        }
-                    }}
-                    helperText={showHelperTexts ? 'the minimum slope in degrees for hachure lines to be drawn. low values (i.e. 2.0) can produce more detail, but may give undesired artifacts, high values (i.e. 10.0) will miss details in terrain that is less pronounced.' : undefined}
-                /> */}
+                />
+                {
+                    showHelperTexts ? <FormHelperText>the azimuth angle of illumination, zero pointing north.</FormHelperText> : null
+                }
             </Grid>
             {
                 activeStep === STEP_INDEX_HACHURE__CONFIG ? <>

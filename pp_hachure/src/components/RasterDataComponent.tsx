@@ -9,14 +9,15 @@ import { IActiveStepProps } from './IActiveStepProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterDataProps } from './IRasterDataProps';
 import { ObjectUtil } from '../util/ObjectUtil';
+import { IRasterConfigProps } from './IRasterConfigProps';
 
 export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRasterData'>) => {
     return props.name !== '' && props.width > 0 && props.height > 0 && props.data.length > 0 && props.valueRange.min > 0 && props.valueRange.max > props.valueRange.min;
-}
+};
 
-function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
+function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IActiveStepProps) {
 
-    const { name, data, width, height, valueRange, handleRasterData, activeStep, showHelperTexts, handleActiveStep } = { ...props };
+    const { name, data, width, height, valueRange, handleRasterData, cellsize, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building RasterDataComponent');
@@ -33,6 +34,25 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
             file!.arrayBuffer().then(arrayBuffer => {
 
                 const decodedPng = decode(arrayBuffer);
+
+                const maxMeters = 10000;
+                console.log(decodedPng.width * cellsize, decodedPng.height * cellsize > maxMeters)
+                if (decodedPng.width * cellsize > maxMeters || decodedPng.height * cellsize > maxMeters) {
+                    handleAlertProps({
+                        severity: 'error',
+                        title: 'Invalid png dimensions!',
+                        message: `The maximum width or heigth of the image must not exceed ${maxMeters.toFixed(2)} m, but found ${(decodedPng.width * cellsize).toFixed(2)} m / ${(decodedPng.height * cellsize).toFixed(2)} m.`
+                    });
+                    return;
+                }
+                if (decodedPng.depth < 16 || decodedPng.channels > 1) {
+                    handleAlertProps({
+                        severity: 'error',
+                        title: 'Invalid png image!',
+                        message: `The image must have a single channel with a depth of 16, but found ${decodedPng.channels} channels having a depth of ${decodedPng.depth}.`
+                    });
+                    return;
+                }
 
                 const name = file!.name;
                 const width = decodedPng.width;
@@ -55,7 +75,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
 
                 const sampleToHeight = (sample: number): number => {
                     return ObjectUtil.mapValues(sample, valueRangeSample, valueRange);
-                }
+                };
 
                 handleRasterData({
                     name,
@@ -69,7 +89,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
             });
         }
 
-    }
+    };
 
     const areAllValuesValid = () => {
         return areRasterDataPropsValid({
@@ -80,7 +100,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
             blurFactor: 0,
             data
         });
-    }
+    };
 
     return (
         <Grid container spacing={2}

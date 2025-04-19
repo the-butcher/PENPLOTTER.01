@@ -71,9 +71,6 @@ export class Contour implements IContour {
 
         let position4326A = feature.geometry.coordinates[0]; // start with initial coordinate
         let position4326I = this.findPointAlong(this.weightCalcIncrement)!;
-        // let position4326I = turf.along(feature, this.weightCalcIncrement, {
-        //     units: 'meters'
-        // }).geometry.coordinates;
         let position4326B: Position | undefined; // positionB along contour (in terms of fixed vertex increment)
 
         let positionPixlA = GeometryUtil.position4326ToPixel(position4326A, this.rasterConfig);
@@ -87,12 +84,17 @@ export class Contour implements IContour {
         let scaledLength = 0;
 
         const zenith = 45;
-        let azimut = 280; // north-west
-        azimut = 360 - azimut + 90;
-        while (azimut > 360) {
-            azimut -= 360;
+        let azimuthDeg = ObjectUtil.mapValues(this.hachureConfig.azimuthDeg, {
+            min: 0,
+            max: 360
+        }, {
+            min: -90 + 360,
+            max: 270 + 360
+        });
+        while (azimuthDeg > 360) {
+            azimuthDeg -= 360;
         }
-        // console.log('azimuth', azimut);
+        // console.log('azimuthDeg', azimuthDeg);
 
         this.vertices.push({
             position4326: position4326A,
@@ -109,9 +111,6 @@ export class Contour implements IContour {
             length = (i + 1) * this.weightCalcIncrement;
 
             position4326B = this.findPointAlong(length)!;
-            // position4326B = turf.along(feature, length, {
-            //     units: 'meters'
-            // }).geometry.coordinates;
             positionPixlB = GeometryUtil.position4326ToPixel(position4326B, this.rasterConfig);
 
             const dX = positionPixlB[0] - positionPixlA[0];
@@ -129,7 +128,7 @@ export class Contour implements IContour {
             // https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
             // aspect is pointing "inwards" for this apps concerns, 180deg need to be added to let it face "outwards"
             const hillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
-                Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimut - aspect + 180) * Raster.DEG2RAD));
+                Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimuthDeg - aspect + 180) * Raster.DEG2RAD));
 
             const incrmt = ObjectUtil.mapValues(hillshade, {
                 min: 0,
@@ -466,7 +465,7 @@ export class Contour implements IContour {
                     return turf.feature(pointOnLine.geometry, {
                         ...pointOnLine.properties,
                         location: subGeometry.lengthMin + pointOnLine.properties.location
-                    })
+                    });
                 }
             }
         }
@@ -487,7 +486,7 @@ export class Contour implements IContour {
                     }, {
                         min: this.vertices[i - 1].length,
                         max: this.vertices[i].length
-                    })
+                    });
                 }
             }
             return this.length;
@@ -563,7 +562,7 @@ export class Contour implements IContour {
         };
         this.vertices.forEach(vertex => {
             lineString.coordinates.push(vertex.position4326);
-        })
+        });
         return lineString;
 
     }

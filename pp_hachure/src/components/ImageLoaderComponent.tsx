@@ -1,4 +1,4 @@
-import { Box, Checkbox, FormControlLabel, FormGroup, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Checkbox, FormControlLabel, FormGroup, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -18,6 +18,7 @@ import { IRasterConfigProps } from './IRasterConfigProps';
 import { IRasterDataProps } from './IRasterDataProps';
 import RasterConfigComponent, { areRasterConfigPropsValid } from './RasterConfigComponent';
 import RasterDataComponent, { areRasterDataPropsValid } from './RasterDataComponent';
+import { IAlertProps } from "./IAlertProps";
 
 export const STEP_INDEX_COMMON___CONFIG = 0;
 export const STEP_INDEX_RASTER___CONFIG = 1;
@@ -43,7 +44,7 @@ function ImageLoaderComponent() {
     const setContourToRef = useRef<number>(-1);
 
     const handleRasterConfig = (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
-        console.log(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
+        console.debug(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
         setRasterConfig({
             ...rasterConfigUpdates,
             handleRasterConfig
@@ -53,38 +54,38 @@ function ImageLoaderComponent() {
             ...rasterData,
             valueRange: rasterConfigUpdates.valueRange
         });
-    }
+    };
 
     const handleRasterData = (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
-        console.log(`📞 handling raster data (rasterDataUpdates)`, rasterDataUpdates);
+        console.debug(`📞 handling raster data (rasterDataUpdates)`, rasterDataUpdates);
         setRasterDataRaw({
             ...rasterDataUpdates,
             handleRasterData
         });
-    }
+    };
 
     const handleHachureConfig = (hachureConfigUpdates: Omit<IHachureConfigProps, 'handleHachureConfig'>) => {
-        console.log(`📞 handling hachure config (hachureConfigUpdates)`, hachureConfigUpdates);
+        console.debug(`📞 handling hachure config (hachureConfigUpdates)`, hachureConfigUpdates);
         setHachureConfig({
             ...hachureConfigUpdates,
             handleHachureConfig
         });
-    }
+    };
 
     const handleHachureExport = () => {
-        console.log('handleHachureExport', hachures);
+        console.debug('handleHachureExport', hachures);
         const _hachures = [
             ...hachuresProgressRef.current,
             ...hachuresCompleteRef.current
-        ]
+        ];
         handleGeoJsonExport(_hachures.map(h => turf.feature(h.toLineString())), 'hachures');
-    }
+    };
 
     const handleContourExport = () => {
         handleGeoJsonExport(contoursRef.current.filter(c => c.getHeight() % hachureConfig.contourDsp === 0).map(c => turf.feature(c.toLineString(), {
             label: c.getHeight().toFixed(0)
         })), 'contours');
-    }
+    };
 
     const handleGeoJsonExport = (features: Feature<LineString, GeoJsonProperties>[], prefix: string) => {
         const featureCollection = turf.featureCollection(features);
@@ -95,20 +96,40 @@ function ImageLoaderComponent() {
             return val.toFixed ? Number(val.toFixed(7)) : val;
         }));
         a.dispatchEvent(e);
-    }
+    };
 
-    const handleActiveStep = (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep' | 'showHelperTexts'>) => {
-        console.log(`📞 handling active step (activeStepUpdates)`, activeStepUpdates);
+    const handleActiveStep = (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep' | 'handleAlertProps' | 'showHelperTexts'>) => {
+        console.debug(`📞 handling active step (activeStepUpdates)`, activeStepUpdates);
         setActiveStep({
             ...activeStep,
             ...activeStepUpdates,
         });
-    }
+    };
+
+    const handleAlertProps = (alertPropsUpdates: Omit<IAlertProps, 'open'>) => {
+        console.debug(`📞 handling alert props (alertProps)`, alertProps);
+        setAlertProps({
+            ...alertPropsUpdates,
+            open: true
+        });
+    };
+
+    const handleAlertPropsClose = (_event?: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+        console.debug(`📞 handling alert props close (alertProps)`, alertProps);
+        if (reason === 'clickaway') {
+            return;
+        }
+        setAlertProps({
+            ...alertProps,
+            open: false
+        });
+    };
 
     const [activeStep, setActiveStep] = useState<IActiveStepProps>({
         activeStep: STEP_INDEX_RASTER___CONFIG,
         showHelperTexts: true,
-        handleActiveStep
+        handleActiveStep,
+        handleAlertProps
     });
     const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
         cellsize: -1,
@@ -150,10 +171,11 @@ function ImageLoaderComponent() {
         minSpacing: 6,
         maxSpacing: 8,
         blurFactor: 0.10,
-        contourOff: 0.5, // vertical difference of contours
-        contourDiv: 2, // the subdivisions along a contour
+        contourOff: 0.5,
+        contourDiv: 2,
         hachureDeg: 2.5,
         contourDsp: 50,
+        azimuthDeg: 280,
         propsCheck: false,
         handleHachureConfig
     });
@@ -165,12 +187,20 @@ function ImageLoaderComponent() {
         },
         handleHachureExport,
         handleContourExport
-    })
+    });
+    const [alertProps, setAlertProps] = useState<IAlertProps>({
+        severity: 'success',
+        title: '',
+        message: '',
+        open: false
+    });
+
+
 
     const imageMargin = 50;
 
     useEffect(() => {
-        console.log('✨ building ImageLoaderComponent');
+        console.debug('✨ building ImageLoaderComponent');
     }, []);
 
     const rebuildHachureRefs = () => {
@@ -184,10 +214,10 @@ function ImageLoaderComponent() {
                 hachuresTemp.push(h);
             }
         });
-        hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
+        hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2);
         hachuresProgressRef.current = hachuresTemp;
 
-    }
+    };
 
     const fetchContours = (height: number): IContour[] => {
 
@@ -201,66 +231,11 @@ function ImageLoaderComponent() {
         });
         return _contours;
 
-    }
-
-    // const handleSettingsUpdate = () => {
-
-    //     const canvasElement = canvasRef.current;
-    //     const svgElement = svgRef.current;
-    //     if (canvasElement && svgElement) {
-
-    //         if (areRasterConfigPropsValid(rasterConfig)) {
-
-    //             const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
-    //             const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
-    //             // setMinHeight(_minHeight);
-    //             // setMaxHeight(_maxHeight);
-
-    //             setHachureProcess({
-    //                 ...hachureProcess,
-    //                 value: minHeight,
-    //                 valueRange: {
-    //                     min: minHeight,
-    //                     max: maxHeight
-    //                 }
-    //             });
-
-    //             if (areRasterDataPropsValid(rasterData)) {
-
-    //                 // TODO :: as attributes on the element itself
-    //                 svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterData.width + imageMargin * 2}, ${rasterData.height + imageMargin * 2}`);
-    //                 svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
-    //                 svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
-
-    //                 if (hachureConfig.propsCheck) {
-
-    //                     setActive(true);
-
-    //                 }
-
-    //             } else { // raster data is invalid
-
-    //                 setActive(false);
-
-    //                 window.clearTimeout(setContourToRef.current);
-    //                 contoursRef.current = [];
-    //                 setContours(contoursRef.current);
-    //                 setHachureProcess({
-    //                     ...hachureProcess,
-    //                     value: hachureProcess.valueRange.min
-    //                 });
-
-    //             }
-
-    //         }
-
-    //     }
-
-    // }
+    };
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (rasterConfig)', rasterConfig);
+        console.debug('⚙ updating ImageLoaderComponent (rasterConfig)', rasterConfig);
 
         const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
         const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
@@ -277,7 +252,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (rasterDataRaw)', rasterDataRaw);
+        console.debug('⚙ updating ImageLoaderComponent (rasterDataRaw)', rasterDataRaw);
 
         if (areRasterDataPropsValid(rasterDataRaw)) {
             setRasterData(Raster.blurRasterData(rasterDataRaw, hachureConfig.blurFactor));
@@ -287,7 +262,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
+        console.debug('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
 
         // handleSettingsUpdate();
 
@@ -311,7 +286,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
+        console.debug('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
 
         if (hachureConfig.blurFactor !== rasterData.blurFactor) {
             if (areRasterDataPropsValid(rasterDataRaw)) {
@@ -321,11 +296,12 @@ function ImageLoaderComponent() {
 
         if (hachureConfig.propsCheck) {
 
-            setActive(true);
+            setActive(false);
+            setTimeout(() => {
+                setActive(true);
+            }, 100);
 
         }
-
-
 
     }, [hachureConfig]);
 
@@ -357,7 +333,7 @@ function ImageLoaderComponent() {
                     ...hachureProcess,
                     value: minContourHeight
                 });
-            }, 1)
+            }, 1);
 
         } else {
 
@@ -373,7 +349,7 @@ function ImageLoaderComponent() {
             setHachureConfig({
                 ...hachureConfig,
                 propsCheck: false
-            })
+            });
 
             setHachureProcess({
                 ...hachureProcess,
@@ -423,7 +399,7 @@ function ImageLoaderComponent() {
                         hachuresProgressRef.current = nxtContours[j].intersectHachures(hachuresProgressRef.current);
                     }
 
-                    hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 1)
+                    hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 1);
 
                     _contours.push(...nxtContours);
 
@@ -511,187 +487,199 @@ function ImageLoaderComponent() {
 
         }
 
-    }
+    };
+
 
     return (
-        <Stack
-            direction={'row'}
-        >
-
-            <Box sx={{
-                mb: 2,
-                // display: "flex",
-                // flexDirection: "column",
-                height: 'calc(100vh - 48px)',
-                width: '400px',
-                overflow: "hidden",
-                overflowY: "scroll",
-            }}>
-
-                <Stepper activeStep={activeStep.activeStep} orientation="vertical"
-                    sx={{
-                        width: '100%'
-                    }}
-                >
-                    <Step key={'commonconf'}
-                        active={true}
-                        sx={{
-                            width: 'inherit'
-                        }}
-                    >
-                        <StepLabel>
-                            <Typography>
-                                common settings
-                            </Typography>
-                        </StepLabel>
-                        <StepContent>
-                            <FormGroup>
-                                <FormControlLabel
-                                    control={<Checkbox
-                                        onChange={e => setShowRaster(e.target.checked)}
-                                    />}
-                                    checked={showRaster}
-                                    label="show raster"
-                                />
-                                <FormControlLabel
-                                    control={<Checkbox
-                                        onChange={e => setActiveStep({
-                                            ...activeStep,
-                                            showHelperTexts: e.target.checked
-                                        })}
-                                    />}
-                                    checked={activeStep.showHelperTexts}
-                                    label="show helper texts"
-                                />
-                            </FormGroup>
-                        </StepContent>
-                    </Step>
-                    <Step key={'rasterconf'}
-                        active={true}
-                        sx={{
-                            width: 'inherit'
-                        }}
-                    >
-                        <StepLabel>
-                            <Typography>
-                                raster settings
-                            </Typography>
-                        </StepLabel>
-                        <StepContent>
-                            <RasterConfigComponent {...{
-                                ...rasterConfig,
-                                ...activeStep
-                            }} />
-                        </StepContent>
-                    </Step>
-                    <Step key={'pickpng'}
-                        active={true}
-                        sx={{
-                            width: 'inherit'
-                        }}
-                    >
-                        <StepLabel>
-                            <Typography>
-                                raster data
-                            </Typography>
-                        </StepLabel>
-                        <StepContent>
-                            <RasterDataComponent {...{
-                                ...rasterData,
-                                ...activeStep
-                            }} />
-                        </StepContent>
-                    </Step>
-                    <Step key={'hachureconf'}
-                        active={true}
-                        sx={{
-                            width: 'inherit'
-                        }}
-                    >
-                        <StepLabel>
-                            <Typography>
-                                hachure config
-                            </Typography>
-                        </StepLabel>
-                        <StepContent>
-                            <HachureConfigComponent {...{
-                                ...hachureConfig,
-                                ...activeStep
-                            }} />
-                        </StepContent>
-                    </Step>
-                    <Step key={'hachureprocess'}
-                        active={true}
-                        sx={{
-                            width: 'inherit'
-                        }}
-                    >
-                        <StepLabel>
-                            <Typography>
-                                hachure processing
-                            </Typography>
-                        </StepLabel>
-                        <StepContent>
-                            <HachureProcessComponent {...{
-                                ...hachureProcess,
-                                ...activeStep
-                            }} />
-                        </StepContent>
-                    </Step>
-                </Stepper>
-            </Box>
-
-            <div
-                style={{
-                    display: 'grid'
-                }}
+        <>
+            <Snackbar
+                open={alertProps.open}
+                autoHideDuration={20000}
+                onClose={handleAlertPropsClose}
             >
-                <canvas
-                    ref={canvasRef}
-                    style={{
-                        // position: 'absolute',
-                        // left: '100px',
-                        // top: '100px',
-                        opacity: 1.0,
-                        // paddingBottom: '20px',
-                        margin: `${(imageMargin - 0.5) * 2}px`,
-                        gridColumn: 1,
-                        gridRow: 1
+                <Alert
+                    onClose={handleAlertPropsClose}
+                    severity={alertProps.severity}
+                    variant="filled"
+                    sx={{
+                        width: '100%',
                     }}
                 >
-                </canvas>
-                <svg
-                    ref={svgRef}
-                    style={{
-                        // position: 'absolute',
-                        // left: '100px',
-                        // top: '100px',
-                        backgroundColor: 'rgba(0,0,0,0.0)',
-                        // paddingBottom: '50px',
-                        gridColumn: 1,
-                        gridRow: 1
-                    }}
-                >
-                    {
-                        areRasterDataPropsValid(rasterData) && areRasterConfigPropsValid(rasterConfig) ? <CropComponent {...{
-                            ...rasterConfig,
-                            minPosition3857: rasterConfig.origin3857,
-                            maxPosition3857: [
-                                rasterConfig.origin3857[0] + (rasterData.width - 1) * rasterConfig.cellsize,
-                                rasterConfig.origin3857[1] - (rasterData.height - 1) * rasterConfig.cellsize,
-                            ]
-                        }}></CropComponent> : null
-                    }
-                    {
-                        contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
-                    }
-                    {
-                        hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
-                    }
-                </svg>
-            </div>
+                    <AlertTitle>{alertProps.title}</AlertTitle>
+                    {alertProps.message}
+                </Alert>
+            </Snackbar>
+            <Stack
+                direction={'row'}
+            >
+                <Box sx={{
+                    mb: 2,
+                    height: 'calc(100vh - 36px)',
+                    width: '400px',
+                    minWidth: '400px',
+                    overflow: "hidden",
+                    overflowY: "scroll",
+                }}>
 
-        </Stack>
+                    <Stepper activeStep={activeStep.activeStep} orientation="vertical"
+                        sx={{
+                            width: '100%'
+                        }}
+                    >
+                        <Step key={'commonconf'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    common settings
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                <FormGroup>
+                                    <FormControlLabel
+                                        control={<Checkbox
+                                            onChange={e => setShowRaster(e.target.checked)}
+                                        />}
+                                        checked={showRaster}
+                                        label="show raster"
+                                    />
+                                    <FormControlLabel
+                                        control={<Checkbox
+                                            onChange={e => setActiveStep({
+                                                ...activeStep,
+                                                showHelperTexts: e.target.checked
+                                            })}
+                                        />}
+                                        checked={activeStep.showHelperTexts}
+                                        label="show helper texts"
+                                    />
+                                </FormGroup>
+                            </StepContent>
+                        </Step>
+                        <Step key={'rasterconf'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    raster settings
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                <RasterConfigComponent {...{
+                                    ...rasterConfig,
+                                    ...activeStep
+                                }} />
+                            </StepContent>
+                        </Step>
+                        <Step key={'pickpng'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    raster data
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                <RasterDataComponent {...{
+                                    ...rasterData,
+                                    ...rasterConfig,
+                                    ...activeStep
+                                }} />
+                            </StepContent>
+                        </Step>
+                        <Step key={'hachureconf'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    hachure config
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                <HachureConfigComponent {...{
+                                    ...hachureConfig,
+                                    ...activeStep
+                                }} />
+                            </StepContent>
+                        </Step>
+                        <Step key={'hachureprocess'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    hachure processing
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                <HachureProcessComponent {...{
+                                    ...hachureProcess,
+                                    ...activeStep
+                                }} />
+                            </StepContent>
+                        </Step>
+                    </Stepper>
+                </Box>
+
+                <div
+                    style={{
+                        display: 'grid'
+                    }}
+                >
+                    <canvas
+                        ref={canvasRef}
+                        style={{
+                            opacity: 1.0,
+                            margin: `${(imageMargin - 0.5) * 2}px`,
+                            gridColumn: 1,
+                            gridRow: 1
+                        }}
+                    >
+                    </canvas>
+                    <svg
+                        ref={svgRef}
+                        style={{
+                            backgroundColor: 'rgba(0,0,0,0.0)',
+                            gridColumn: 1,
+                            gridRow: 1
+                        }}
+                    >
+                        {
+                            areRasterDataPropsValid(rasterData) && areRasterConfigPropsValid(rasterConfig) ? <CropComponent {...{
+                                ...rasterConfig,
+                                minPosition3857: rasterConfig.origin3857,
+                                maxPosition3857: [
+                                    rasterConfig.origin3857[0] + (rasterData.width - 1) * rasterConfig.cellsize,
+                                    rasterConfig.origin3857[1] - (rasterData.height - 1) * rasterConfig.cellsize,
+                                ]
+                            }}></CropComponent> : null
+                        }
+                        {
+                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
+                        }
+                        {
+                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
+                        }
+                    </svg>
+                </div>
+
+            </Stack>
+
+        </>
     );
 }
 

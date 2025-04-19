@@ -5,15 +5,25 @@ import tseslint from "typescript-eslint";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
-  { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
+  {
+    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"]
+  },
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    }
+  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   {
     rules: {
+      semi: "warn",
       "react/react-in-jsx-scope": "off",
-      "react/jsx-uses-react": "off"
-    }
-  }
+      "react/jsx-uses-react": "off",
+    },
+  },
 ];

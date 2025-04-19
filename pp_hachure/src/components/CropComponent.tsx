@@ -24,7 +24,7 @@ function CropComponent(props: ICropProps & IRasterConfigProps) {
 
     useEffect(() => {
 
-        // console.log('⚙ updating ContentComponent (content)', content);
+        // console.debug('⚙ updating ContentComponent (content)', content);
 
         if (minPosition3857 && maxPosition3857) {
             setMinPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(minPosition3857), props));
@@ -35,7 +35,7 @@ function CropComponent(props: ICropProps & IRasterConfigProps) {
 
     useEffect(() => {
 
-        // console.log('⚙ updating ContentComponent (content)', content);
+        // console.debug('⚙ updating ContentComponent (content)', content);
 
         if (minPositionPixl && maxPositionPixl) {
             setCropMarkData(`M${minPositionPixl[0] - 20} ${minPositionPixl[1]}L${minPositionPixl[0]} ${minPositionPixl[1]}L${minPositionPixl[0]} ${minPositionPixl[1] - 20}M${maxPositionPixl[0] + 20} ${maxPositionPixl[1]}L${maxPositionPixl[0]} ${maxPositionPixl[1]}L${maxPositionPixl[0]} ${maxPositionPixl[1] + 20}`);

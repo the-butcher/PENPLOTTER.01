@@ -28,7 +28,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
 
     useEffect(() => {
 
-        console.log('⚙ updating RasterConfigComponent (cellsize, valueRange, origin3857)', cellsize, valueRange, origin3857);
+        console.debug('⚙ updating RasterConfigComponent (cellsize, valueRange, origin3857)', cellsize, valueRange, origin3857);
         if (cellsize) {
             setCellsizeInt(cellsize);
         }
@@ -43,7 +43,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
 
     useEffect(() => {
 
-        console.log('⚙ updating RasterConfigComponent (cellsizeInt, valueRangeInt, origin3857Int)', cellsizeInt, valueRangeInt, origin3857Int);
+        console.debug('⚙ updating RasterConfigComponent (cellsizeInt, valueRangeInt, origin3857Int)', cellsizeInt, valueRangeInt, origin3857Int);
         window.clearTimeout(handleRasterConfigToRef.current);
         handleRasterConfigToRef.current = window.setTimeout(() => {
             handleRasterConfig({
