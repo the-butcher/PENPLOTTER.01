@@ -2,8 +2,9 @@ import { IPositionProperties } from "./IPositionProperties";
 
 /**
  * description of a vertex along a hachure line
- * @since 02.04.2025
+ *
  * @author h.fleischer
+ * @since 02.04.2025
  */
 export interface IHachureVertex extends IPositionProperties {
     /**

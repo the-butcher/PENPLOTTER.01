@@ -34,23 +34,8 @@ export class ThemeUtil {
                         }
                     }
                 },
-                // MuiAlert: {
-                //     styleOverrides: {
-                //         root: {
-                //             height: '37px',
-                //             padding: '1px 12px',
-                //             boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.2),0px 4px 5px 0px rgba(0,0,0,0.14),0px 1px 10px 0px rgba(0,0,0,0.12)'
-                //         },
-                //         message: {
-                //             overflow: 'hidden',
-                //         }
-                //     }
-                // }
             }
-
-            // .css-1w301fc-MuiFormLabel-root-MuiInputLabel-root
         });
     }
-
 
 }

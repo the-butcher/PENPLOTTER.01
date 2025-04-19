@@ -6,6 +6,15 @@ import { GeometryUtil } from "../util/GeometryUtil";
 import { ICropProps } from "./ICropProps";
 import { IRasterConfigProps } from "./IRasterConfigProps";
 
+/**
+ * this component adds crop marks and basic extent information to the preview svg
+ *
+ * @param props
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function CropComponent(props: ICropProps & IRasterConfigProps) {
 
     const { minPosition3857, maxPosition3857 } = { ...props };

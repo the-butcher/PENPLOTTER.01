@@ -10,8 +10,17 @@ import { IRasterConfigProps } from "./IRasterConfigProps";
 
 export const areRasterConfigPropsValid = (props: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
     return props.cellsize > 0 && props.valueRange.min > 0 && props.valueRange.max > props.valueRange.min;
-}
+};
 
+/**
+ * this component shows input fields for raster configuration and offers the possibility to upload an existing config file
+ *
+ * @param props
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
 
     const { cellsize, valueRange, origin3857, handleRasterConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
@@ -106,17 +115,17 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                         setOrigin3857Int([
                             parseFloat(lines[4]),
                             parseFloat(lines[5])
-                        ])
+                        ]);
                     }
                 }
 
             });
         }
-    }
+    };
 
     const areAllValuesValid = () => {
         return cellsize > 0 && valueRange.min > 0 && valueRange.max > valueRange.min;
-    }
+    };
 
     return (
         <Grid container spacing={2}
@@ -280,13 +289,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                     >
                         <Divider />
                     </Grid>
-                    <Grid item xs={6}
-                        sx={{
-                            paddingTop: '8px !important'
-                        }}
-                    >
-                    </Grid>
-                    <Grid item xs={6}
+                    <Grid item xs={12}
                         sx={{
                             paddingTop: '8px !important'
                         }}

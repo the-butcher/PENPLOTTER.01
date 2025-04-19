@@ -1,4 +1,4 @@
-import { Alert, AlertTitle, Box, Checkbox, FormControlLabel, FormGroup, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Checkbox, FormControlLabel, FormGroup, FormHelperText, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -26,6 +26,14 @@ export const STEP_INDEX_RASTER_____DATA = 2;
 export const STEP_INDEX_HACHURE__CONFIG = 3;
 export const STEP_INDEX_HACHURE_PROCESS = 4;
 
+/**
+ * central component of the app. all dependencies and flow is taken care of here
+ *
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function ImageLoaderComponent() {
 
     const canvasRef = createRef<HTMLCanvasElement>();
@@ -39,7 +47,7 @@ function ImageLoaderComponent() {
     const contoursRef = useRef<IContour[]>([]);
 
     const [active, setActive] = useState<boolean>(false);
-    const [showRaster, setShowRaster] = useState<boolean>(false);
+    const [showRaster, setShowRaster] = useState<boolean>(true);
 
     const setContourToRef = useRef<number>(-1);
 
@@ -276,6 +284,8 @@ function ImageLoaderComponent() {
             svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
             svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
 
+            renderRasterData(rasterData);
+
         } else { // raster data is invalid
 
             setActive(false);
@@ -297,6 +307,7 @@ function ImageLoaderComponent() {
         if (hachureConfig.propsCheck) {
 
             setActive(false);
+            setShowRaster(false);
             setTimeout(() => {
                 setActive(true);
             }, 100);
@@ -449,32 +460,32 @@ function ImageLoaderComponent() {
 
     }, [contours]);
 
-    const renderRasterDataHeight = () => {
+    const renderRasterData = (_rasterData: IRasterDataProps) => {
 
         const canvasElement = canvasRef.current;
-        if (canvasElement && rasterData) {
+        if (canvasElement) {
 
-            canvasElement.style.width = `${rasterData.width * 2}px`;
-            canvasElement.width = rasterData.width;
-            canvasElement.height = rasterData.height;
+            canvasElement.style.width = `${_rasterData.width * 2}px`;
+            canvasElement.width = _rasterData.width;
+            canvasElement.height = _rasterData.height;
 
             const ctx = canvasElement.getContext("2d")!;
             ctx.fillStyle = '#eeeeee';
-            ctx.fillRect(0, 0, rasterData.width, rasterData.height);
+            ctx.fillRect(0, 0, _rasterData.width, _rasterData.height);
 
-            const imageData = ctx.getImageData(0, 0, rasterData.width, rasterData.height);
+            const imageData = ctx.getImageData(0, 0, _rasterData.width, _rasterData.height);
             let pixelIndex: number;
             let valV: number;
-            for (let y = 0; y < rasterData.height; y++) {
-                for (let x = 0; x < rasterData.width; x++) {
+            for (let y = 0; y < _rasterData.height; y++) {
+                for (let x = 0; x < _rasterData.width; x++) {
 
-                    pixelIndex = (y * rasterData.width + x);
-                    valV = ObjectUtil.mapValues(rasterData.data[pixelIndex], {
+                    pixelIndex = (y * _rasterData.width + x);
+                    valV = ObjectUtil.mapValues(_rasterData.data[pixelIndex], {
                         min: rasterConfig.valueRange.min,
                         max: rasterConfig.valueRange.max
                     }, {
                         min: 0,
-                        max: 255
+                        max: 128
                     });
 
                     imageData.data[pixelIndex * 4 + 0] = valV;
@@ -543,6 +554,7 @@ function ImageLoaderComponent() {
                                         control={<Checkbox
                                             onChange={e => setShowRaster(e.target.checked)}
                                         />}
+                                        disabled={!areRasterDataPropsValid(rasterData)}
                                         checked={showRaster}
                                         label="show raster"
                                     />
@@ -571,6 +583,9 @@ function ImageLoaderComponent() {
                                 </Typography>
                             </StepLabel>
                             <StepContent>
+                                {
+                                    activeStep.showHelperTexts ? <FormHelperText>raster settings describe the position of the raster, its scale through cellsize and its minimum and maximum elevation. values can either be entered manually or by importing a configuration file or partially by importing a world file. the raster itself is loaded in the next step.</FormHelperText> : null
+                                }
                                 <RasterConfigComponent {...{
                                     ...rasterConfig,
                                     ...activeStep
@@ -589,6 +604,9 @@ function ImageLoaderComponent() {
                                 </Typography>
                             </StepLabel>
                             <StepContent>
+                                {
+                                    activeStep.showHelperTexts ? <FormHelperText>raster data can be imported in this step. the raster must be in 16_BIT_UNSIGNED format. there is an example <a href="example_arcpy.py" target="_blank">example_arcpy.py</a> script that can be used in ArcGIS Pro to export rasters in that format from a DEM layer. the raster data must be present in the Web Mercator projection (EPSG:3857).</FormHelperText> : null
+                                }
                                 <RasterDataComponent {...{
                                     ...rasterData,
                                     ...rasterConfig,
@@ -604,10 +622,13 @@ function ImageLoaderComponent() {
                         >
                             <StepLabel>
                                 <Typography>
-                                    hachure config
+                                    hachure sttings
                                 </Typography>
                             </StepLabel>
                             <StepContent>
+                                {
+                                    activeStep.showHelperTexts ? <FormHelperText>the hachure settings offer possibilities to alter adapt output. raster processing will start after proceeding to the next step.</FormHelperText> : null
+                                }
                                 <HachureConfigComponent {...{
                                     ...hachureConfig,
                                     ...activeStep
@@ -626,6 +647,9 @@ function ImageLoaderComponent() {
                                 </Typography>
                             </StepLabel>
                             <StepContent>
+                                {
+                                    activeStep.showHelperTexts ? <FormHelperText>this step offers information about progress and the option to export hachures and contours in geojson format.</FormHelperText> : null
+                                }
                                 <HachureProcessComponent {...{
                                     ...hachureProcess,
                                     ...activeStep
@@ -643,7 +667,7 @@ function ImageLoaderComponent() {
                     <canvas
                         ref={canvasRef}
                         style={{
-                            opacity: 1.0,
+                            opacity: showRaster ? 1.0 : 0.0,
                             margin: `${(imageMargin - 0.5) * 2}px`,
                             gridColumn: 1,
                             gridRow: 1
@@ -669,10 +693,10 @@ function ImageLoaderComponent() {
                             }}></CropComponent> : null
                         }
                         {
-                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
+                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.33} />)
                         }
                         {
-                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
+                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.25} />)
                         }
                     </svg>
                 </div>

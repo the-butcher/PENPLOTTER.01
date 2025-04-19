@@ -7,8 +7,16 @@ import { IActiveStepProps } from './IActiveStepProps';
 import { IHachureProcessProps } from "./IHachureProcessProps";
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageLoaderComponent';
 
+/**
+ * this component offerst status of the hachure processing and buttons to download hachures and config as geojson
+ *
+ * @param props
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps) {
-
 
     const { value, valueRange, handleHachureExport, handleContourExport, activeStep, handleActiveStep } = { ...props };
 
@@ -100,7 +108,7 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                         <Divider></Divider>
                     </Grid>
 
-                    <Grid item xs={6}
+                    <Grid item xs={12}
                         sx={{
                             paddingTop: '8px !important'
                         }}
@@ -118,12 +126,6 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                         >
                             back
                         </Button>
-                    </Grid>
-                    <Grid item xs={6}
-                        sx={{
-                            paddingTop: '8px !important'
-                        }}
-                    >
                     </Grid>
                 </> : null
             }

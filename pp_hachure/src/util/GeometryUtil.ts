@@ -9,26 +9,20 @@ import { IPositionWithLength } from "./IPositionWithLength";
 export class GeometryUtil {
 
     static position4326ToPixel = (position4326: Position, rasterConfig: IRasterConfigProps): Position => {
-        if (!rasterConfig) {
-            debugger;
-        }
         const position3857 = turf.toMercator(position4326);
         return [
             (position3857[0] - rasterConfig.origin3857[0]) / rasterConfig.cellsize,
             (rasterConfig.origin3857[1] - position3857[1]) / rasterConfig.cellsize
         ];
-    }
+    };
 
     static pixelToPosition4326 = (pixel: Position, rasterConfig: IRasterConfigProps): Position => {
-        if (!rasterConfig) {
-            debugger;
-        }
         const position3857 = [
             pixel[0] * rasterConfig.cellsize + rasterConfig.origin3857[0],
             rasterConfig.origin3857[1] - pixel[1] * rasterConfig.cellsize
         ];
         return turf.toWgs84(position3857);
-    }
+    };
 
     static booleanWithinBbox(bbox: BBox, point: Position) {
         return (point[0] >= bbox[0] && point[0] <= bbox[2] && point[1] >= bbox[1] && point[1] <= bbox[3]);
@@ -77,7 +71,7 @@ export class GeometryUtil {
 
                 curDistance = turf.distance(position0L, positionI0, {
                     units: 'meters'
-                })
+                });
                 if (curDistance < minDistance) {
 
                     minDistance = curDistance;
@@ -212,14 +206,14 @@ export class GeometryUtil {
             return {
                 x: c[0],
                 y: c[1]
-            }
+            };
         });
         coordinatesXY = simplify(coordinatesXY, 0.10, true);
         coordinates3857A = coordinatesXY.map(c => {
             return [
                 c.x,
                 c.y
-            ]
+            ];
         });
 
         const positionsB: IPositionProperties[] = [];

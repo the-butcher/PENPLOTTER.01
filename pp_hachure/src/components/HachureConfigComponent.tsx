@@ -7,6 +7,15 @@ import { IActiveStepProps } from './IActiveStepProps';
 import { IHachureConfigProps } from './IHachureConfigProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS, STEP_INDEX_RASTER_____DATA } from './ImageLoaderComponent';
 
+/**
+ * this component offerst inputs for the hachure configuration
+ *
+ * @param props
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
     const { minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg, propsCheck, handleHachureConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
@@ -28,9 +37,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
     }, []);
 
     // useEffect(() => {
-
     //     console.debug('⚙ updating HachureConfigComponent (minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg)', minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, azimuthDeg, contourDsp);
-
     // }, [minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg]);
 
     useEffect(() => {

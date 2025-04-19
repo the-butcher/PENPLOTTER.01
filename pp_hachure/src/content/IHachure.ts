@@ -4,8 +4,8 @@ import { IHachureVertex } from "./IHachureVertex";
 /**
  * definition for a single hachure line that can grow upwards across {@link IContour} lines
  *
- * @since 06.04.2025
  * @author h.fleischer
+ * @since 06.04.2025
  */
 export interface IHachure extends IContent {
 

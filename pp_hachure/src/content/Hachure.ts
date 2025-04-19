@@ -8,28 +8,13 @@ import { IHachure } from "./IHachure";
 import { IHachureVertex } from "./IHachureVertex";
 import { IPositionProperties } from "./IPositionProperties";
 
+/**
+ * container for a single hachure line
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 export class Hachure implements IHachure {
-
-    // static readonly CONFIG: IHachureConfig = {
-    //     minSpacing: 6,
-    //     maxSpacing: 8,
-    //     blurFactor: 0.10,
-    //     contourOff: 0.5, // vertical difference of contours
-    //     contourDiv: 2, // the subdivisions along a contour
-    //     hachureRay: (0.5 / Math.tan(2.5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
-    //     contourDsp: 50
-    // }
-
-    // static readonly CONFIG: IHachureConfig = {
-    //     minSpacing: 6,
-    //     maxSpacing: 8,
-    //     blurFactor: 1,
-    //     contourOff: 2.5, // vertical difference of contours
-    //     contourDiv: 5, // the subdivisions along a contour
-    //     hachureRay: (2.5 / Math.tan(5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
-    //     contourDsp: 50
-    // }
-
 
     id: string;
     svgData: string;
@@ -119,10 +104,10 @@ export class Hachure implements IHachure {
         const polyline: LineString = {
             type: 'LineString',
             coordinates: this.vertices.map(c => c.position4326)
-        }
+        };
         const length = turf.length(turf.feature(polyline), {
             units: 'meters'
-        })
+        });
         if (vertex.height >= this.maxHeight || length >= this.maxLength) {
             this.complete = true;
         }

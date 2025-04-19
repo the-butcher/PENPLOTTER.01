@@ -3,8 +3,8 @@ import { BBox, LineString } from "geojson";
 /**
  * definition of a type that can be used to split a larger geometry into smaller subparts that together form the original geometry
  *
- * @since 06.04.2025
  * @author h.fleischer
+ * @since 06.04.2025
  */
 export interface ISubGeometry {
     /**

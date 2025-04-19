@@ -1,5 +1,11 @@
 import { LineString } from "geojson";
 
+/**
+ * base type for IContour and IHachure
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 export interface IContent {
 
     id: string;
@@ -7,12 +13,6 @@ export interface IContent {
     svgData: string;
 
     complete: boolean;
-
-    // /**
-    //  * get this contour ready to populate the "d" attribute of a {@link SVGPathElement}
-    //  * @returns
-    //  */
-    // getSvgData: () => string;
 
     /**
      * get this contour as a geojson {@link LineString} holding WGS84 (epsg:4326) coordinates

@@ -15,6 +15,15 @@ export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRas
     return props.name !== '' && props.width > 0 && props.height > 0 && props.data.length > 0 && props.valueRange.min > 0 && props.valueRange.max > props.valueRange.min;
 };
 
+/**
+ * this component renders raster properties and offers the possibility to upload a raster file
+ *
+ * @param props
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IActiveStepProps) {
 
     const { name, data, width, height, valueRange, handleRasterData, cellsize, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };

@@ -1,9 +1,27 @@
 import { useEffect, useState } from "react";
-import { IContentProps } from "./IContentProps";
+import { IContentProps, TContentBackground } from "./IContentProps";
 
+const COLORS_INCOMPLETE: { [K in TContentBackground]: string } = {
+    dark: 'rgb(255, 217, 0)',
+    light: 'rgba(221, 8, 8, 0.9)'
+};
+const COLORS_COMPLETE: { [K in TContentBackground]: string } = {
+    dark: 'rgba(255, 255, 255, 0.9)',
+    light: 'rgba(83, 83, 83, 0.9)'
+};
+
+/**
+ * this component renders a single svg path for either an IContour or an IHachure
+ *
+ * @param props
+ * @returns
+ *
+ * @author h.fleischer
+ * @since 19.04.2025
+ */
 function ContentComponent(props: IContentProps) {
 
-    const { svgData, strokeWidth, complete } = { ...props };
+    const { svgData, strokeWidth, complete, background } = { ...props };
 
     const [data, setData] = useState<string>('');
 
@@ -21,7 +39,7 @@ function ContentComponent(props: IContentProps) {
     return (
         <path
             style={{
-                stroke: complete ? `rgba(100, 100, 100, 0.75)` : `rgba(255, 100, 100, 0.75)`,
+                stroke: complete ? COLORS_COMPLETE[background] : COLORS_INCOMPLETE[background],
                 strokeWidth: complete ? strokeWidth : strokeWidth,
                 fill: 'none',
                 strokeLinecap: 'round',
