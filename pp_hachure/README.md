@@ -2,9 +2,7 @@
 
 ## This repository provides an algorithm to generate hachure lines over a portion of a DEM elevation raster
 
-The application runs as a web-application in a browser. Currently no measures have been taken to put code into i.e. web-workers,
-therefore user experience is suboptimal at this time. It would be a big improvement and should be fairly easy to implement to
-run each contour increment in a web-worker, as such keeping the application responsive and also clarifying the code.
+The code in this repository runs as a web-application in a browser.
 
 ### example output
 
@@ -37,8 +35,8 @@ To achieve this contours are split into segments of equal length initially. At e
 
 ### DEM raster format
 
-Due to the inability of browsers to load images in formats other than 32 bit RGB i decided to go with a 16 bit unsigned int format for the DEM rasters.
-The lower 8 bits are written to the blue channel, the higher 8 bits are written to the green channel. The resulting images are hard to read, but after loading the
-image its full 16 bits are restored.
+The app expects 16-bit unsigned-int png raster files. Due to the app running in the browser there are limits regarding file size and extent covered by the map.
 
-![alt text](public/png_10_10_height_scaled_pynb_r8g8_duernstein.png)
+Example raser:
+
+![example raster](public/example.png)
