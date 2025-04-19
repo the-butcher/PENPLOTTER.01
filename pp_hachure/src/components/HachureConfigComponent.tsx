@@ -35,7 +35,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
     useEffect(() => {
 
-        console.log('⚙ updating HachureConfigComponent (minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt)', minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt);
+        console.debug('⚙ updating HachureConfigComponent (minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt)', minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt);
         window.clearTimeout(handleHachureConfigToRef.current);
         handleHachureConfigToRef.current = window.setTimeout(() => {
             handleHachureConfig({

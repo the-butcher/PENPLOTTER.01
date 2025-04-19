@@ -307,7 +307,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (active)', active);
+        console.debug('⚙ updating ImageLoaderComponent (active)', active);
 
         if (active) {
 

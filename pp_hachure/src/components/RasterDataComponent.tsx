@@ -24,7 +24,7 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
     }, []);
 
     // useEffect(() => {
-    //     console.log('⚙ updating RasterDataComponent (name, data)', name, data);
+    //     console.debug('⚙ updating RasterDataComponent (name, data)', name, data);
     // }, [data]);
 
     const handleRasterFileUpload = (fileList: FileList) => {
@@ -36,7 +36,6 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                 const decodedPng = decode(arrayBuffer);
 
                 const maxMeters = 10000;
-                console.log(decodedPng.width * cellsize, decodedPng.height * cellsize > maxMeters)
                 if (decodedPng.width * cellsize > maxMeters || decodedPng.height * cellsize > maxMeters) {
                     handleAlertProps({
                         severity: 'error',

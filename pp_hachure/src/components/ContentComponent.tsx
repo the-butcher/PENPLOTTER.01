@@ -12,7 +12,7 @@ function ContentComponent(props: IContentProps) {
     }, []);
 
     useEffect(() => {
-        // console.log('⚙ updating ContentComponent (content)', content);
+        // console.debug('⚙ updating ContentComponent (content)', content);
         if (svgData) {
             setData(svgData);
         }

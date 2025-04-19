@@ -359,11 +359,9 @@ export class Contour implements IContour {
                         height: this.height,
                         slope
                     });
-                    // console.log('hachure after adding', hachure);
 
                 } else {
                     // should actually not happen
-                    // console.log('no intersection');
                 }
 
             }
@@ -386,7 +384,6 @@ export class Contour implements IContour {
             ]
         };
         const rayBbox = turf.bbox(rayGeom);
-        // console.log('rayBbox', rayBbox);
 
         for (let i = 0; i < this.subGeometries.length; i++) {
 
@@ -397,10 +394,6 @@ export class Contour implements IContour {
 
                 const intersections = turf.lineIntersect(subGeometry.geometry, rayGeom);
                 if (intersections.features.length > 0) {
-
-                    // if (!GeometryUtil.booleanBboxOverlap(rayBbox, subGeometry.bbox)) {
-                    //     console.log(rayBbox, subGeometry.bbox);
-                    // }
 
                     // find the intersection nearest to the hachure's last vertex
                     let minIntersectionIndex = -1;
