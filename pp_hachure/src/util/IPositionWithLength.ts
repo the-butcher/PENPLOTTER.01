@@ -1,6 +1,6 @@
 import { Position } from "geojson";
 
-export interface IPositionAtLength {
+export interface IPositionWithLength {
     position: Position;
     length: number;
 }

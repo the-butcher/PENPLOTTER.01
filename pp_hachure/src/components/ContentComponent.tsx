@@ -1,31 +1,21 @@
 import { useEffect, useState } from "react";
+import { IContentProps } from "./IContentProps";
 
-export interface IContentComponentProps {
-    svgData: string;
-    strokeWidth: number;
-    complete: boolean;
-}
-
-function ContentComponent(props: IContentComponentProps) {
+function ContentComponent(props: IContentProps) {
 
     const { svgData, strokeWidth, complete } = { ...props };
 
     const [data, setData] = useState<string>('');
 
     useEffect(() => {
-
         console.debug('✨ building ContentComponent');
-
     }, []);
 
     useEffect(() => {
-
         // console.log('⚙ updating ContentComponent (content)', content);
-
         if (svgData) {
             setData(svgData);
         }
-
     }, [svgData]);
 
     return (

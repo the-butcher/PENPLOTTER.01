@@ -1,103 +1,161 @@
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { Button, Slider, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
-import { Mark } from '@mui/material/Slider/useSlider.types';
+import { Box, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
-import * as d3Array from 'd3-array';
-import * as d3Contour from 'd3-contour';
 import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
-import { Contour } from '../contour/Contour';
-import { Hachure } from '../contour/Hachure';
-import { IContour } from '../contour/IContour';
-import { IContourProperties } from '../contour/IContourProperties';
-import { IHachure } from '../contour/IHachure';
-import { IRasterData } from '../raster/IRasterData';
-import { Png16Loader } from '../raster/Png16Loader';
+import { Contour } from '../content/Contour';
+import { IContour } from '../content/IContour';
+import { IHachure } from '../content/IHachure';
 import { Raster } from '../raster/Raster';
-import { GeometryUtil } from '../util/GeometryUtil';
 import { ObjectUtil } from '../util/ObjectUtil';
 import ContentComponent from './ContentComponent';
 import CropComponent from './CropComponent';
+import HachureConfigComponent from './HachureConfigComponent';
+import HachureProcessComponent from './HachureProcessComponent';
+import { IActiveStepProps } from './IActiveStepProps';
+import { IHachureConfigProps } from './IHachureConfigProps';
+import { IHachureProcessProps } from './IHachureProcessProps';
+import { IRasterConfigProps } from './IRasterConfigProps';
+import { IRasterDataProps } from './IRasterDataProps';
+import RasterConfigComponent, { areRasterConfigPropsValid } from './RasterConfigComponent';
+import RasterDataComponent, { areRasterDataPropsValid } from './RasterDataComponent';
+
+export const STEP_INDEX_RASTER___CONFIG = 0;
+export const STEP_INDEX_RASTER_____DATA = 1;
+export const STEP_INDEX_HACHURE__CONFIG = 2;
+export const STEP_INDEX_HACHURE_PROCESS = 3;
 
 function ImageLoaderComponent() {
 
     const canvasRef = createRef<HTMLCanvasElement>();
     const svgRef = createRef<SVGSVGElement>();
 
-    const [rasterDataHeight, setRasterDataHeight] = useState<IRasterData>();
     const [hachures, setHachures] = useState<IHachure[]>([]);
+    const hachuresProgressRef = useRef<IHachure[]>([]);
+    const hachuresCompleteRef = useRef<IHachure[]>([]);
+
     const [contours, setContours] = useState<IContour[]>([]);
+    const contoursRef = useRef<IContour[]>([]);
 
     const [minHeight, setMinHeight] = useState<number>(0);
     const [maxHeight, setMaxHeight] = useState<number>(0);
 
-    const hachuresProgressRef = useRef<IHachure[]>([]);
-    const hachuresCompleteRef = useRef<IHachure[]>([]);
+    const handleRasterConfig = (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
+        console.log(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
+        setRasterConfig({
+            ...rasterConfigUpdates,
+            handleRasterConfig
+        });
+        setRasterData({
+            ...rasterData,
+            valueRange: rasterConfigUpdates.valueRange
+        });
+    }
+
+    const handleRasterData = (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
+        console.log(`📞 handling raster data (rasterDataUpdates)`, rasterDataUpdates);
+        setRasterData({
+            ...rasterDataUpdates,
+            handleRasterData
+        });
+    }
+
+    const handleHachureConfig = (hachureConfigUpdates: Omit<IHachureConfigProps, 'handleHachureConfig'>) => {
+        console.log(`📞 handling hachure config (hachureConfigUpdates)`, hachureConfigUpdates);
+        setHachureConfig({
+            ...hachureConfigUpdates,
+            handleHachureConfig
+        });
+    }
+
+    const handleHachureExport = () => {
+        console.log('handleHachureExport', hachures);
+        const _hachures = [
+            ...hachuresProgressRef.current,
+            ...hachuresCompleteRef.current
+        ]
+        handleGeoJsonExport(_hachures.map(h => turf.feature(h.toLineString())), 'hachures');
+    }
+
+    const handleContourExport = () => {
+        handleGeoJsonExport(contoursRef.current.filter(c => c.getHeight() % hachureConfig.contourDsp === 0).map(c => turf.feature(c.toLineString(), {
+            label: c.getHeight().toFixed(0)
+        })), 'contours');
+    }
+
+    const handleGeoJsonExport = (features: Feature<LineString, GeoJsonProperties>[], prefix: string) => {
+        const featureCollection = turf.featureCollection(features);
+        const a = document.createElement("a");
+        const e = new MouseEvent("click");
+        a.download = `${prefix}_${ObjectUtil.createId()}.geojson`;
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(featureCollection, (_key, val) => {
+            return val.toFixed ? Number(val.toFixed(7)) : val;
+        }));
+        a.dispatchEvent(e);
+    }
+
+    const handleActiveStep = (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep'>) => {
+        console.log(`📞 handling active step (activeStepUpdates)`, activeStepUpdates);
+        setActiveStep({
+            ...activeStepUpdates,
+            handleActiveStep
+        });
+    }
+
+    const [activeStep, setActiveStep] = useState<IActiveStepProps>({
+        activeStep: STEP_INDEX_RASTER___CONFIG,
+        handleActiveStep
+    });
+    const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
+        cellsize: -1,
+        valueRange: {
+            min: -1,
+            max: -1
+        },
+        origin3857: [
+            0,
+            0
+        ],
+        handleRasterConfig
+    });
+    const [rasterData, setRasterData] = useState<IRasterDataProps>({
+        name: '',
+        width: -1,
+        height: -1,
+        valueRange: {
+            min: -1,
+            max: -1
+        },
+        data: new Float32Array(),
+        handleRasterData
+    });
+    const [hachureConfig, setHachureConfig] = useState<IHachureConfigProps>({
+        minSpacing: 6,
+        maxSpacing: 8,
+        blurFactor: 0.10,
+        contourOff: 0.5, // vertical difference of contours
+        contourDiv: 2, // the subdivisions along a contour
+        hachureDeg: 2.5,
+        // hachureRay: (0.5 / Math.tan(2.5 * Raster.DEG2RAD)) / rasterConfig.cellsize, // larger value -> flatter surfaces get hachures
+        contourDsp: 50,
+        propsCheck: false,
+        handleHachureConfig
+    });
+    const [hachureProcess, setHachureProcess] = useState<IHachureProcessProps>({
+        value: -1,
+        valueRange: {
+            min: -1,
+            max: -1
+        },
+        handleHachureExport,
+        handleContourExport
+    })
+
+
 
     const imageMargin = 50;
 
-    const getContourFeatures = (rasterData: IRasterData, thresholds: number[]): Feature<LineString, IContourProperties>[] => {
-
-        const contourMultiPolygons: d3Contour.ContourMultiPolygon[] = d3Contour.contours().size([rasterData.width, rasterData.height]).thresholds(thresholds)(Array.from(rasterData.data));
-
-        const contourFeatures: Feature<LineString, IContourProperties>[] = [];
-        let contourFeature: Feature<LineString, IContourProperties> | undefined;
-        contourMultiPolygons.forEach(contourMultiPolygon => {
-            contourMultiPolygon.coordinates.forEach(contourPolygon => {
-                contourPolygon.forEach(contourRing => {
-                    contourRing.forEach(contourCoordinate => {
-                        if (contourCoordinate[0] < 1 || contourCoordinate[0] > rasterData.width - 1 || contourCoordinate[1] < 1 || contourCoordinate[1] > rasterData.height - 1) {
-                            contourFeature = undefined;
-                        } else {
-                            if (!contourFeature) {
-                                contourFeature = turf.feature({
-                                    type: 'LineString',
-                                    coordinates: []
-                                }, {
-                                    height: contourMultiPolygon.value
-
-                                });
-                                contourFeatures.push(contourFeature);
-                            }
-                            contourFeature.geometry.coordinates.push(GeometryUtil.pixelToPosition4326(contourCoordinate));
-                        }
-                    });
-                    contourFeature = undefined;
-                });
-                contourFeature = undefined;
-            });
-        });
-
-        return GeometryUtil.connectContours(contourFeatures, 1);
-
-    }
-
     useEffect(() => {
-
-        console.debug('✨ building ImageLoaderComponent');
-
-        const canvasElement = canvasRef.current;
-        const svgElement = svgRef.current;
-
-        if (canvasElement && svgElement) {
-
-            new Png16Loader().load(Raster.CONFIG.rasterName).then(imageDataRaw => {
-
-                const _imageDataHeight: IRasterData = {
-                    ...imageDataRaw,
-                    data: imageDataRaw.data.map(v => Raster.sampleToHeight(v))
-                }
-
-                console.log('_imageDataHeight', _imageDataHeight, Raster.getSampleRange(_imageDataHeight));
-
-                // initial blur of height raster to desired resolution
-                d3Array.blur2({ data: _imageDataHeight.data, width: _imageDataHeight.width }, Hachure.CONFIG.blurFactor);
-                setRasterDataHeight(_imageDataHeight);
-
-            });
-
-        }
-
+        console.log('✨ building ImageLoaderComponent');
     }, []);
 
     const rebuildHachureRefs = () => {
@@ -120,11 +178,11 @@ function ImageLoaderComponent() {
 
         // get initial contour
         const _contours: IContour[] = [];
-        const contourFeatures = getContourFeatures(rasterDataHeight!, [height]).filter(f => turf.length(f, {
+        const contourFeatures = Raster.getContourFeatures(rasterData, [height], rasterConfig).filter(f => turf.length(f, {
             units: 'meters'
-        }) > Hachure.CONFIG.contourDiv * 2); // skip very short contour lines
+        }) > hachureConfig.contourDiv * 2); // skip very short contour lines
         contourFeatures.forEach(contourFeature => {
-            _contours.push(new Contour(contourFeature, p => Raster.getRasterValue(rasterDataHeight!, p[0], p[1])));
+            _contours.push(new Contour(contourFeature, rasterConfig, hachureConfig, p => Raster.getRasterValue(rasterData, p[0], p[1])));
         });
         return _contours;
 
@@ -132,27 +190,42 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (rasterDataHeight)', rasterDataHeight);
+        console.log('⚙ updating ImageLoaderComponent (rasterConfig, rasterData, hachureConfig)', rasterConfig, rasterData, hachureConfig);
 
-        if (rasterDataHeight) {
+        const canvasElement = canvasRef.current;
+        const svgElement = svgRef.current;
+        if (canvasElement && svgElement && areRasterConfigPropsValid(rasterConfig)) {
 
-            // TODO :: as attributes on the element itself
-            const svgElement = svgRef.current!;
-            svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterDataHeight.width + imageMargin * 2}, ${rasterDataHeight.height + imageMargin * 2}`);
-            svgElement.style.width = `${(rasterDataHeight.width + imageMargin * 2) * 2}`;
-            svgElement.style.height = `${(rasterDataHeight.height + imageMargin * 2) * 2}`;
+            const _minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
+            const _maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
+            setHachureProcess({
+                ...hachureProcess,
+                value: _minHeight,
+                valueRange: {
+                    min: _minHeight,
+                    max: _maxHeight
+                }
+            });
 
-            const _minHeight = Raster.CONFIG.valueRangeRaster.min - Raster.CONFIG.valueRangeRaster.min % Hachure.CONFIG.contourOff + Hachure.CONFIG.contourOff;
-            const _maxHeight = Raster.CONFIG.valueRangeRaster.max - Raster.CONFIG.valueRangeRaster.max % Hachure.CONFIG.contourOff;
+            if (areRasterDataPropsValid(rasterData)) {
 
-            setMinHeight(_minHeight);
-            setMaxHeight(_maxHeight);
+                // TODO :: as attributes on the element itself
+                svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterData.width + imageMargin * 2}, ${rasterData.height + imageMargin * 2}`);
+                svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
+                svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
 
-            // renderRasterDataHeight();
+                if (hachureConfig.propsCheck) {
+
+                    setMinHeight(_minHeight);
+                    setMaxHeight(_maxHeight);
+
+                }
+
+            }
 
         }
 
-    }, [rasterDataHeight]);
+    }, [rasterConfig, rasterData, hachureConfig]);
 
     useEffect(() => {
 
@@ -167,12 +240,17 @@ function ImageLoaderComponent() {
             let minContours: IContour[] = [];
             while (minContours.length === 0) {
                 minContours = fetchContours(minContourHeight);
-                minContourHeight += Hachure.CONFIG.contourOff;
+                minContourHeight += hachureConfig.contourOff;
             }
-            // console.log('initial contours', _contours)
-            // TODO :: do this until contours are available (in edge cases the lowest contour may all be filtered due to insufficient length)
+
+            // set the initial contours
             setTimeout(() => {
-                setContours(minContours);
+                contoursRef.current = minContours;
+                setContours(contoursRef.current);
+                setHachureProcess({
+                    ...hachureProcess,
+                    value: minContourHeight
+                });
             }, 1)
 
         }
@@ -181,7 +259,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.debug('⚙ updating ImageLoaderComponent (contours)', contours.length);
+        console.debug('⚙ updating ImageLoaderComponent (contours.length)', contours.length);
 
         if (contours.length > 0) {
 
@@ -206,7 +284,7 @@ function ImageLoaderComponent() {
 
                 rebuildHachureRefs();
 
-                const nxtHeight = curHeight + Hachure.CONFIG.contourOff;
+                const nxtHeight = curHeight + hachureConfig.contourOff;
                 const nxtContours = fetchContours(nxtHeight);
                 // console.log('nxtHeight', nxtHeight, nxtContours.length);
 
@@ -224,15 +302,18 @@ function ImageLoaderComponent() {
 
                     rebuildHachureRefs();
                     setTimeout(() => {
-                        setContours(_contours);
+                        contoursRef.current = _contours;
+                        setContours(contoursRef.current);
+                        setHachureProcess({
+                            ...hachureProcess,
+                            value: nxtHeight
+                        });
                     }, 1);
 
                 } else { // done
 
                     _contours.forEach(c => c.complete = true);
 
-                    // hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 2)
-                    // hachuresCompleteRef.current = hachuresCompleteRef.current.filter(h => h.getVertexCount() > 2)
                     hachuresProgressRef.current.forEach(h => {
                         if (!h.complete) {
                             h.complete = true;
@@ -242,7 +323,12 @@ function ImageLoaderComponent() {
 
                     rebuildHachureRefs();
                     setTimeout(() => {
-                        setContours(_contours);
+                        contoursRef.current = _contours;
+                        setContours(contoursRef.current);
+                        setHachureProcess({
+                            ...hachureProcess,
+                            value: rasterData.valueRange.max
+                        });
                     }, 1);
 
                 }
@@ -258,39 +344,29 @@ function ImageLoaderComponent() {
 
     }, [contours]);
 
-    useEffect(() => {
-
-        console.debug('⚙ updating ImageLoaderComponent (hachures)', hachures.length);
-
-        if (hachures.length > 0) {
-            // nothing
-        }
-
-    }, [hachures]);
-
     const renderRasterDataHeight = () => {
 
-        if (rasterDataHeight) {
+        const canvasElement = canvasRef.current;
+        if (canvasElement && rasterData) {
 
-            const canvasElement = canvasRef.current!;
-            canvasElement.style.width = `${rasterDataHeight.width * 2}px`;
-            canvasElement.width = rasterDataHeight.width;
-            canvasElement.height = rasterDataHeight.height;
+            canvasElement.style.width = `${rasterData.width * 2}px`;
+            canvasElement.width = rasterData.width;
+            canvasElement.height = rasterData.height;
 
             const ctx = canvasElement.getContext("2d")!;
             ctx.fillStyle = '#eeeeee';
-            ctx.fillRect(0, 0, rasterDataHeight.width, rasterDataHeight.height);
+            ctx.fillRect(0, 0, rasterData.width, rasterData.height);
 
-            const imageData = ctx.getImageData(0, 0, rasterDataHeight.width, rasterDataHeight.height);
+            const imageData = ctx.getImageData(0, 0, rasterData.width, rasterData.height);
             let pixelIndex: number;
             let valV: number;
-            for (let y = 0; y < rasterDataHeight.height; y++) {
-                for (let x = 0; x < rasterDataHeight.width; x++) {
+            for (let y = 0; y < rasterData.height; y++) {
+                for (let x = 0; x < rasterData.width; x++) {
 
-                    pixelIndex = (y * rasterDataHeight.width + x);
-                    valV = ObjectUtil.mapValues(rasterDataHeight.data[pixelIndex], {
-                        min: Raster.CONFIG.valueRangeRaster.min,
-                        max: Raster.CONFIG.valueRangeRaster.max
+                    pixelIndex = (y * rasterData.width + x);
+                    valV = ObjectUtil.mapValues(rasterData.data[pixelIndex], {
+                        min: rasterConfig.valueRange.min,
+                        max: rasterConfig.valueRange.max
                     }, {
                         min: 0,
                         max: 255
@@ -308,187 +384,146 @@ function ImageLoaderComponent() {
 
     }
 
-    const exportHachuresGeoJson = () => {
-
-        exportGeoJson(hachures.map(h => turf.feature(h.toLineString())), 'hachures');
-
-    }
-
-    const exportContoursGeoJson = () => {
-
-        exportGeoJson(contours.filter(c => c.getHeight() % Hachure.CONFIG.contourDsp === 0).map(c => turf.feature(c.toLineString(), {
-            label: c.getHeight().toFixed(0)
-        })), 'contours');
-
-    }
-
-    const exportGeoJson = (features: Feature<LineString, GeoJsonProperties>[], prefix: string) => {
-
-        const featureCollection = turf.featureCollection(features);
-
-        const a = document.createElement("a");
-        const e = new MouseEvent("click");
-        a.download = `${prefix}_${ObjectUtil.createId()}.geojson`;
-        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(featureCollection, (_key, val) => {
-            return val.toFixed ? Number(val.toFixed(7)) : val;
-        }));
-        a.dispatchEvent(e);
-
-    }
-
-    const createMark = (value: number): Mark => {
-        return {
-            value: value,
-            label: `${value.toFixed(2)}m`
-        };
-    }
-
-    const getCurHeight = () => {
-        return contours.length > 0 ? contours[contours.length - 1].getHeight() : minHeight;
-    }
-
     return (
-        <Stack>
-            <Stack
-                direction={'row'}
-            >
-                <div>
-                    <Stepper activeStep={1} orientation="vertical"
-                        sx={{
-                            width: '250px'
-                        }}
-                    >
-                        <Step key={'pickpng'}
-                            active={true}
-                            sx={{
-                                width: 'inherit'
-                            }}
-                        >
-                            <StepLabel>
-                                <Typography>
-                                    content
-                                </Typography>
-                            </StepLabel>
-                            <StepContent>
-                                {
-                                    !rasterDataHeight?.name ? <div>raster picker</div> : `${rasterDataHeight?.name}`
-                                }
-                            </StepContent>
-                        </Step>
-                        <Step key={'rasterconf'}
-                            active={true}
-                            sx={{
-                                width: 'inherit'
-                            }}
-                        >
-                            <StepLabel>
-                                <Typography>
-                                    raster
-                                </Typography>
-                            </StepLabel>
-                            <StepContent>
-                                origin, cellsize, valrange
-                            </StepContent>
-                        </Step>
-                    </Stepper>
-                </div>
-                <div
-                    style={{
-                        display: 'grid'
+        <Stack
+            direction={'row'}
+        >
+            <Box sx={{
+                mb: 2,
+                // display: "flex",
+                // flexDirection: "column",
+                height: '100%',
+                overflow: "hidden",
+                overflowY: "scroll",
+            }}>
+                <Stepper activeStep={activeStep.activeStep} orientation="vertical"
+                    sx={{
+                        width: '250px'
                     }}
                 >
-                    <canvas
-                        ref={canvasRef}
-                        style={{
-                            // position: 'absolute',
-                            // left: '100px',
-                            // top: '100px',
-                            opacity: 1.0,
-                            // paddingBottom: '20px',
-                            margin: `${(imageMargin - 0.5) * 2}px`,
-                            gridColumn: 1,
-                            gridRow: 1
-                        }}
-                    >
-                    </canvas>
-                    <svg
-                        ref={svgRef}
-                        style={{
-                            // position: 'absolute',
-                            // left: '100px',
-                            // top: '100px',
-                            backgroundColor: 'rgba(0,0,0,0.0)',
-                            // paddingBottom: '50px',
-                            gridColumn: 1,
-                            gridRow: 1
-                        }}
-                    >
-                        {
-                            rasterDataHeight ? <CropComponent
-                                minPosition3857={Raster.CONFIG.rasterOrigin3857}
-                                maxPosition3857={[
-                                    Raster.CONFIG.rasterOrigin3857[0] + (rasterDataHeight.width - 1) * Raster.CONFIG.cellsize,
-                                    Raster.CONFIG.rasterOrigin3857[1] - (rasterDataHeight.height - 1) * Raster.CONFIG.cellsize,
-                                ]}></CropComponent> : null
-                        }
-                        {
-                            contours.filter(c => c.getHeight() % Hachure.CONFIG.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
-                        }
-                        {
-                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
-                        }
-                    </svg>
-                </div>
-                <div>
-                    <Slider
-
-                        orientation="vertical"
-                        // valueLabelDisplay="on"
-                        aria-label="height"
-                        value={getCurHeight()}
-                        min={minHeight}
-                        max={maxHeight}
-                        // valueLabelFormat={value => `${value.toFixed(2)}m`}
-                        marks={[
-                            createMark(minHeight),
-                            createMark(getCurHeight()),
-                            createMark(maxHeight),
-                        ]}
+                    <Step key={'rasterconf'}
+                        active={true}
                         sx={{
-                            height: '100%'
+                            width: 'inherit'
                         }}
-                    />
-                </div>
-            </Stack>
-            <Stack
-                direction={'row'}
+                    >
+                        <StepLabel>
+                            <Typography>
+                                raster settings
+                            </Typography>
+                        </StepLabel>
+                        <StepContent>
+                            <RasterConfigComponent {...{
+                                ...rasterConfig,
+                                ...activeStep
+                            }} />
+                        </StepContent>
+                    </Step>
+                    <Step key={'pickpng'}
+                        active={true}
+                        sx={{
+                            width: 'inherit'
+                        }}
+                    >
+                        <StepLabel>
+                            <Typography>
+                                raster data
+                            </Typography>
+                        </StepLabel>
+                        <StepContent>
+                            <RasterDataComponent {...{
+                                ...rasterData,
+                                ...activeStep
+                            }} />
+                        </StepContent>
+                    </Step>
+                    <Step key={'hachureconf'}
+                        active={true}
+                        sx={{
+                            width: 'inherit'
+                        }}
+                    >
+                        <StepLabel>
+                            <Typography>
+                                hachure config
+                            </Typography>
+                        </StepLabel>
+                        <StepContent>
+                            <HachureConfigComponent {...{
+                                ...hachureConfig,
+                                ...activeStep
+                            }} />
+                        </StepContent>
+                    </Step>
+                    <Step key={'hachureprocess'}
+                        active={true}
+                        sx={{
+                            width: 'inherit'
+                        }}
+                    >
+                        <StepLabel>
+                            <Typography>
+                                hachure processing
+                            </Typography>
+                        </StepLabel>
+                        <StepContent>
+                            <HachureProcessComponent {...{
+                                ...hachureProcess,
+                                ...activeStep
+                            }} />
+                        </StepContent>
+                    </Step>
+                </Stepper>
+            </Box>
+            <div
+                style={{
+                    display: 'grid'
+                }}
             >
-                <Button
-                    sx={{
-                        width: '200px',
-                        margin: '12px'
+                <canvas
+                    ref={canvasRef}
+                    style={{
+                        // position: 'absolute',
+                        // left: '100px',
+                        // top: '100px',
+                        opacity: 1.0,
+                        // paddingBottom: '20px',
+                        margin: `${(imageMargin - 0.5) * 2}px`,
+                        gridColumn: 1,
+                        gridRow: 1
                     }}
-                    component="label"
-                    role={undefined}
-                    variant="contained"
-                    tabIndex={-1}
-                    startIcon={<UploadFileIcon />}
-                    onClick={exportHachuresGeoJson}
-                >download hachures</Button>
-                <Button
-                    sx={{
-                        width: '200px',
-                        margin: '12px'
+                >
+                </canvas>
+                <svg
+                    ref={svgRef}
+                    style={{
+                        // position: 'absolute',
+                        // left: '100px',
+                        // top: '100px',
+                        backgroundColor: 'rgba(0,0,0,0.0)',
+                        // paddingBottom: '50px',
+                        gridColumn: 1,
+                        gridRow: 1
                     }}
-                    component="label"
-                    role={undefined}
-                    variant="contained"
-                    tabIndex={-1}
-                    startIcon={<UploadFileIcon />}
-                    onClick={exportContoursGeoJson}
-                >download contours</Button>
-            </Stack>
-
+                >
+                    {
+                        areRasterDataPropsValid(rasterData) && areRasterConfigPropsValid(rasterConfig) ? <CropComponent {...{
+                            ...rasterConfig,
+                            minPosition3857: rasterConfig.origin3857,
+                            maxPosition3857: [
+                                rasterConfig.origin3857[0] + (rasterData.width - 1) * rasterConfig.cellsize,
+                                rasterConfig.origin3857[1] - (rasterData.height - 1) * rasterConfig.cellsize,
+                            ]
+                        }}></CropComponent> : null
+                    }
+                    {
+                        contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} strokeWidth={0.33} />)
+                    }
+                    {
+                        hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} strokeWidth={0.25} />)
+                    }
+                </svg>
+            </div>
         </Stack>
     );
 }

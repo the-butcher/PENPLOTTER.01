@@ -1,24 +1,24 @@
+import * as turf from "@turf/turf";
 import { LineString, Position } from "geojson";
+import { IRasterConfigProps } from "../components/IRasterConfigProps";
+import { Raster } from "../raster/Raster";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
 import { IHachure } from "./IHachure";
-import { IHachureConfig } from "./IHachureConfig";
 import { IHachureVertex } from "./IHachureVertex";
 import { IPositionProperties } from "./IPositionProperties";
-import * as turf from "@turf/turf";
-import { Raster } from "../raster/Raster";
 
 export class Hachure implements IHachure {
 
-    static readonly CONFIG: IHachureConfig = {
-        minSpacing: 6,
-        maxSpacing: 8,
-        blurFactor: 0.10,
-        contourOff: 0.5, // vertical difference of contours
-        contourDiv: 2, // the subdivisions along a contour
-        hachureRay: (0.5 / Math.tan(2.5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
-        contourDsp: 50
-    }
+    // static readonly CONFIG: IHachureConfig = {
+    //     minSpacing: 6,
+    //     maxSpacing: 8,
+    //     blurFactor: 0.10,
+    //     contourOff: 0.5, // vertical difference of contours
+    //     contourDiv: 2, // the subdivisions along a contour
+    //     hachureRay: (0.5 / Math.tan(2.5 * Raster.DEG2RAD)) / Raster.CONFIG.cellsize, // larger value -> flatter surfaces get hachures
+    //     contourDsp: 50
+    // }
 
     // static readonly CONFIG: IHachureConfig = {
     //     minSpacing: 6,
@@ -35,13 +35,15 @@ export class Hachure implements IHachure {
     svgData: string;
     private readonly vertices: IHachureVertex[];
     complete: boolean;
+    private rasterConfig: IRasterConfigProps;
 
     private maxHeight: number;
     private maxLength: number;
 
-    constructor(firstVertex: IHachureVertex) {
+    constructor(firstVertex: IHachureVertex, rasterConfig: IRasterConfigProps) {
 
         this.id = ObjectUtil.createId();
+        this.rasterConfig = rasterConfig;
         this.svgData = '';
 
         this.vertices = [];
@@ -78,8 +80,8 @@ export class Hachure implements IHachure {
         }
 
         if (smooth) {
-            offsetPositionsA = GeometryUtil.smoothPositions(offsetPositionsA);
-            offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB);
+            offsetPositionsA = GeometryUtil.smoothPositions(offsetPositionsA, this.rasterConfig);
+            offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB, this.rasterConfig);
         }
 
         let mergedPositions: IPositionProperties[] = [
@@ -88,7 +90,7 @@ export class Hachure implements IHachure {
         ];
 
         if (smooth) {
-            mergedPositions = GeometryUtil.simplifyPositions(mergedPositions);
+            mergedPositions = GeometryUtil.simplifyPositions(mergedPositions, this.rasterConfig);
         }
 
         return mergedPositions;
@@ -158,10 +160,10 @@ export class Hachure implements IHachure {
 
     getOffsetPosition(hachureVertex: IHachureVertex, offset: number): IPositionProperties {
         const positionPixl: Position = [
-            hachureVertex.positionPixl[0] + Math.sin(hachureVertex.aspect * Raster.DEG2RAD) * offset / Raster.CONFIG.cellsize,
-            hachureVertex.positionPixl[1] - Math.cos(hachureVertex.aspect * Raster.DEG2RAD) * offset / Raster.CONFIG.cellsize,
+            hachureVertex.positionPixl[0] + Math.sin(hachureVertex.aspect * Raster.DEG2RAD) * offset / this.rasterConfig.cellsize,
+            hachureVertex.positionPixl[1] - Math.cos(hachureVertex.aspect * Raster.DEG2RAD) * offset / this.rasterConfig.cellsize,
         ];
-        const position4326 = GeometryUtil.pixelToPosition4326(positionPixl);
+        const position4326 = GeometryUtil.pixelToPosition4326(positionPixl, this.rasterConfig);
         return {
             positionPixl,
             position4326,

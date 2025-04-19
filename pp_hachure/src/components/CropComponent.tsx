@@ -3,13 +3,10 @@ import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { useEffect, useState } from "react";
 import { GeometryUtil } from "../util/GeometryUtil";
+import { ICropProps } from "./ICropProps";
+import { IRasterConfigProps } from "./IRasterConfigProps";
 
-export interface ICropComponentProps {
-    minPosition3857: Position;
-    maxPosition3857: Position;
-}
-
-function CropComponent(props: ICropComponentProps) {
+function CropComponent(props: ICropProps & IRasterConfigProps) {
 
     const { minPosition3857, maxPosition3857 } = { ...props };
 
@@ -30,8 +27,8 @@ function CropComponent(props: ICropComponentProps) {
         // console.log('⚙ updating ContentComponent (content)', content);
 
         if (minPosition3857 && maxPosition3857) {
-            setMinPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(minPosition3857)));
-            setMaxPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(maxPosition3857)));
+            setMinPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(minPosition3857), props));
+            setMaxPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(maxPosition3857), props));
         }
 
     }, [minPosition3857, maxPosition3857]);

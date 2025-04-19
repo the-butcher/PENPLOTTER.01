@@ -1,7 +1,11 @@
+import * as turf from "@turf/turf";
+import * as d3Contour from 'd3-contour';
+import { Feature, LineString } from "geojson";
+import { IRasterDataProps } from '../components/IRasterDataProps';
+import { IContourProperties } from "../content/IContourProperties";
+import { GeometryUtil } from '../util/GeometryUtil';
 import { IRange } from "../util/IRange";
-import { ObjectUtil } from "../util/ObjectUtil";
-import { IRasterConfig } from "./IRasterConfig";
-import { IRasterData } from "./IRasterData";
+import { IRasterConfigProps } from "../components/IRasterConfigProps";
 
 export class Raster {
 
@@ -30,16 +34,26 @@ export class Raster {
     // }
 
     // hallstatt
-    static CONFIG: IRasterConfig = {
-        rasterName: 'png_10_10_hallstatt.png',
-        cellsize: 10,
-        valueRangeSample: { min: 8109.0, max: 22266.0 },
-        valueRangeRaster: { min: 506.67636108398, max: 1391.3282470703 },
-        rasterOrigin3857: [
-            1516999.6402537469,
-            6035869.459849371
-        ]
-    }
+    // static CONFIG: IRasterConfig = {
+    //     rasterName: 'png_10_10_hallstatt.png',
+    //     cellsize: 10,
+    //     valueRange: { min: 506.67636108398, max: 1391.3282470703 },
+    //     origin3857: [
+    //         1516999.6402537469,
+    //         6035869.459849371
+    //     ]
+    // }
+
+    // static CONFIG: IRasterConfig = {
+    //     rasterName: 'foto_16.png',
+    //     cellsize: 5,
+    //     valueRangeSample: { min: 8109.0, max: 22266.0 },
+    //     valueRangeRaster: { min: 0, max: 500 },
+    //     rasterOrigin3857: [
+    //         0,
+    //         0
+    //     ]
+    // }
 
     // schlenken
     // static rasterName = 'png_10_10_height_scaled_pynb_schlenken.png';
@@ -146,11 +160,7 @@ export class Raster {
     static RAD2DEG = 180 / Math.PI;
     static DEG2RAD = Math.PI / 180;
 
-    static sampleToHeight = (sample: number): number => {
-        return ObjectUtil.mapValues(sample, Raster.CONFIG.valueRangeSample, Raster.CONFIG.valueRangeRaster);
-    }
-
-    static getSampleRange(rasterData: IRasterData): IRange {
+    static getSampleRange(rasterData: Pick<IRasterDataProps, 'data' | 'width' | 'height'>): IRange {
         let pixelIndex: number;
         let valCur: number;
         let valMin = Number.MAX_VALUE;
@@ -169,7 +179,7 @@ export class Raster {
         };
     }
 
-    static getRasterValue(rasterData: IRasterData, x: number, y: number) {
+    static getRasterValue(rasterData: IRasterDataProps, x: number, y: number) {
 
         const xA = Math.floor(x);
         const xB = Math.ceil(x);
@@ -202,6 +212,43 @@ export class Raster {
         const valRes = interpolateValue(valFYA, valFYB, yF);
 
         return valRes;
+
+    }
+
+    static getContourFeatures(rasterData: IRasterDataProps, thresholds: number[], rasterConfig: IRasterConfigProps): Feature<LineString, IContourProperties>[] {
+
+        console.log('getContourFeatures', rasterData);
+        const contourMultiPolygons: d3Contour.ContourMultiPolygon[] = d3Contour.contours().size([rasterData.width, rasterData.height]).thresholds(thresholds)(Array.from(rasterData.data));
+
+        const contourFeatures: Feature<LineString, IContourProperties>[] = [];
+        let contourFeature: Feature<LineString, IContourProperties> | undefined;
+        contourMultiPolygons.forEach(contourMultiPolygon => {
+            contourMultiPolygon.coordinates.forEach(contourPolygon => {
+                contourPolygon.forEach(contourRing => {
+                    contourRing.forEach(contourCoordinate => {
+                        if (contourCoordinate[0] < 1 || contourCoordinate[0] > rasterData.width - 1 || contourCoordinate[1] < 1 || contourCoordinate[1] > rasterData.height - 1) {
+                            contourFeature = undefined;
+                        } else {
+                            if (!contourFeature) {
+                                contourFeature = turf.feature({
+                                    type: 'LineString',
+                                    coordinates: []
+                                }, {
+                                    height: contourMultiPolygon.value
+
+                                });
+                                contourFeatures.push(contourFeature!);
+                            }
+                            contourFeature!.geometry.coordinates.push(GeometryUtil.pixelToPosition4326(contourCoordinate, rasterConfig));
+                        }
+                    });
+                    contourFeature = undefined;
+                });
+                contourFeature = undefined;
+            });
+        });
+
+        return GeometryUtil.connectContours(contourFeatures, 1);
 
     }
 
