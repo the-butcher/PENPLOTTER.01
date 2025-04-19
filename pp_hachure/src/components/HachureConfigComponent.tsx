@@ -8,7 +8,7 @@ import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS, STEP_INDEX_RAST
 
 function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
-    const { minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, propsCheck, handleHachureConfig, activeStep, handleActiveStep } = { ...props };
+    const { minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, propsCheck, handleHachureConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
 
     const [minSpacingInt, setMinSpacingInt] = useState<number>(minSpacing);
     const [maxSpacingInt, setMaxSpacingInt] = useState<number>(maxSpacing);
@@ -51,38 +51,25 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
     }, [minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, propsCheckInt]);
 
+    const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value))
+    };
 
-    // const handleCellsizeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setCellsizeInt(event.target.value === '' ? cellsizeInt : Number(event.target.value));
-    // };
+    const handleMinSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMinSpacingInt(event.target.value === '' ? minSpacingInt : Math.min(getMinSpacingLimit(), Number(event.target.value)))
+    };
 
-    // const handleOrigin3857XInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setOrigin3857Int([
-    //         event.target.value === '' ? origin3857Int[0] : Number(event.target.value),
-    //         origin3857Int[1]
-    //     ]);
-    // };
+    const handleMaxSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMaxSpacingInt(event.target.value === '' ? maxSpacingInt : Math.max(getMaxSpacingLimit(), Number(event.target.value)))
+    };
 
-    // const handleOrigin3857YInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setOrigin3857Int([
-    //         origin3857Int[0],
-    //         event.target.value === '' ? origin3857Int[1] : Number(event.target.value),
-    //     ]);
-    // };
+    const getMinSpacingLimit = () => {
+        return maxSpacingInt - 1;
+    }
 
-    // const handleValueRangeMinInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setValueRangeInt({
-    //         min: event.target.value === '' ? valueRangeInt.min : Number(event.target.value),
-    //         max: valueRangeInt.max
-    //     });
-    // };
-
-    // const handleValueRangeMaxInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setValueRangeInt({
-    //         min: valueRangeInt.min,
-    //         max: event.target.value === '' ? valueRangeInt.max : Number(event.target.value),
-    //     });
-    // };
+    const getMaxSpacingLimit = () => {
+        return minSpacingInt + 1;
+    }
 
     const areAllValuesValid = () => {
         // setPropsCheckInt(true);
@@ -98,10 +85,36 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         >
             <Grid item xs={12}>
                 <TextField
-                    label={'width (px)'}
+                    label={'raster blur factor'}
+                    value={blurFactorInt}
+                    type="number"
+                    variant="outlined"
+                    onChange={handleBlurFactorInputChange}
+                    disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                    sx={{
+                        width: '100%'
+                    }}
+                    slotProps={{
+                        htmlInput: {
+                            step: 0.1,
+                            min: 0.1,
+                            max: 5,
+                            type: 'number'
+                        },
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
+                    helperText={showHelperTexts ? 'the amount of blur applied to the raster data. low values (i.e. 0.1) produce more detail, high values (i.e. 3.0) produce smoother contours and hachures.' : undefined}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <TextField
+                    label={'hachure min spacing'}
                     value={minSpacingInt}
                     type="number"
                     variant="outlined"
+                    onChange={handleMinSpacingInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
                         width: '100%'
@@ -110,7 +123,31 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                         htmlInput: {
                             step: 0.1,
                             min: 1,
-                            max: 2,
+                            max: getMinSpacingLimit(),
+                            type: 'number'
+                        },
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <TextField
+                    label={'hachure max spacing'}
+                    value={maxSpacingInt}
+                    type="number"
+                    variant="outlined"
+                    onChange={handleMaxSpacingInputChange}
+                    disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                    sx={{
+                        width: '100%'
+                    }}
+                    slotProps={{
+                        htmlInput: {
+                            step: 0.1,
+                            min: getMaxSpacingLimit(),
+                            max: 25,
                             type: 'number'
                         },
                         inputLabel: {

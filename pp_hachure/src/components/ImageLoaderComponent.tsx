@@ -1,4 +1,4 @@
-import { Box, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
+import { Box, Checkbox, FormControlLabel, FormGroup, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -19,10 +19,11 @@ import { IRasterDataProps } from './IRasterDataProps';
 import RasterConfigComponent, { areRasterConfigPropsValid } from './RasterConfigComponent';
 import RasterDataComponent, { areRasterDataPropsValid } from './RasterDataComponent';
 
-export const STEP_INDEX_RASTER___CONFIG = 0;
-export const STEP_INDEX_RASTER_____DATA = 1;
-export const STEP_INDEX_HACHURE__CONFIG = 2;
-export const STEP_INDEX_HACHURE_PROCESS = 3;
+export const STEP_INDEX_COMMON___CONFIG = 0;
+export const STEP_INDEX_RASTER___CONFIG = 1;
+export const STEP_INDEX_RASTER_____DATA = 2;
+export const STEP_INDEX_HACHURE__CONFIG = 3;
+export const STEP_INDEX_HACHURE_PROCESS = 4;
 
 function ImageLoaderComponent() {
 
@@ -36,8 +37,10 @@ function ImageLoaderComponent() {
     const [contours, setContours] = useState<IContour[]>([]);
     const contoursRef = useRef<IContour[]>([]);
 
-    const [minHeight, setMinHeight] = useState<number>(0);
-    const [maxHeight, setMaxHeight] = useState<number>(0);
+    const [active, setActive] = useState<boolean>(false);
+    const [showRaster, setShowRaster] = useState<boolean>(false);
+
+    const setContourToRef = useRef<number>(-1);
 
     const handleRasterConfig = (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
         console.log(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
@@ -45,6 +48,7 @@ function ImageLoaderComponent() {
             ...rasterConfigUpdates,
             handleRasterConfig
         });
+        // this may only change the value range, raster data itself may not be set at that time
         setRasterData({
             ...rasterData,
             valueRange: rasterConfigUpdates.valueRange
@@ -53,7 +57,7 @@ function ImageLoaderComponent() {
 
     const handleRasterData = (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
         console.log(`📞 handling raster data (rasterDataUpdates)`, rasterDataUpdates);
-        setRasterData({
+        setRasterDataRaw({
             ...rasterDataUpdates,
             handleRasterData
         });
@@ -93,16 +97,17 @@ function ImageLoaderComponent() {
         a.dispatchEvent(e);
     }
 
-    const handleActiveStep = (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep'>) => {
+    const handleActiveStep = (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep' | 'showHelperTexts'>) => {
         console.log(`📞 handling active step (activeStepUpdates)`, activeStepUpdates);
         setActiveStep({
+            ...activeStep,
             ...activeStepUpdates,
-            handleActiveStep
         });
     }
 
     const [activeStep, setActiveStep] = useState<IActiveStepProps>({
         activeStep: STEP_INDEX_RASTER___CONFIG,
+        showHelperTexts: true,
         handleActiveStep
     });
     const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
@@ -117,6 +122,18 @@ function ImageLoaderComponent() {
         ],
         handleRasterConfig
     });
+    const [rasterDataRaw, setRasterDataRaw] = useState<IRasterDataProps>({
+        name: '',
+        width: -1,
+        height: -1,
+        valueRange: {
+            min: -1,
+            max: -1
+        },
+        data: new Float32Array(),
+        blurFactor: 0,
+        handleRasterData
+    });
     const [rasterData, setRasterData] = useState<IRasterDataProps>({
         name: '',
         width: -1,
@@ -126,6 +143,7 @@ function ImageLoaderComponent() {
             max: -1
         },
         data: new Float32Array(),
+        blurFactor: 0,
         handleRasterData
     });
     const [hachureConfig, setHachureConfig] = useState<IHachureConfigProps>({
@@ -135,7 +153,6 @@ function ImageLoaderComponent() {
         contourOff: 0.5, // vertical difference of contours
         contourDiv: 2, // the subdivisions along a contour
         hachureDeg: 2.5,
-        // hachureRay: (0.5 / Math.tan(2.5 * Raster.DEG2RAD)) / rasterConfig.cellsize, // larger value -> flatter surfaces get hachures
         contourDsp: 50,
         propsCheck: false,
         handleHachureConfig
@@ -149,8 +166,6 @@ function ImageLoaderComponent() {
         handleHachureExport,
         handleContourExport
     })
-
-
 
     const imageMargin = 50;
 
@@ -188,53 +203,143 @@ function ImageLoaderComponent() {
 
     }
 
+    // const handleSettingsUpdate = () => {
+
+    //     const canvasElement = canvasRef.current;
+    //     const svgElement = svgRef.current;
+    //     if (canvasElement && svgElement) {
+
+    //         if (areRasterConfigPropsValid(rasterConfig)) {
+
+    //             const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
+    //             const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
+    //             // setMinHeight(_minHeight);
+    //             // setMaxHeight(_maxHeight);
+
+    //             setHachureProcess({
+    //                 ...hachureProcess,
+    //                 value: minHeight,
+    //                 valueRange: {
+    //                     min: minHeight,
+    //                     max: maxHeight
+    //                 }
+    //             });
+
+    //             if (areRasterDataPropsValid(rasterData)) {
+
+    //                 // TODO :: as attributes on the element itself
+    //                 svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterData.width + imageMargin * 2}, ${rasterData.height + imageMargin * 2}`);
+    //                 svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
+    //                 svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
+
+    //                 if (hachureConfig.propsCheck) {
+
+    //                     setActive(true);
+
+    //                 }
+
+    //             } else { // raster data is invalid
+
+    //                 setActive(false);
+
+    //                 window.clearTimeout(setContourToRef.current);
+    //                 contoursRef.current = [];
+    //                 setContours(contoursRef.current);
+    //                 setHachureProcess({
+    //                     ...hachureProcess,
+    //                     value: hachureProcess.valueRange.min
+    //                 });
+
+    //             }
+
+    //         }
+
+    //     }
+
+    // }
+
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (rasterConfig, rasterData, hachureConfig)', rasterConfig, rasterData, hachureConfig);
+        console.log('⚙ updating ImageLoaderComponent (rasterConfig)', rasterConfig);
 
-        const canvasElement = canvasRef.current;
-        const svgElement = svgRef.current;
-        if (canvasElement && svgElement && areRasterConfigPropsValid(rasterConfig)) {
-
-            const _minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
-            const _maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
-            setHachureProcess({
-                ...hachureProcess,
-                value: _minHeight,
-                valueRange: {
-                    min: _minHeight,
-                    max: _maxHeight
-                }
-            });
-
-            if (areRasterDataPropsValid(rasterData)) {
-
-                // TODO :: as attributes on the element itself
-                svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterData.width + imageMargin * 2}, ${rasterData.height + imageMargin * 2}`);
-                svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
-                svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
-
-                if (hachureConfig.propsCheck) {
-
-                    setMinHeight(_minHeight);
-                    setMaxHeight(_maxHeight);
-
-                }
-
+        const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
+        const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
+        setHachureProcess({
+            ...hachureProcess,
+            value: minHeight,
+            valueRange: {
+                min: minHeight,
+                max: maxHeight
             }
+        });
+
+    }, [rasterConfig]);
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (rasterDataRaw)', rasterDataRaw);
+
+        if (areRasterDataPropsValid(rasterDataRaw)) {
+            setRasterData(Raster.blurRasterData(rasterDataRaw, hachureConfig.blurFactor));
+        }
+
+    }, [rasterDataRaw]);
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
+
+        // handleSettingsUpdate();
+
+        if (areRasterDataPropsValid(rasterData)) {
+
+            // const canvasElement = canvasRef.current;
+            const svgElement = svgRef.current!;
+
+            // TODO :: as attributes on the element itself
+            svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterData.width + imageMargin * 2}, ${rasterData.height + imageMargin * 2}`);
+            svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
+            svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
+
+        } else { // raster data is invalid
+
+            setActive(false);
 
         }
 
-    }, [rasterConfig, rasterData, hachureConfig]);
+    }, [rasterData]);
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (minHeight, maxHeight)', minHeight, maxHeight);
+        console.log('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
 
-        if (minHeight > 0 && maxHeight > 0) {
+        if (hachureConfig.blurFactor !== rasterData.blurFactor) {
+            if (areRasterDataPropsValid(rasterDataRaw)) {
+                setRasterData(Raster.blurRasterData(rasterDataRaw, hachureConfig.blurFactor));
+            }
+        }
+
+        if (hachureConfig.propsCheck) {
+
+            setActive(true);
+
+        }
+
+
+
+    }, [hachureConfig]);
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (active)', active);
+
+        if (active) {
 
             hachuresProgressRef.current = [];
             hachuresCompleteRef.current = [];
+
+            const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
+            // const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
 
             let minContourHeight = minHeight;
             let minContours: IContour[] = [];
@@ -244,7 +349,8 @@ function ImageLoaderComponent() {
             }
 
             // set the initial contours
-            setTimeout(() => {
+            window.clearTimeout(setContourToRef.current);
+            setContourToRef.current = window.setTimeout(() => {
                 contoursRef.current = minContours;
                 setContours(contoursRef.current);
                 setHachureProcess({
@@ -253,9 +359,30 @@ function ImageLoaderComponent() {
                 });
             }, 1)
 
+        } else {
+
+            window.clearTimeout(setContourToRef.current);
+
+            contoursRef.current = [];
+            setContours(contoursRef.current);
+
+            hachuresProgressRef.current = [];
+            hachuresCompleteRef.current = [];
+            setHachures([]);
+
+            setHachureConfig({
+                ...hachureConfig,
+                propsCheck: false
+            })
+
+            setHachureProcess({
+                ...hachureProcess,
+                value: hachureProcess.valueRange.min
+            });
+
         }
 
-    }, [minHeight, maxHeight]);
+    }, [active]);
 
     useEffect(() => {
 
@@ -301,7 +428,8 @@ function ImageLoaderComponent() {
                     _contours.push(...nxtContours);
 
                     rebuildHachureRefs();
-                    setTimeout(() => {
+                    window.clearTimeout(setContourToRef.current);
+                    setContourToRef.current = window.setTimeout(() => {
                         contoursRef.current = _contours;
                         setContours(contoursRef.current);
                         setHachureProcess({
@@ -322,7 +450,8 @@ function ImageLoaderComponent() {
                     });
 
                     rebuildHachureRefs();
-                    setTimeout(() => {
+                    window.clearTimeout(setContourToRef.current);
+                    setContourToRef.current = window.setTimeout(() => {
                         contoursRef.current = _contours;
                         setContours(contoursRef.current);
                         setHachureProcess({
@@ -388,19 +517,55 @@ function ImageLoaderComponent() {
         <Stack
             direction={'row'}
         >
+
             <Box sx={{
                 mb: 2,
                 // display: "flex",
                 // flexDirection: "column",
-                height: '100%',
+                height: 'calc(100vh - 48px)',
+                width: '400px',
                 overflow: "hidden",
                 overflowY: "scroll",
             }}>
+
                 <Stepper activeStep={activeStep.activeStep} orientation="vertical"
                     sx={{
-                        width: '250px'
+                        width: '100%'
                     }}
                 >
+                    <Step key={'commonconf'}
+                        active={true}
+                        sx={{
+                            width: 'inherit'
+                        }}
+                    >
+                        <StepLabel>
+                            <Typography>
+                                common settings
+                            </Typography>
+                        </StepLabel>
+                        <StepContent>
+                            <FormGroup>
+                                <FormControlLabel
+                                    control={<Checkbox
+                                        onChange={e => setShowRaster(e.target.checked)}
+                                    />}
+                                    checked={showRaster}
+                                    label="show raster"
+                                />
+                                <FormControlLabel
+                                    control={<Checkbox
+                                        onChange={e => setActiveStep({
+                                            ...activeStep,
+                                            showHelperTexts: e.target.checked
+                                        })}
+                                    />}
+                                    checked={activeStep.showHelperTexts}
+                                    label="show helper texts"
+                                />
+                            </FormGroup>
+                        </StepContent>
+                    </Step>
                     <Step key={'rasterconf'}
                         active={true}
                         sx={{
@@ -475,6 +640,7 @@ function ImageLoaderComponent() {
                     </Step>
                 </Stepper>
             </Box>
+
             <div
                 style={{
                     display: 'grid'
@@ -524,6 +690,7 @@ function ImageLoaderComponent() {
                     }
                 </svg>
             </div>
+
         </Stack>
     );
 }

@@ -1,5 +1,6 @@
 import * as turf from "@turf/turf";
 import * as d3Contour from 'd3-contour';
+import * as d3Array from 'd3-array';
 import { Feature, LineString } from "geojson";
 import { IRasterDataProps } from '../components/IRasterDataProps';
 import { IContourProperties } from "../content/IContourProperties";
@@ -179,6 +180,19 @@ export class Raster {
         };
     }
 
+    static blurRasterData(rasterData: IRasterDataProps, blurFactor: number): IRasterDataProps {
+
+        const data = new Float32Array(rasterData.data);
+        d3Array.blur2({ data, width: rasterData.width }, blurFactor);
+
+        return {
+            ...rasterData,
+            data,
+            blurFactor
+        }
+
+    }
+
     static getRasterValue(rasterData: IRasterDataProps, x: number, y: number) {
 
         const xA = Math.floor(x);
@@ -196,12 +210,6 @@ export class Raster {
 
         const interpolateValue = (a: number, b: number, f: number) => {
             return a + (b - a) * f;
-            // const radiansA = a * this.DEG2RAD;
-            // const radiansB = b * this.DEG2RAD;
-            // const x = Math.cos(radiansA) * f + Math.cos(radiansB) * (1 - f);
-            // const y = Math.sin(radiansA) * f + Math.sin(radiansB) * (1 - f);
-            // const radiansR = Math.atan2(y, x);
-            // return radiansR * this.RAD2DEG;
         }
 
         // between upper pixels
@@ -217,7 +225,7 @@ export class Raster {
 
     static getContourFeatures(rasterData: IRasterDataProps, thresholds: number[], rasterConfig: IRasterConfigProps): Feature<LineString, IContourProperties>[] {
 
-        console.log('getContourFeatures', rasterData);
+        // console.warn('getContourFeatures', rasterData);
         const contourMultiPolygons: d3Contour.ContourMultiPolygon[] = d3Contour.contours().size([rasterData.width, rasterData.height]).thresholds(thresholds)(Array.from(rasterData.data));
 
         const contourFeatures: Feature<LineString, IContourProperties>[] = [];

@@ -1,7 +1,7 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import UploadIcon from '@mui/icons-material/Upload';
-import { Button, Divider, Grid, TextField } from "@mui/material";
+import { Button, Divider, FormHelperText, Grid, TextField } from "@mui/material";
 import { decode } from 'fast-png';
 import { useEffect } from "react";
 import { Raster } from '../raster/Raster';
@@ -16,7 +16,7 @@ export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRas
 
 function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
 
-    const { name, data, width, height, valueRange, handleRasterData, activeStep, handleActiveStep } = { ...props };
+    const { name, data, width, height, valueRange, handleRasterData, activeStep, showHelperTexts, handleActiveStep } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building RasterDataComponent');
@@ -62,6 +62,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                     data: data.map(v => sampleToHeight(v)),
                     width,
                     height,
+                    blurFactor: 0,
                     valueRange
                 });
 
@@ -76,6 +77,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
             width,
             height,
             valueRange,
+            blurFactor: 0,
             data
         });
     }
@@ -97,10 +99,14 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                         width: '100%'
                     }}
                     slotProps={{
+                        htmlInput: {
+                            readOnly: true
+                        },
                         inputLabel: {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'the name of the raster, readonly' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -114,10 +120,14 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                         width: '100%'
                     }}
                     slotProps={{
+                        htmlInput: {
+                            readOnly: true
+                        },
                         inputLabel: {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'the width of the raster in pixels, readonly' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -131,21 +141,27 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                         width: '100%'
                     }}
                     slotProps={{
+                        htmlInput: {
+                            readOnly: true
+                        },
                         inputLabel: {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'the height of the raster in pixels, readonly' : undefined}
                 />
             </Grid>
 
             {
-                activeStep === STEP_INDEX_RASTER_____DATA ? <>
+                activeStep === STEP_INDEX_RASTER_____DATA ? <Grid item xs={12}
+                    sx={{
+                        paddingTop: '12px !important'
+                    }}
+                >
                     <Button
                         sx={{
                             width: '100%',
-                            marginLeft: '16px',
-                            marginTop: '10px',
-                            padding: '6px'
+                            padding: '6px',
                         }}
                         component="label"
                         role={undefined}
@@ -171,7 +187,10 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                             }}
                         />
                     </Button>
-                </> : null
+                    {
+                        showHelperTexts ? <FormHelperText>upload a .png raster file (<a href="example.png" target='_blank'>example.png</a>). the raster must have a single channel in the 16_BIT_UNSIGNED format.</FormHelperText> : null
+                    }
+                </Grid> : null
             }
             {
                 activeStep === STEP_INDEX_RASTER_____DATA ? <>

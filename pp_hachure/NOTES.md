@@ -1,5 +1,8 @@
-Have a stepper control
+-- reset button in processing
 
-1. pick and upload raster (check if pp_client code upload_svg can be reused)
-2. show sample range and allow the user to enter unscaled range values, cellsize, raster origin
-   - have a svg preview of the bounding frame once there is enough information (origin, cellsize, image)
+-- controls to show hide helper texts
+-- controls to show hide the raster itself
+
+-- complete hachure config
+-- add illumination azimuth to hachure config
+-- add illumination min max or proportion to hachure config

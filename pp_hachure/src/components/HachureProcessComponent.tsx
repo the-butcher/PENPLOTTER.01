@@ -1,6 +1,6 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import DownloadIcon from '@mui/icons-material/Download';
-import { Button, Divider, Grid, Slider } from "@mui/material";
+import { Button, Divider, FormHelperText, Grid, Slider } from "@mui/material";
 import { Mark } from '@mui/material/Slider/useSlider.types';
 import { useEffect } from "react";
 import { IActiveStepProps } from './IActiveStepProps';
@@ -35,7 +35,12 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
             }}
         >
             {
-                valueRange.min > 0 && valueRange.max > valueRange.min ? <Grid item xs={12}>
+                valueRange.min > 0 && valueRange.max > valueRange.min ? <Grid item xs={12}
+                    sx={{
+                        padding: '24px 24px 0px 36px !important',
+                        // paddingLeft: '48px !important'
+                    }}
+                >
                     <Slider
                         valueLabelDisplay="on"
                         orientation={'horizontal'}
@@ -50,7 +55,8 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                             createMark(valueRange.max),
                         ]}
                         sx={{
-                            marginTop: '24px'
+                            marginTop: '24px',
+                            // width: 'calc(100% - 24px)'
                         }}
                     />
                 </Grid> : null
@@ -87,7 +93,9 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
                             onClick={handleContourExport}
+
                         >download contours</Button>
+
                     </Grid>
                     <Grid item xs={12}
                         sx={{

@@ -1,13 +1,12 @@
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import UploadIcon from '@mui/icons-material/Upload';
-import { Button, Divider, Grid, TextField } from "@mui/material";
+import { Button, Divider, FormHelperText, Grid, TextField } from "@mui/material";
 import { Position } from "geojson";
 import { useEffect, useRef, useState } from "react";
 import { IRange } from '../util/IRange';
+import { IActiveStepProps } from './IActiveStepProps';
 import { STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterConfigProps } from "./IRasterConfigProps";
-import { IActiveStepProps } from './IActiveStepProps';
 
 export const areRasterConfigPropsValid = (props: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
     return props.cellsize > 0 && props.valueRange.min > 0 && props.valueRange.max > props.valueRange.min;
@@ -15,7 +14,7 @@ export const areRasterConfigPropsValid = (props: Omit<IRasterConfigProps, 'handl
 
 function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
 
-    const { cellsize, valueRange, origin3857, handleRasterConfig, activeStep, handleActiveStep } = { ...props };
+    const { cellsize, valueRange, origin3857, handleRasterConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
 
     const [cellsizeInt, setCellsizeInt] = useState<number>(cellsize);
     const [origin3857Int, setOrigin3857Int] = useState<Position>(origin3857);
@@ -94,20 +93,23 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
             const file = fileList.item(0);
             file!.text().then(text => {
 
-                const _rasterConfig: IRasterConfigProps = JSON.parse(text);
-                setCellsizeInt(_rasterConfig.cellsize);
-                setValueRangeInt(_rasterConfig.valueRange);
-                setOrigin3857Int(_rasterConfig.origin3857);
+                if (file!.name.endsWith('pgc')) {
+                    const _rasterConfig: IRasterConfigProps = JSON.parse(text);
+                    setCellsizeInt(_rasterConfig.cellsize);
+                    setValueRangeInt(_rasterConfig.valueRange);
+                    setOrigin3857Int(_rasterConfig.origin3857);
+                } else if (file!.name.endsWith('pgw')) {
+                    const lines = text.split(/\r?\n/);
+                    // '10.0000000000', '0.0000000000', '0.0000000000', '-10.0000000000', '1469019.6402537469', '6055949.4598493706', ''
+                    if (lines.length >= 6) {
+                        setCellsizeInt(parseFloat(lines[0]));
+                        setOrigin3857Int([
+                            parseFloat(lines[4]),
+                            parseFloat(lines[5])
+                        ])
+                    }
+                }
 
-                // const lines = text.split(/\r?\n/);
-                // // '10.0000000000', '0.0000000000', '0.0000000000', '-10.0000000000', '1469019.6402537469', '6055949.4598493706', ''
-                // if (lines.length >= 6) {
-                //     setCellsizeInt(parseFloat(lines[0]));
-                //     setOrigin3857Int([
-                //         parseFloat(lines[4]),
-                //         parseFloat(lines[5])
-                //     ])
-                // }
             });
         }
     }
@@ -147,6 +149,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'pixel size in meters' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -165,6 +168,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'x-coordinate of the center of the upper left pixel in meters' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -183,6 +187,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'y-coordinate of the center of the upper left pixel in meters' : undefined}
                 />
             </Grid>
 
@@ -203,6 +208,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'elevation minimum of the raster in meters' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -221,16 +227,19 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
+                    helperText={showHelperTexts ? 'elevation maximum of the raster in meters' : undefined}
                 />
             </Grid>
             {
-                activeStep === STEP_INDEX_RASTER___CONFIG ? <>
+                activeStep === STEP_INDEX_RASTER___CONFIG ? <Grid item xs={12}
+                    sx={{
+                        paddingTop: '12px !important'
+                    }}
+                >
                     <Button
                         sx={{
                             width: '100%',
-                            marginLeft: '16px',
-                            marginTop: '10px',
-                            padding: '6px'
+                            padding: '6px',
                         }}
                         component="label"
                         role={undefined}
@@ -242,7 +251,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                         <input
                             type="file"
                             onChange={(event) => handleRasterConfigUpload(event.target.files!)}
-                            accept={'.pgc'}
+                            accept={'.pgc, .pgw'}
                             style={{
                                 clip: 'rect(0 0 0 0)',
                                 clipPath: 'inset(50%)',
@@ -256,7 +265,11 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             }}
                         />
                     </Button>
-                </> : null
+                    {
+                        showHelperTexts ? <FormHelperText>upload a .pgc raster config file (<a href="example.pgc" target='_blank'>example.pgc</a>) or a .pgw world file (<a href="example.pgw" target='_blank'>example.pgw</a>) for convenience</FormHelperText> : null
+                    }
+
+                </Grid> : null
             }
             {
                 activeStep === STEP_INDEX_RASTER___CONFIG ? <>
@@ -272,7 +285,6 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             paddingTop: '8px !important'
                         }}
                     >
-
                     </Grid>
                     <Grid item xs={6}
                         sx={{

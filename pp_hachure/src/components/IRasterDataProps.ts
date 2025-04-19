@@ -12,5 +12,9 @@ export interface IRasterDataProps {
     width: number;
     height: number;
     valueRange: IRange;
+    /**
+     * the amount of blur applied to this instance
+     */
+    blurFactor: number;
     handleRasterData: (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => void;
 }
