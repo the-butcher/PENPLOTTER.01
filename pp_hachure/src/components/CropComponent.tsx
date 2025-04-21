@@ -1,4 +1,3 @@
-import * as turf from "@turf/turf";
 
 import { Position } from "geojson";
 import { useEffect, useState } from "react";
@@ -17,7 +16,7 @@ import { IRasterConfigProps } from "./IRasterConfigProps";
  */
 function CropComponent(props: ICropProps & IRasterConfigProps) {
 
-    const { minPosition3857, maxPosition3857 } = { ...props };
+    const { minPositionProj, maxPositionProj, converter } = { ...props };
 
     const [cropMarkData, setCropMarkData] = useState<string>('');
     const [sizeMarkData, setSizeMarkData] = useState<string>('');
@@ -35,12 +34,12 @@ function CropComponent(props: ICropProps & IRasterConfigProps) {
 
         // console.debug('⚙ updating ContentComponent (content)', content);
 
-        if (minPosition3857 && maxPosition3857) {
-            setMinPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(minPosition3857), props));
-            setMaxPositionPixl(GeometryUtil.position4326ToPixel(turf.toWgs84(maxPosition3857), props));
+        if (minPositionProj && maxPositionProj) {
+            setMinPositionPixl(GeometryUtil.positionProjToPixel(minPositionProj, props));
+            setMaxPositionPixl(GeometryUtil.positionProjToPixel(maxPositionProj, props));
         }
 
-    }, [minPosition3857, maxPosition3857]);
+    }, [minPositionProj, maxPositionProj]);
 
     useEffect(() => {
 
@@ -77,51 +76,51 @@ function CropComponent(props: ICropProps & IRasterConfigProps) {
             />
             {
                 minPositionPixl ? <text
-                    fontSize={7}
+                    fontSize={5}
                     fontFamily={'Consolas'}
-                    transform={`translate(${minPositionPixl[0] + 7}, ${minPositionPixl[1]}) rotate(-90)`}
+                    transform={`translate(${minPositionPixl[0] + 7}, ${minPositionPixl[1] - 2}) rotate(-90)`}
                     textAnchor="start"
-                >{minPosition3857[0].toFixed(2)}m</text> : null
+                >{minPositionProj[0].toFixed(2)}&nbsp;{converter.projUnitAbbr}</text> : null
             }
             {
                 minPositionPixl ? <text
-                    fontSize={7}
+                    fontSize={5}
                     fontFamily={'Consolas'}
-                    transform={`translate(${minPositionPixl[0]}, ${minPositionPixl[1] + 7})`}
+                    transform={`translate(${minPositionPixl[0] - 2}, ${minPositionPixl[1] + 7})`}
                     textAnchor="end"
-                >{minPosition3857[1].toFixed(2)}m</text> : null
+                >{minPositionProj[1].toFixed(2)} {converter.projUnitAbbr}</text> : null
             }
             {
                 maxPositionPixl ? <text
-                    fontSize={7}
+                    fontSize={5}
                     fontFamily={'Consolas'}
-                    transform={`translate(${maxPositionPixl[0] - 3}, ${maxPositionPixl[1]}) rotate(-90)`}
+                    transform={`translate(${maxPositionPixl[0] - 3}, ${maxPositionPixl[1] + 2}) rotate(-90)`}
                     textAnchor="end"
-                >{maxPosition3857[0].toFixed(2)}m</text> : null
+                >{maxPositionProj[0].toFixed(2)} {converter.projUnitAbbr}</text> : null
             }
             {
                 maxPositionPixl ? <text
-                    fontSize={7}
+                    fontSize={5}
                     fontFamily={'Consolas'}
-                    transform={`translate(${maxPositionPixl[0]}, ${maxPositionPixl[1] - 3})`}
+                    transform={`translate(${maxPositionPixl[0] + 2}, ${maxPositionPixl[1] - 3})`}
                     textAnchor="start"
-                >{maxPosition3857[1].toFixed(2)}m</text> : null
+                >{maxPositionProj[1].toFixed(2)} {converter.projUnitAbbr}</text> : null
             }
             {
                 minPositionPixl && maxPositionPixl ? <text
-                    fontSize={7}
+                    fontSize={5}
                     fontFamily={'Consolas'}
-                    transform={`translate(${maxPositionPixl[0]}, ${minPositionPixl[1] - 3})`}
+                    transform={`translate(${maxPositionPixl[0] - 2}, ${minPositionPixl[1] - 3})`}
                     textAnchor="end"
-                >{(maxPosition3857[0] - minPosition3857[0]).toFixed(2)}m</text> : null
+                >{(maxPositionProj[0] - minPositionProj[0]).toFixed(2)} {converter.projUnitAbbr}</text> : null
             }
             {
                 minPositionPixl && maxPositionPixl ? <text
-                    fontSize={7}
+                    fontSize={5}
                     fontFamily={'Consolas'}
-                    transform={`translate(${maxPositionPixl[0] + 7}, ${minPositionPixl[1]}) rotate(-90)`}
+                    transform={`translate(${maxPositionPixl[0] + 7}, ${minPositionPixl[1] + 2}) rotate(-90)`}
                     textAnchor="end"
-                >{(minPosition3857[1] - maxPosition3857[1]).toFixed(2)}m</text> : null
+                >{(minPositionProj[1] - maxPositionProj[1]).toFixed(2)} {converter.projUnitAbbr}</text> : null
             }
         </>
     );

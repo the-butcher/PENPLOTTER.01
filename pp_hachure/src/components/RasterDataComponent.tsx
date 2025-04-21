@@ -12,7 +12,7 @@ import { ObjectUtil } from '../util/ObjectUtil';
 import { IRasterConfigProps } from './IRasterConfigProps';
 
 export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRasterData'>) => {
-    return props.name !== '' && props.width > 0 && props.height > 0 && props.data.length > 0 && props.valueRange.min > 0 && props.valueRange.max > props.valueRange.min;
+    return props.name !== '' && props.width > 0 && props.height > 0 && props.data.length > 0 && props.valueRange.max > props.valueRange.min;
 };
 
 /**
@@ -44,15 +44,15 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
 
                 const decodedPng = decode(arrayBuffer);
 
-                const maxMeters = 10000;
-                if (decodedPng.width * cellsize > maxMeters || decodedPng.height * cellsize > maxMeters) {
-                    handleAlertProps({
-                        severity: 'error',
-                        title: 'Invalid png dimensions!',
-                        message: `The maximum width or heigth of the image must not exceed ${maxMeters.toFixed(2)} m, but found ${(decodedPng.width * cellsize).toFixed(2)} m / ${(decodedPng.height * cellsize).toFixed(2)} m.`
-                    });
-                    return;
-                }
+                // const maxMeters = 10000;
+                // if (decodedPng.width * cellsize > maxMeters || decodedPng.height * cellsize > maxMeters) {
+                //     handleAlertProps({
+                //         severity: 'error',
+                //         title: 'Invalid png dimensions!',
+                //         message: `The maximum width or heigth of the image must not exceed ${maxMeters.toFixed(2)} m, but found ${(decodedPng.width * cellsize).toFixed(2)} m / ${(decodedPng.height * cellsize).toFixed(2)} m.`
+                //     });
+                //     return;
+                // }
                 if (decodedPng.depth < 16 || decodedPng.channels > 1) {
                     handleAlertProps({
                         severity: 'error',
@@ -121,7 +121,8 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                 <TextField
                     label={'name'}
                     value={name}
-                    variant="outlined"
+                    variant={'outlined'}
+                    size={'small'}
                     disabled={activeStep !== STEP_INDEX_RASTER_____DATA}
                     sx={{
                         width: '100%'
@@ -141,8 +142,9 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                 <TextField
                     label={'width (px)'}
                     value={width > 0 ? width : ''}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     disabled={activeStep !== STEP_INDEX_RASTER_____DATA}
                     sx={{
                         width: '100%'
@@ -162,8 +164,9 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                 <TextField
                     label={'height (px)'}
                     value={height > 0 ? height : ''}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     disabled={activeStep !== STEP_INDEX_RASTER_____DATA}
                     sx={{
                         width: '100%'
@@ -179,7 +182,6 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                     helperText={showHelperTexts ? 'the height of the raster in pixels, readonly' : undefined}
                 />
             </Grid>
-
             {
                 activeStep === STEP_INDEX_RASTER_____DATA ? <Grid item xs={12}
                     sx={{
@@ -189,17 +191,17 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                     <Button
                         sx={{
                             width: '100%',
-                            padding: '6px',
                         }}
-                        component="label"
+                        component={'label'}
                         role={undefined}
-                        variant="contained"
+                        variant='contained'
+                        size={'small'}
                         tabIndex={-1}
                         startIcon={<UploadIcon />}
                     >
                         upload raster file
                         <input
-                            type="file"
+                            type={'file'}
                             onChange={(event) => handleRasterFileUpload(event.target.files!)}
                             accept={'.png'}
                             style={{
@@ -236,6 +238,7 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                     >
                         <Button
                             variant={'contained'}
+                            size={'small'}
                             onClick={() => handleActiveStep({
                                 activeStep: STEP_INDEX_RASTER___CONFIG
                             })}
@@ -256,6 +259,7 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                         <Button
                             disabled={!areAllValuesValid()}
                             variant={'contained'}
+                            size={'small'}
                             onClick={() => handleActiveStep({
                                 activeStep: STEP_INDEX_HACHURE__CONFIG
                             })}

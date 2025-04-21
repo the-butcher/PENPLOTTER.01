@@ -39,14 +39,14 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
             }}
         >
             {
-                valueRange.min > 0 && valueRange.max > valueRange.min ? <Grid item xs={12}
+                valueRange.max > valueRange.min ? <Grid item xs={12}
                     sx={{
                         padding: '12px 24px 0px 30px !important',
                     }}
                 >
                     <FormHelperText>progress</FormHelperText>
                     <Slider
-                        valueLabelDisplay="on"
+                        valueLabelDisplay={'on'}
                         orientation={'horizontal'}
                         aria-label="height"
                         value={value}
@@ -69,12 +69,11 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                     <Grid item xs={12}>
                         <Button
                             sx={{
-                                width: '100%',
-                                padding: '6px'
+                                width: '100%'
                             }}
-                            component="label"
+                            component={'label'}
                             role={undefined}
-                            variant="contained"
+                            variant={'contained'}
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
                             onClick={handleHachureExport}
@@ -87,18 +86,15 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                     >
                         <Button
                             sx={{
-                                width: '100%',
-                                padding: '6px'
+                                width: '100%'
                             }}
-                            component="label"
+                            component={'label'}
                             role={undefined}
-                            variant="contained"
+                            variant={'contained'}
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
                             onClick={handleContourExport}
-
                         >download contours</Button>
-
                     </Grid>
                     <Grid item xs={12}
                         sx={{
@@ -107,7 +103,6 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                     >
                         <Divider></Divider>
                     </Grid>
-
                     <Grid item xs={12}
                         sx={{
                             paddingTop: '8px !important'

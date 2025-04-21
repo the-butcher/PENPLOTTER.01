@@ -12,7 +12,7 @@ import CropComponent from './CropComponent';
 import HachureConfigComponent from './HachureConfigComponent';
 import HachureProcessComponent from './HachureProcessComponent';
 import { IActiveStepProps } from './IActiveStepProps';
-import { IHachureConfigProps } from './IHachureConfigProps';
+import { HACHURE_CONFIG_DEFAULT_METERS, IHachureConfigProps } from './IHachureConfigProps';
 import { IHachureProcessProps } from './IHachureProcessProps';
 import { IRasterConfigProps } from './IRasterConfigProps';
 import { IRasterDataProps } from './IRasterDataProps';
@@ -61,6 +61,19 @@ function ImageLoaderComponent() {
         setRasterData({
             ...rasterData,
             valueRange: rasterConfigUpdates.valueRange
+        });
+        setHachureConfig({
+            ...HACHURE_CONFIG_DEFAULT_METERS,
+            minSpacing: 6 / rasterConfigUpdates.converter.metersPerUnit,
+            maxSpacing: 8 / rasterConfigUpdates.converter.metersPerUnit,
+            blurFactor: 0.10,
+            contourOff: 1,
+            contourDiv: 5 / rasterConfigUpdates.converter.metersPerUnit,
+            hachureDeg: 2.5,
+            contourDsp: 50,
+            azimuthDeg: 280,
+            propsCheck: false,
+            handleHachureConfig
         });
     };
 
@@ -141,14 +154,22 @@ function ImageLoaderComponent() {
     });
     const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
         cellsize: -1,
+        wkt: '',
         valueRange: {
-            min: -1,
-            max: -1
+            min: 0,
+            max: 1
         },
-        origin3857: [
+        originProj: [
             0,
             0
         ],
+        converter: {
+            convert4326ToProj: turf.toMercator,
+            convertProjTo4326: turf.toWgs84,
+            metersPerUnit: 1,
+            projUnitName: 'meters',
+            projUnitAbbr: 'm'
+        },
         handleRasterConfig
     });
     const [rasterDataRaw, setRasterDataRaw] = useState<IRasterDataProps>({
@@ -176,15 +197,7 @@ function ImageLoaderComponent() {
         handleRasterData
     });
     const [hachureConfig, setHachureConfig] = useState<IHachureConfigProps>({
-        minSpacing: 6,
-        maxSpacing: 8,
-        blurFactor: 0.10,
-        contourOff: 1,
-        contourDiv: 5,
-        hachureDeg: 2.5,
-        contourDsp: 50,
-        azimuthDeg: 280,
-        propsCheck: false,
+        ...HACHURE_CONFIG_DEFAULT_METERS,
         handleHachureConfig
     });
     const [hachureProcess, setHachureProcess] = useState<IHachureProcessProps>({
@@ -205,7 +218,7 @@ function ImageLoaderComponent() {
 
 
 
-    const imageMargin = 50;
+    const imageMargin = 55;
 
     useEffect(() => {
         console.debug('✨ building ImageLoaderComponent');
@@ -417,7 +430,8 @@ function ImageLoaderComponent() {
                     rebuildHachureRefs();
                     window.clearTimeout(setContourToRef.current);
                     setContourToRef.current = window.setTimeout(() => {
-                        contoursRef.current = _contours;
+                        // contoursRef.current = _contours;
+                        contoursRef.current = _contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete);
                         setContours(contoursRef.current);
                         setHachureProcess({
                             ...hachureProcess,
@@ -439,7 +453,8 @@ function ImageLoaderComponent() {
                     rebuildHachureRefs();
                     window.clearTimeout(setContourToRef.current);
                     setContourToRef.current = window.setTimeout(() => {
-                        contoursRef.current = _contours;
+                        // contoursRef.current = _contours;
+                        contoursRef.current = _contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete);
                         setContours(contoursRef.current);
                         setHachureProcess({
                             ...hachureProcess,
@@ -552,6 +567,7 @@ function ImageLoaderComponent() {
                                 <FormGroup>
                                     <FormControlLabel
                                         control={<Checkbox
+                                            size={'small'}
                                             onChange={e => setShowRaster(e.target.checked)}
                                         />}
                                         disabled={!areRasterDataPropsValid(rasterData)}
@@ -560,6 +576,7 @@ function ImageLoaderComponent() {
                                     />
                                     <FormControlLabel
                                         control={<Checkbox
+                                            size={'small'}
                                             onChange={e => setActiveStep({
                                                 ...activeStep,
                                                 showHelperTexts: e.target.checked
@@ -658,7 +675,6 @@ function ImageLoaderComponent() {
                         </Step>
                     </Stepper>
                 </Box>
-
                 <div
                     style={{
                         display: 'grid'
@@ -685,10 +701,10 @@ function ImageLoaderComponent() {
                         {
                             areRasterDataPropsValid(rasterData) && areRasterConfigPropsValid(rasterConfig) ? <CropComponent {...{
                                 ...rasterConfig,
-                                minPosition3857: rasterConfig.origin3857,
-                                maxPosition3857: [
-                                    rasterConfig.origin3857[0] + (rasterData.width - 1) * rasterConfig.cellsize,
-                                    rasterConfig.origin3857[1] - (rasterData.height - 1) * rasterConfig.cellsize,
+                                minPositionProj: rasterConfig.originProj,
+                                maxPositionProj: [
+                                    rasterConfig.originProj[0] + (rasterData.width - 1) * rasterConfig.cellsize,
+                                    rasterConfig.originProj[1] - (rasterData.height - 1) * rasterConfig.cellsize,
                                 ]
                             }}></CropComponent> : null
                         }

@@ -7,9 +7,12 @@ import { IRange } from '../util/IRange';
 import { IActiveStepProps } from './IActiveStepProps';
 import { STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterConfigProps } from "./IRasterConfigProps";
+import proj4, { ProjectionDefinition } from 'proj4';
+import { ICoordinateConverter } from './ICoordinateConverter';
+import { TUnitAbbr, TUnitName } from './TUnit';
 
 export const areRasterConfigPropsValid = (props: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
-    return props.cellsize > 0 && props.valueRange.min > 0 && props.valueRange.max > props.valueRange.min;
+    return props.cellsize > 0 && props.valueRange.max > props.valueRange.min;
 };
 
 /**
@@ -23,10 +26,12 @@ export const areRasterConfigPropsValid = (props: Omit<IRasterConfigProps, 'handl
  */
 function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
 
-    const { cellsize, valueRange, origin3857, handleRasterConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
+    const { cellsize, wkt, valueRange, originProj, converter, handleRasterConfig, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };
 
     const [cellsizeInt, setCellsizeInt] = useState<number>(cellsize);
-    const [origin3857Int, setOrigin3857Int] = useState<Position>(origin3857);
+    const [wktInt, setWktInt] = useState<string>(wkt);
+    const [originProjInt, setOriginProjInt] = useState<Position>(originProj);
+    const [converterInt, setConverterInt] = useState<ICoordinateConverter>(converter);
     const [valueRangeInt, setValueRangeInt] = useState<IRange>(valueRange);
 
     const handleRasterConfigToRef = useRef<number>(-1);
@@ -37,49 +42,57 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
 
     useEffect(() => {
 
-        console.debug('⚙ updating RasterConfigComponent (cellsize, valueRange, origin3857)', cellsize, valueRange, origin3857);
+        console.debug('⚙ updating RasterConfigComponent (cellsize, wkt, valueRange, originProj, converter)', cellsize, wkt, valueRange, originProj, converter);
         if (cellsize) {
             setCellsizeInt(cellsize);
+        }
+        if (wkt) {
+            setWktInt(wkt);
         }
         if (valueRange) {
             setValueRangeInt(valueRange);
         }
-        if (origin3857) {
-            setOrigin3857Int(origin3857);
+        if (originProj) {
+            setOriginProjInt(originProj);
+        }
+        if (converter) {
+            setConverterInt(converter);
         }
 
-    }, [cellsize, valueRange, origin3857]);
+    }, [cellsize, wkt, valueRange, originProj, converter]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating RasterConfigComponent (cellsizeInt, valueRangeInt, origin3857Int)', cellsizeInt, valueRangeInt, origin3857Int);
+        console.debug('⚙ updating RasterConfigComponent (cellsizeInt, valueRangeInt, originProjInt, converterInt)', cellsizeInt, valueRangeInt, originProjInt, converterInt);
         window.clearTimeout(handleRasterConfigToRef.current);
         handleRasterConfigToRef.current = window.setTimeout(() => {
             handleRasterConfig({
                 cellsize: cellsizeInt,
+                wkt: wktInt,
                 valueRange: valueRangeInt,
-                origin3857: origin3857Int
+                originProj: originProjInt,
+                converter: converterInt
             });
         }, 100);
 
-    }, [cellsizeInt, valueRangeInt, origin3857Int]);
+    }, [cellsizeInt, valueRangeInt, originProjInt, converterInt]);
 
 
     const handleCellsizeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCellsizeInt(event.target.value === '' ? cellsizeInt : Number(event.target.value));
     };
 
-    const handleOrigin3857XInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setOrigin3857Int([
-            event.target.value === '' ? origin3857Int[0] : Number(event.target.value),
-            origin3857Int[1]
+    const handleOriginProjXInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setOriginProjInt([
+            event.target.value === '' ? originProjInt[0] : Number(event.target.value),
+            originProjInt[1]
         ]);
     };
 
-    const handleOrigin3857YInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setOrigin3857Int([
-            origin3857Int[0],
-            event.target.value === '' ? origin3857Int[1] : Number(event.target.value),
+    const handleOriginProjYInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setOriginProjInt([
+            originProjInt[0],
+            event.target.value === '' ? originProjInt[1] : Number(event.target.value),
         ]);
     };
 
@@ -103,16 +116,66 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
             file!.text().then(text => {
 
                 if (file!.name.endsWith('pgc')) {
+
                     const _rasterConfig: IRasterConfigProps = JSON.parse(text);
                     setCellsizeInt(_rasterConfig.cellsize);
                     setValueRangeInt(_rasterConfig.valueRange);
-                    setOrigin3857Int(_rasterConfig.origin3857);
+                    setOriginProjInt(_rasterConfig.originProj);
+
+                    const proj4Converter = proj4(_rasterConfig.wkt);
+                    console.log('proj4Converter', proj4Converter);
+
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const proj4Definition = (proj4Converter as any)['oProj'] as ProjectionDefinition;
+                    console.log('proj4Definition', proj4Definition);
+
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const proj4Unit = (proj4Definition as any)['UNIT'];
+
+                    let unitName: TUnitName | undefined;
+                    let unitAbbr: TUnitAbbr | undefined;
+
+                    const proj4UnitName = proj4Unit.name as string;
+                    if ((proj4UnitName.toLowerCase().indexOf('meter') != -1)) {
+                        unitName = 'meters';
+                        unitAbbr = 'm';
+                    } else if ((proj4UnitName.toLowerCase().indexOf('foot') != -1)) {
+                        unitName = 'feet';
+                        unitAbbr = 'ft';
+                    } else if ((proj4UnitName.toLowerCase().indexOf('degree') != -1)) {
+                        unitName = 'degrees';
+                        unitAbbr = 'deg';
+                    }
+                    console.log('proj4Unit', proj4Unit);
+
+                    if (!unitName || !unitAbbr) {
+                        handleAlertProps({
+                            severity: 'error',
+                            title: 'Unsupported unit!',
+                            message: `The unit of the wkt string must be meters or feet or degrees, but found ${proj4UnitName}.`
+                        });
+                        return;
+                    }
+
+                    // type Units = "meters" | "metres" | "millimeters" | "millimetres" | "centimeters" | "centimetres" | "kilometers" | "kilometres" | "miles" | "nauticalmiles" | "inches" | "yards" | "feet" | "radians" | "degrees";
+
+
+                    const _converter: ICoordinateConverter = {
+                        convert4326ToProj: proj4Converter.forward,
+                        convertProjTo4326: proj4Converter.inverse,
+                        projUnitName: unitName,
+                        projUnitAbbr: unitAbbr,
+                        metersPerUnit: proj4Unit.convert
+                    };
+                    setConverterInt(_converter);
+                    console.log('_converter', _converter);
+
                 } else if (file!.name.endsWith('pgw')) {
                     const lines = text.split(/\r?\n/);
                     // '10.0000000000', '0.0000000000', '0.0000000000', '-10.0000000000', '1469019.6402537469', '6055949.4598493706', ''
                     if (lines.length >= 6) {
                         setCellsizeInt(parseFloat(lines[0]));
-                        setOrigin3857Int([
+                        setOriginProjInt([
                             parseFloat(lines[4]),
                             parseFloat(lines[5])
                         ]);
@@ -124,7 +187,13 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
     };
 
     const areAllValuesValid = () => {
-        return cellsize > 0 && valueRange.min > 0 && valueRange.max > valueRange.min;
+        return areRasterConfigPropsValid({
+            cellsize: cellsizeInt,
+            wkt: wktInt,
+            valueRange: valueRangeInt,
+            originProj: originProjInt,
+            converter: converterInt
+        });
     };
 
     return (
@@ -136,11 +205,11 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
         >
             <Grid item xs={12}>
                 <TextField
-                    label={'cellsize (m)'}
+                    label={`cellsize (${converterInt.projUnitAbbr})`}
                     value={cellsizeInt > 0 ? cellsizeInt : ''}
-                    type="number"
-                    variant="outlined"
-                    size='small'
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleCellsizeInputChange}
                     disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
                     sx={{
@@ -158,16 +227,17 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'pixel size in meters' : undefined}
+                    helperText={showHelperTexts ? `pixel size in ${converterInt.projUnitAbbr}` : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
                 <TextField
-                    label={'origin-x (m)'}
-                    value={origin3857Int[0]}
-                    type="number"
-                    variant="outlined"
-                    onChange={handleOrigin3857XInputChange}
+                    label={`origin-x (${converterInt.projUnitAbbr})`}
+                    value={originProjInt[0]}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
+                    onChange={handleOriginProjXInputChange}
                     disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
                     sx={{
                         width: '100%'
@@ -177,16 +247,17 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'x-coordinate of the center of the upper left pixel in meters' : undefined}
+                    helperText={showHelperTexts ? `x-coordinate of the center of the upper left pixel in ${converterInt.projUnitAbbr}` : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
                 <TextField
-                    label={'origin-y (m)'}
-                    value={origin3857Int[1]}
-                    type="number"
-                    variant="outlined"
-                    onChange={handleOrigin3857YInputChange}
+                    label={`origin-y (${converterInt.projUnitAbbr})`}
+                    value={originProjInt[1]}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
+                    onChange={handleOriginProjYInputChange}
                     disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
                     sx={{
                         width: '100%'
@@ -196,17 +267,16 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'y-coordinate of the center of the upper left pixel in meters' : undefined}
+                    helperText={showHelperTexts ? `y-coordinate of the center of the upper left pixel in ${converterInt.projUnitAbbr}` : undefined}
                 />
             </Grid>
-
-
             <Grid item xs={12}>
                 <TextField
                     label={'elevation-min (m)'}
-                    value={valueRangeInt.min > 0 ? valueRangeInt.min : ''}
-                    type="number"
-                    variant="outlined"
+                    value={valueRangeInt.min}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleValueRangeMinInputChange}
                     disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
                     sx={{
@@ -223,9 +293,10 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
             <Grid item xs={12}>
                 <TextField
                     label={'elevation-max (m)'}
-                    value={valueRangeInt.max > 0 ? valueRangeInt.max : ''}
-                    type="number"
-                    variant="outlined"
+                    value={valueRangeInt.max}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleValueRangeMaxInputChange}
                     disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
                     sx={{
@@ -248,17 +319,17 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                     <Button
                         sx={{
                             width: '100%',
-                            padding: '6px',
                         }}
-                        component="label"
+                        component={'label'}
                         role={undefined}
-                        variant="contained"
+                        variant={'contained'}
+                        size={'small'}
                         tabIndex={-1}
                         startIcon={<UploadIcon />}
                     >
                         upload raster config
                         <input
-                            type="file"
+                            type={'file'}
                             onChange={(event) => handleRasterConfigUpload(event.target.files!)}
                             accept={'.pgc, .pgw'}
                             style={{
@@ -297,6 +368,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                         <Button
                             disabled={!areAllValuesValid()}
                             variant={'contained'}
+                            size={'small'}
                             onClick={() => handleActiveStep({
                                 activeStep: STEP_INDEX_RASTER_____DATA
                             })}
@@ -311,8 +383,6 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                     </Grid>
                 </> : null
             }
-
-
         </Grid>
     );
 }

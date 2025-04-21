@@ -36,14 +36,14 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         max: 5
     };
     const minSpacingMin = 1;
-    const maxSpacingMax = 25;
+    const maxSpacingMax = 30;
     const contourOffRange: IRange = {
         min: 0.1,
         max: 5
     };
     const contourDivRange: IRange = {
         min: 1,
-        max: 10
+        max: 20
     };
     const hachureDegRange: IRange = {
         min: 1,
@@ -56,9 +56,35 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         console.debug('✨ building HachureConfigComponent');
     }, []);
 
-    // useEffect(() => {
-    //     console.debug('⚙ updating HachureConfigComponent (minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg)', minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, azimuthDeg, contourDsp);
-    // }, [minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg]);
+    useEffect(() => {
+
+        console.debug('⚙ updating HachureConfigComponent (minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg)', minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, azimuthDeg, contourDsp);
+        if (minSpacing) {
+            setMinSpacingInt(minSpacing);
+        }
+        if (maxSpacing) {
+            setMaxSpacingInt(maxSpacing);
+        }
+        if (blurFactor) {
+            setBlurFactorInt(blurFactor);
+        }
+        if (contourOff) {
+            setContourOffInt(contourOff);
+        }
+        if (contourDiv) {
+            setContourDivInt(contourDiv);
+        }
+        if (hachureDeg) {
+            setHachureDegInt(hachureDeg);
+        }
+        if (contourDsp) {
+            setContourDspInt(contourDsp);
+        }
+        if (azimuthDeg) {
+            setAzimuthDegInt(azimuthDeg);
+        }
+
+    }, [minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg]);
 
     useEffect(() => {
 
@@ -146,8 +172,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 <TextField
                     label={'raster blur factor'}
                     value={blurFactorInt}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleBlurFactorInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
@@ -170,8 +197,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 <TextField
                     label={'hachure min spacing'}
                     value={minSpacingInt}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleMinSpacingInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
@@ -195,8 +223,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 <TextField
                     label={'hachure max spacing'}
                     value={maxSpacingInt}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleMaxSpacingInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
@@ -220,8 +249,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 <TextField
                     label={'contour vertical interval (m)'}
                     value={contourOffInt}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleContourOffInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
@@ -244,8 +274,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 <TextField
                     label={'contour segment length (m)'}
                     value={contourDivInt}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleContourDivInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
@@ -268,8 +299,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 <TextField
                     label={'minimum slope (deg)'}
                     value={hachureDegInt}
-                    type="number"
-                    variant="outlined"
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
                     onChange={handleHachureDegInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
@@ -293,9 +325,10 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     <InputLabel id="demo-simple-select-label">contour display interval (m)</InputLabel>
                     <Select
                         value={contourDspInt}
-                        label="contour display interval (m)"
+                        label={'contour display interval (m)'}
                         onChange={handleContourDspSelectChange}
                         disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                        size={'small'}
                     >
                         <MenuItem value={5}>5</MenuItem>
                         <MenuItem value={10}>10</MenuItem>
@@ -320,7 +353,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
             >
                 <FormHelperText>illumination azimuth (deg)</FormHelperText>
                 <Slider
-                    valueLabelDisplay="on"
+                    valueLabelDisplay={'on'}
                     orientation={'horizontal'}
                     aria-label="azimuth"
                     value={azimuthDegInt}
@@ -358,6 +391,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     >
                         <Button
                             variant={'contained'}
+                            size={'small'}
                             onClick={() => handleActiveStep({
                                 activeStep: STEP_INDEX_RASTER_____DATA
                             })}
@@ -378,6 +412,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                         <Button
                             disabled={!areAllValuesValid()}
                             variant={'contained'}
+                            size={'small'}
                             onClick={() => {
                                 setPropsCheckInt(true);
                                 handleActiveStep({

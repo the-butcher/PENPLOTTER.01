@@ -43,12 +43,14 @@ export class Contour implements IContour {
         this.hachureConfig = hachureConfig;
 
         this.length = turf.length(feature, {
-            units: 'meters'
+            units: this.rasterConfig.converter.projUnitName
         });
-
 
         const weightCalcSegments = Math.round(this.length / this.hachureConfig.contourDiv);
         this.weightCalcIncrement = this.length / weightCalcSegments;
+
+        console.log('contour', this.height, this.rasterConfig.converter.projUnitName, this.length);
+        console.log('weightCalcSegments', weightCalcSegments);
 
         this.vertices = [];
         this.subGeometries = [];
@@ -59,7 +61,7 @@ export class Contour implements IContour {
             const lengthMin = Math.max(0, i * subGeometryLengthIncr);
             const lengthMax = Math.min(this.length, (i + 1) * subGeometryLengthIncr);
             const subFeature = turf.lineSliceAlong(feature, lengthMin, lengthMax, {
-                units: 'meters'
+                units: this.rasterConfig.converter.projUnitName
             }).geometry;
             this.subGeometries.push({
                 geometry: subFeature,
@@ -278,7 +280,7 @@ export class Contour implements IContour {
                                 return false;
                             }
                             const distance = turf.distance(position4326, lastVertex.position4326, {
-                                units: 'meters'
+                                units: this.rasterConfig.converter.projUnitName
                             });
                             return distance < this.hachureConfig.minSpacing * 1;
                         });
@@ -320,7 +322,8 @@ export class Contour implements IContour {
     intersectHachures(hachures: IHachure[]): IHachure[] {
 
         const intersectHachures: IHachure[] = [];
-        const hachureRay = (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD)) / this.rasterConfig.cellsize;
+        // need to multiply the metersPerUnit multiplier, since height is still in meters, slope angle would be wrong otherwise
+        const hachureRay = (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD)) / (this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit);
 
         for (let i = 0; i < hachures.length; i++) {
 
@@ -403,7 +406,7 @@ export class Contour implements IContour {
                         let minIntersectionDistance = Number.MAX_VALUE;
                         for (let j = 0; j < intersections.features.length; j++) {
                             const intersectionDistance = turf.distance(refPosition, intersections.features[j].geometry.coordinates, {
-                                units: 'meters'
+                                units: this.rasterConfig.converter.projUnitName
                             });
                             if (intersectionDistance < minIntersectionDistance) {
                                 minIntersectionDistance = intersectionDistance;
@@ -430,7 +433,7 @@ export class Contour implements IContour {
             const subGeometry = this.subGeometries[i];
             if (length >= subGeometry.lengthMin && length <= subGeometry.lengthMax) {
                 return turf.along(subGeometry.geometry, length - subGeometry.lengthMin, {
-                    units: 'meters'
+                    units: this.rasterConfig.converter.projUnitName
                 }).geometry.coordinates;
             }
 
@@ -452,7 +455,7 @@ export class Contour implements IContour {
             const subGeometry = this.subGeometries[i];
             if (GeometryUtil.booleanWithinBbox(subGeometry.bbox, positionA)) { // a candidate
                 const pointOnLine = turf.nearestPointOnLine(subGeometry.geometry, positionA, {
-                    units: 'meters'
+                    units: this.rasterConfig.converter.projUnitName
                 });
                 if (pointOnLine.properties.dist < 0.01) {
                     return turf.feature(pointOnLine.geometry, {

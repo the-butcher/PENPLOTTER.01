@@ -7,6 +7,6 @@ import { Position } from "geojson";
  * @since 19.04.2025
  */
 export interface ICropProps {
-    minPosition3857: Position;
-    maxPosition3857: Position;
+    minPositionProj: Position;
+    maxPositionProj: Position;
 }

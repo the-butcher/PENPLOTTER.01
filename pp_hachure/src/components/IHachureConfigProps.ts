@@ -32,3 +32,15 @@ export interface IHachureConfigProps {
     propsCheck: boolean;
     handleHachureConfig: (hachureConfigUpdates: Omit<IHachureConfigProps, 'handleHachureConfig'>) => void;
 }
+
+export const HACHURE_CONFIG_DEFAULT_METERS: Omit<IHachureConfigProps, 'handleHachureConfig'> = {
+    minSpacing: 6,
+    maxSpacing: 8,
+    blurFactor: 0.10,
+    contourOff: 1,
+    contourDiv: 5,
+    hachureDeg: 2.5,
+    contourDsp: 50,
+    azimuthDeg: 280,
+    propsCheck: false
+};

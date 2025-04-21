@@ -8,20 +8,26 @@ import { IPositionWithLength } from "./IPositionWithLength";
 
 export class GeometryUtil {
 
-    static position4326ToPixel = (position4326: Position, rasterConfig: IRasterConfigProps): Position => {
-        const position3857 = turf.toMercator(position4326);
+    static positionProjToPixel = (positionProj: Position, rasterConfig: IRasterConfigProps): Position => {
         return [
-            (position3857[0] - rasterConfig.origin3857[0]) / rasterConfig.cellsize,
-            (rasterConfig.origin3857[1] - position3857[1]) / rasterConfig.cellsize
+            (positionProj[0] - rasterConfig.originProj[0]) / rasterConfig.cellsize,
+            (rasterConfig.originProj[1] - positionProj[1]) / rasterConfig.cellsize
         ];
     };
 
+    static position4326ToPixel = (position4326: Position, rasterConfig: IRasterConfigProps): Position => {
+        // const positionProj = turf.toMercator(position4326);
+        const positionProj = rasterConfig.converter.convert4326ToProj(position4326);
+        return GeometryUtil.positionProjToPixel(positionProj, rasterConfig);
+    };
+
     static pixelToPosition4326 = (pixel: Position, rasterConfig: IRasterConfigProps): Position => {
-        const position3857 = [
-            pixel[0] * rasterConfig.cellsize + rasterConfig.origin3857[0],
-            rasterConfig.origin3857[1] - pixel[1] * rasterConfig.cellsize
+        const positionProj = [
+            pixel[0] * rasterConfig.cellsize + rasterConfig.originProj[0],
+            rasterConfig.originProj[1] - pixel[1] * rasterConfig.cellsize
         ];
-        return turf.toWgs84(position3857);
+        // return turf.toWgs84(positionProj);
+        return rasterConfig.converter.convertProjTo4326(positionProj);
     };
 
     static booleanWithinBbox(bbox: BBox, point: Position) {
@@ -120,8 +126,9 @@ export class GeometryUtil {
 
     }
 
-    static position3857ToPositionProperties(position3857: Position, rasterConfig: IRasterConfigProps): IPositionProperties {
-        const position4326 = turf.toWgs84(position3857);
+    static positionProjToPositionProperties(positionProj: Position, rasterConfig: IRasterConfigProps): IPositionProperties {
+        // const position4326 = turf.toWgs84(positionProj);
+        const position4326 = rasterConfig.converter.convertProjTo4326(positionProj);
         const positionPixl = GeometryUtil.position4326ToPixel(position4326, rasterConfig);
         return {
             position4326,
@@ -131,23 +138,24 @@ export class GeometryUtil {
 
     static smoothPositions(positionsA: IPositionProperties[], rasterConfig: IRasterConfigProps): IPositionProperties[] {
 
-        const coordinates3857A = positionsA.map(p => turf.toMercator(p.position4326));
+        // const coordinatesProjA = positionsA.map(p => turf.toMercator(p.position4326));
+        const coordinatesProjA = positionsA.map(p => rasterConfig.converter.convert4326ToProj(p.position4326));
 
-        const coordinates3857ALength: IPositionWithLength[] = [];
+        const coordinatesProjALength: IPositionWithLength[] = [];
 
         // build an array of positions at their lengths along the path
         let length = 0;
-        coordinates3857ALength.push({
+        coordinatesProjALength.push({
             length,
-            position: coordinates3857A[0]
+            position: coordinatesProjA[0]
         });
-        for (let i = 0; i < coordinates3857A.length - 1; i++) {
-            const xDiff = coordinates3857A[i + 1][0] - coordinates3857A[i][0];
-            const yDiff = coordinates3857A[i + 1][1] - coordinates3857A[i][1];
+        for (let i = 0; i < coordinatesProjA.length - 1; i++) {
+            const xDiff = coordinatesProjA[i + 1][0] - coordinatesProjA[i][0];
+            const yDiff = coordinatesProjA[i + 1][1] - coordinatesProjA[i][1];
             length += Math.sqrt(xDiff ** 2 + yDiff ** 2);
-            coordinates3857ALength.push({
+            coordinatesProjALength.push({
                 length,
-                position: coordinates3857A[i + 1]
+                position: coordinatesProjA[i + 1]
             });
         }
 
@@ -155,37 +163,37 @@ export class GeometryUtil {
 
         const positionsB: IPositionProperties[] = [];
 
-        positionsB.push(GeometryUtil.position3857ToPositionProperties(coordinates3857ALength[0].position, rasterConfig));
-        for (let i = 0; i < coordinates3857ALength.length; i++) {
+        positionsB.push(GeometryUtil.positionProjToPositionProperties(coordinatesProjALength[0].position, rasterConfig));
+        for (let i = 0; i < coordinatesProjALength.length; i++) {
 
             let xSum = 0;
             let ySum = 0;
             let wSum = 0;
 
-            for (let j = 0; j < coordinates3857ALength.length; j++) {
+            for (let j = 0; j < coordinatesProjALength.length; j++) {
 
-                const lCur = Math.abs(coordinates3857ALength[i].length - coordinates3857ALength[j].length);
+                const lCur = Math.abs(coordinatesProjALength[i].length - coordinatesProjALength[j].length);
                 if (lCur <= lMax) {
 
                     // const wCur = (lMax - lCur) / lMax;
                     // https://www.desmos.com/calculator/abn1jhhprz
                     const wCur = (Math.cos(lCur * Math.PI / lMax) + 1) / 2;
 
-                    xSum += coordinates3857ALength[j].position[0] * wCur;
-                    ySum += coordinates3857ALength[j].position[1] * wCur;
+                    xSum += coordinatesProjALength[j].position[0] * wCur;
+                    ySum += coordinatesProjALength[j].position[1] * wCur;
                     wSum += wCur;
                 }
 
             }
 
-            const position3857: Position = [
+            const positionProj: Position = [
                 xSum / wSum,
                 ySum / wSum
             ];
-            positionsB.push(GeometryUtil.position3857ToPositionProperties(position3857, rasterConfig));
+            positionsB.push(GeometryUtil.positionProjToPositionProperties(positionProj, rasterConfig));
 
         }
-        positionsB.push(GeometryUtil.position3857ToPositionProperties(coordinates3857ALength[coordinates3857ALength.length - 1].position, rasterConfig));
+        positionsB.push(GeometryUtil.positionProjToPositionProperties(coordinatesProjALength[coordinatesProjALength.length - 1].position, rasterConfig));
 
         return positionsB;
 
@@ -200,16 +208,17 @@ export class GeometryUtil {
      */
     static simplifyPositions(positionsA: IPositionProperties[], rasterConfig: IRasterConfigProps): IPositionProperties[] {
 
-        let coordinates3857A = positionsA.map(p => turf.toMercator(p.position4326));
+        // let coordinatesProjA = positionsA.map(p => turf.toMercator(p.position4326));
+        let coordinatesProjA = positionsA.map(p => rasterConfig.converter.convert4326ToProj(p.position4326));
 
-        let coordinatesXY = coordinates3857A.map(c => {
+        let coordinatesXY = coordinatesProjA.map(c => {
             return {
                 x: c[0],
                 y: c[1]
             };
         });
         coordinatesXY = simplify(coordinatesXY, 0.10, true);
-        coordinates3857A = coordinatesXY.map(c => {
+        coordinatesProjA = coordinatesXY.map(c => {
             return [
                 c.x,
                 c.y
@@ -217,8 +226,8 @@ export class GeometryUtil {
         });
 
         const positionsB: IPositionProperties[] = [];
-        for (let i = 0; i < coordinates3857A.length; i++) {
-            positionsB.push(GeometryUtil.position3857ToPositionProperties(coordinates3857A[i], rasterConfig));
+        for (let i = 0; i < coordinatesProjA.length; i++) {
+            positionsB.push(GeometryUtil.positionProjToPositionProperties(coordinatesProjA[i], rasterConfig));
         }
         return positionsB;
 
