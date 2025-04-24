@@ -2,21 +2,24 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import UploadIcon from '@mui/icons-material/Upload';
 import { Button, Divider, FormHelperText, Grid, TextField } from "@mui/material";
 import { Position } from "geojson";
+import proj4, { ProjectionDefinition } from 'proj4';
 import { useEffect, useRef, useState } from "react";
 import { IRange } from '../util/IRange';
 import { IActiveStepProps } from './IActiveStepProps';
+import { ICoordinateConverter } from './ICoordinateConverter';
 import { STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterConfigProps } from "./IRasterConfigProps";
-import proj4, { ProjectionDefinition } from 'proj4';
-import { ICoordinateConverter } from './ICoordinateConverter';
 import { TUnitAbbr, TUnitName } from './TUnit';
 
 export const areRasterConfigPropsValid = (props: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
     return props.cellsize > 0 && props.valueRange.max > props.valueRange.min;
 };
 
+type FIELD_COLOR = "primary" | "error" | "secondary" | "info" | "success" | "warning";
+
+
 /**
- * this component shows input fields for raster configuration and offers the possibility to upload an existing config file
+ * this component shows input fields for raster configuration and offers the possibility to import an existing config file
  *
  * @param props
  * @returns
@@ -34,10 +37,13 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
     const [converterInt, setConverterInt] = useState<ICoordinateConverter>(converter);
     const [valueRangeInt, setValueRangeInt] = useState<IRange>(valueRange);
 
+    const [wktColor, setWktColor] = useState<FIELD_COLOR>('primary');
+
     const handleRasterConfigToRef = useRef<number>(-1);
 
     useEffect(() => {
         console.debug('✨ building RasterConfigComponent');
+        // proj4(GeometryUtil.WKT_3857); // be sure proj4 is ready when the user first updates a value
     }, []);
 
     useEffect(() => {
@@ -64,6 +70,79 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
     useEffect(() => {
 
         console.debug('⚙ updating RasterConfigComponent (cellsizeInt, valueRangeInt, originProjInt, converterInt)', cellsizeInt, valueRangeInt, originProjInt, converterInt);
+        handleRasterConfigInt();
+
+    }, [cellsizeInt, valueRangeInt, originProjInt, converterInt]);
+
+    useEffect(() => {
+
+        console.debug('⚙ updating RasterConfigComponent (wktInt)', wktInt);
+
+        if (wktInt) {
+
+            try {
+
+                const proj4Converter = proj4(wktInt);
+                console.log('proj4Converter', proj4Converter);
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const proj4Definition = (proj4Converter as any)['oProj'] as ProjectionDefinition;
+                console.log('proj4Definition', proj4Definition);
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const proj4Unit = (proj4Definition as any)['UNIT'];
+
+                let unitName: TUnitName | undefined;
+                let unitAbbr: TUnitAbbr | undefined;
+
+                const proj4UnitName = proj4Unit.name as string;
+                if ((proj4UnitName.toLowerCase().indexOf('meter') != -1)) {
+                    unitName = 'meters';
+                    unitAbbr = 'm';
+                } else if ((proj4UnitName.toLowerCase().indexOf('foot') != -1)) {
+                    unitName = 'feet';
+                    unitAbbr = 'ft';
+                }
+                console.log('proj4Unit', proj4Unit);
+
+                if (!unitName || !unitAbbr) {
+                    handleAlertProps({
+                        severity: 'error',
+                        title: 'Unsupported unit!',
+                        message: `The unit of the wkt string must be meters or feet or degrees, but found ${proj4UnitName}.`
+                    });
+                    setWktColor('error');
+                    return;
+                }
+
+                setWktColor('success');
+
+                // type Units = "meters" | "metres" | "millimeters" | "millimetres" | "centimeters" | "centimetres" | "kilometers" | "kilometres" | "miles" | "nauticalmiles" | "inches" | "yards" | "feet" | "radians" | "degrees";
+                const _converter: ICoordinateConverter = {
+                    convert4326ToProj: proj4Converter.forward,
+                    convertProjTo4326: proj4Converter.inverse,
+                    projUnitName: unitName,
+                    projUnitAbbr: unitAbbr,
+                    metersPerUnit: proj4Unit.convert
+                };
+                setConverterInt(_converter);
+                console.log('_converter', _converter);
+
+                handleRasterConfigInt();
+
+            } catch (e: unknown) {
+
+                setWktColor('error');
+                console.warn(e);
+
+            }
+
+
+        }
+
+    }, [wktInt]);
+
+    const handleRasterConfigInt = () => {
         window.clearTimeout(handleRasterConfigToRef.current);
         handleRasterConfigToRef.current = window.setTimeout(() => {
             handleRasterConfig({
@@ -74,12 +153,14 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                 converter: converterInt
             });
         }, 100);
-
-    }, [cellsizeInt, valueRangeInt, originProjInt, converterInt]);
-
+    };
 
     const handleCellsizeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCellsizeInt(event.target.value === '' ? cellsizeInt : Number(event.target.value));
+    };
+
+    const handleWktInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setWktInt(event.target.value);
     };
 
     const handleOriginProjXInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +191,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
         });
     };
 
-    const handleRasterConfigUpload = (fileList: FileList) => {
+    const handleRasterConfigImport = (fileList: FileList) => {
         if (fileList.length > 0) {
             const file = fileList.item(0);
             file!.text().then(text => {
@@ -121,54 +202,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                     setCellsizeInt(_rasterConfig.cellsize);
                     setValueRangeInt(_rasterConfig.valueRange);
                     setOriginProjInt(_rasterConfig.originProj);
-
-                    const proj4Converter = proj4(_rasterConfig.wkt);
-                    console.log('proj4Converter', proj4Converter);
-
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const proj4Definition = (proj4Converter as any)['oProj'] as ProjectionDefinition;
-                    console.log('proj4Definition', proj4Definition);
-
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const proj4Unit = (proj4Definition as any)['UNIT'];
-
-                    let unitName: TUnitName | undefined;
-                    let unitAbbr: TUnitAbbr | undefined;
-
-                    const proj4UnitName = proj4Unit.name as string;
-                    if ((proj4UnitName.toLowerCase().indexOf('meter') != -1)) {
-                        unitName = 'meters';
-                        unitAbbr = 'm';
-                    } else if ((proj4UnitName.toLowerCase().indexOf('foot') != -1)) {
-                        unitName = 'feet';
-                        unitAbbr = 'ft';
-                    } else if ((proj4UnitName.toLowerCase().indexOf('degree') != -1)) {
-                        unitName = 'degrees';
-                        unitAbbr = 'deg';
-                    }
-                    console.log('proj4Unit', proj4Unit);
-
-                    if (!unitName || !unitAbbr) {
-                        handleAlertProps({
-                            severity: 'error',
-                            title: 'Unsupported unit!',
-                            message: `The unit of the wkt string must be meters or feet or degrees, but found ${proj4UnitName}.`
-                        });
-                        return;
-                    }
-
-                    // type Units = "meters" | "metres" | "millimeters" | "millimetres" | "centimeters" | "centimetres" | "kilometers" | "kilometres" | "miles" | "nauticalmiles" | "inches" | "yards" | "feet" | "radians" | "degrees";
-
-
-                    const _converter: ICoordinateConverter = {
-                        convert4326ToProj: proj4Converter.forward,
-                        convertProjTo4326: proj4Converter.inverse,
-                        projUnitName: unitName,
-                        projUnitAbbr: unitAbbr,
-                        metersPerUnit: proj4Unit.convert
-                    };
-                    setConverterInt(_converter);
-                    console.log('_converter', _converter);
+                    setWktInt(_rasterConfig.wkt);
 
                 } else if (file!.name.endsWith('pgw')) {
                     const lines = text.split(/\r?\n/);
@@ -205,6 +239,28 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
         >
             <Grid item xs={12}>
                 <TextField
+                    label={'wkt'}
+                    value={wktInt}
+                    variant={'outlined'}
+                    size={'small'}
+                    color={wktColor}
+                    onChange={handleWktInputChange}
+                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    sx={{
+                        width: '100%'
+                    }}
+                    slotProps={{
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
+                />
+                {
+                    showHelperTexts ? <FormHelperText>the <a href='https://en.wikipedia.org/wiki/Well-known_text_representation_of_coordinate_reference_systems' rel='noreferrer' target='_blank'>WKT</a> string of the raster data spatial reference. x and y units are derived from the spatial reference. vertical units are assumed to be meters</FormHelperText> : null
+                }
+            </Grid>
+            <Grid item xs={12}>
+                <TextField
                     label={`cellsize (${converterInt.projUnitAbbr})`}
                     value={cellsizeInt > 0 ? cellsizeInt : ''}
                     type={'number'}
@@ -219,8 +275,8 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                     slotProps={{
                         htmlInput: {
                             step: 1,
-                            min: 1,
-                            max: 100,
+                            min: 0.01,
+                            max: 1000,
                             type: 'number'
                         },
                         inputLabel: {
@@ -327,10 +383,10 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                         tabIndex={-1}
                         startIcon={<UploadIcon />}
                     >
-                        upload raster config
+                        import raster config
                         <input
                             type={'file'}
-                            onChange={(event) => handleRasterConfigUpload(event.target.files!)}
+                            onChange={(event) => handleRasterConfigImport(event.target.files!)}
                             accept={'.pgc, .pgw'}
                             style={{
                                 clip: 'rect(0 0 0 0)',
@@ -346,7 +402,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                         />
                     </Button>
                     {
-                        showHelperTexts ? <FormHelperText>upload a .pgc raster config file (<a href="example.pgc" target='_blank'>example.pgc</a>) or a .pgw world file (<a href="example.pgw" target='_blank'>example.pgw</a>) for convenience</FormHelperText> : null
+                        showHelperTexts ? <FormHelperText>import a .pgc raster config file (<a href="example.pgc" target='_blank'>example.pgc</a>) or a .pgw world file (<a href="example.pgw" target='_blank'>example.pgw</a>) for convenience</FormHelperText> : null
                     }
 
                 </Grid> : null

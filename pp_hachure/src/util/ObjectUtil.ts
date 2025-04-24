@@ -21,4 +21,12 @@ export class ObjectUtil {
         return dstRange.min + (valI - srcRange.min) * (dstRange.max - dstRange.min) / (srcRange.max - srcRange.min);
     }
 
+    static roundFlex(value: number): number {
+        const log = Math.round(Math.log10(value * 0.001));
+        const mlt = 10 ** log;
+        const res = Math.round(Math.round(value / mlt) * mlt * 100) / 100; // never more than 2 digits
+        // console.log(value, log, mlt, res);
+        return res;
+    }
+
 }

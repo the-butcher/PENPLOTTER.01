@@ -74,6 +74,7 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                             component={'label'}
                             role={undefined}
                             variant={'contained'}
+                            size={'small'}
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
                             onClick={handleHachureExport}
@@ -91,6 +92,7 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                             component={'label'}
                             role={undefined}
                             variant={'contained'}
+                            size={'small'}
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
                             onClick={handleContourExport}
@@ -110,6 +112,7 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                     >
                         <Button
                             variant={'contained'}
+                            size={'small'}
                             onClick={() => handleActiveStep({
                                 activeStep: STEP_INDEX_HACHURE__CONFIG
                             })}

@@ -9,16 +9,17 @@ import { Raster } from '../raster/Raster';
 import { ObjectUtil } from '../util/ObjectUtil';
 import ContentComponent from './ContentComponent';
 import CropComponent from './CropComponent';
-import HachureConfigComponent from './HachureConfigComponent';
+import HachureConfigComponent, { toAvgSpacingDefault, toContourDivDefault, toHachureDimDefault } from './HachureConfigComponent';
 import HachureProcessComponent from './HachureProcessComponent';
 import { IActiveStepProps } from './IActiveStepProps';
-import { HACHURE_CONFIG_DEFAULT_METERS, IHachureConfigProps } from './IHachureConfigProps';
+import { HACHURE_CONFIG_DEFAULT_METERS, IHachureConfigProps, toContourDspOption, toContourOffOptions } from './IHachureConfigProps';
 import { IHachureProcessProps } from './IHachureProcessProps';
 import { IRasterConfigProps } from './IRasterConfigProps';
 import { IRasterDataProps } from './IRasterDataProps';
 import RasterConfigComponent, { areRasterConfigPropsValid } from './RasterConfigComponent';
 import RasterDataComponent, { areRasterDataPropsValid } from './RasterDataComponent';
 import { IAlertProps } from "./IAlertProps";
+import { GeometryUtil } from "../util/GeometryUtil";
 
 export const STEP_INDEX_COMMON___CONFIG = 0;
 export const STEP_INDEX_RASTER___CONFIG = 1;
@@ -52,7 +53,7 @@ function ImageLoaderComponent() {
     const setContourToRef = useRef<number>(-1);
 
     const handleRasterConfig = (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
-        console.debug(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
+        console.log(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
         setRasterConfig({
             ...rasterConfigUpdates,
             handleRasterConfig
@@ -62,19 +63,21 @@ function ImageLoaderComponent() {
             ...rasterData,
             valueRange: rasterConfigUpdates.valueRange
         });
-        setHachureConfig({
-            ...HACHURE_CONFIG_DEFAULT_METERS,
-            minSpacing: 6 / rasterConfigUpdates.converter.metersPerUnit,
-            maxSpacing: 8 / rasterConfigUpdates.converter.metersPerUnit,
-            blurFactor: 0.10,
-            contourOff: 1,
-            contourDiv: 5 / rasterConfigUpdates.converter.metersPerUnit,
-            hachureDeg: 2.5,
-            contourDsp: 50,
-            azimuthDeg: 280,
-            propsCheck: false,
-            handleHachureConfig
-        });
+        if (rasterConfigUpdates.cellsize > 0) {
+            const contourDsp = toContourDspOption(2 * rasterConfigUpdates.cellsize / rasterConfigUpdates.converter.metersPerUnit);
+            const avgSpacing = toAvgSpacingDefault(rasterConfigUpdates);
+            const contourDiv = toContourDivDefault(rasterConfigUpdates);
+            const hachureDim = toHachureDimDefault(rasterConfigUpdates);
+            setHachureConfig({
+                ...hachureConfig,
+                avgSpacing,
+                contourOff: toContourOffOptions(contourDsp)[1],
+                contourDiv,
+                contourDsp,
+                hachureDim,
+                handleHachureConfig
+            });
+        }
     };
 
     const handleRasterData = (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
@@ -154,7 +157,7 @@ function ImageLoaderComponent() {
     });
     const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
         cellsize: -1,
-        wkt: '',
+        wkt: GeometryUtil.WKT_3857,
         valueRange: {
             min: 0,
             max: 1
@@ -243,10 +246,11 @@ function ImageLoaderComponent() {
     const fetchContours = (height: number): IContour[] => {
 
         // get initial contour
+        const minLength = hachureConfig.contourDiv * 2;
         const _contours: IContour[] = [];
         const contourFeatures = Raster.getContourFeatures(rasterData, [height], rasterConfig).filter(f => turf.length(f, {
-            units: 'meters'
-        }) > hachureConfig.contourDiv * 2); // skip very short contour lines
+            units: rasterConfig.converter.projUnitName
+        }) > minLength); // skip very short contour lines
         contourFeatures.forEach(contourFeature => {
             _contours.push(new Contour(contourFeature, rasterConfig, hachureConfig, p => Raster.getRasterValue(rasterData, p[0], p[1])));
         });
@@ -309,7 +313,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.debug('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
+        console.log('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
 
         if (hachureConfig.blurFactor !== rasterData.blurFactor) {
             if (areRasterDataPropsValid(rasterDataRaw)) {
@@ -441,6 +445,8 @@ function ImageLoaderComponent() {
 
                 } else { // done
 
+                    // console.warn("no more next");
+
                     _contours.forEach(c => c.complete = true);
 
                     hachuresProgressRef.current.forEach(h => {
@@ -468,6 +474,11 @@ function ImageLoaderComponent() {
                     ...hachuresProgressRef.current,
                     ...hachuresCompleteRef.current
                 ]);
+
+            } else {
+
+                // TODO :: if not finalized yet => finalize (and maybe run another handleHachure iteration)
+                // console.warn("no more curr");
 
             }
 
@@ -648,6 +659,7 @@ function ImageLoaderComponent() {
                                 }
                                 <HachureConfigComponent {...{
                                     ...hachureConfig,
+                                    ...rasterConfig,
                                     ...activeStep
                                 }} />
                             </StepContent>

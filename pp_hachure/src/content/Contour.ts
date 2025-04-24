@@ -23,12 +23,15 @@ export class Contour implements IContour {
     readonly id: string;
     readonly svgData: string;
     complete: boolean;
+    private closed: boolean;
     private height: number;
     private length: number;
     private scaledLength: number;
 
     private rasterConfig: IRasterConfigProps;
     private hachureConfig: IHachureConfigProps;
+    private minSpacing: number;
+    private maxSpacing: number;
 
     private subGeometries: ISubGeometry[];
 
@@ -36,6 +39,8 @@ export class Contour implements IContour {
     private vertices: IContourVertex[];
 
     constructor(feature: Feature<LineString, IContourProperties>, rasterConfig: IRasterConfigProps, hachureConfig: IHachureConfigProps, heightFunction: (positionPixl: Position) => number) {
+
+        // console.log(feature.geometry);
 
         this.id = ObjectUtil.createId();
         this.height = feature.properties.height;
@@ -46,11 +51,14 @@ export class Contour implements IContour {
             units: this.rasterConfig.converter.projUnitName
         });
 
-        const weightCalcSegments = Math.round(this.length / this.hachureConfig.contourDiv);
+        this.minSpacing = this.hachureConfig.avgSpacing * 6 / 7;
+        this.maxSpacing = this.hachureConfig.avgSpacing * 8 / 7;
+
+        const weightCalcSegments = Math.max(3, Math.round(this.length / this.hachureConfig.contourDiv));
         this.weightCalcIncrement = this.length / weightCalcSegments;
 
-        console.log('contour', this.height, this.rasterConfig.converter.projUnitName, this.length);
-        console.log('weightCalcSegments', weightCalcSegments);
+        // console.log('contour', this.height, this.rasterConfig.converter.projUnitName, this.length);
+        // console.log('weightCalcSegments', weightCalcSegments);
 
         this.vertices = [];
         this.subGeometries = [];
@@ -71,6 +79,16 @@ export class Contour implements IContour {
             });
         }
 
+        const subgeom0 = this.subGeometries[0].geometry;
+        const subgeomN = this.subGeometries[this.subGeometries.length - 1].geometry;
+        const coord0 = subgeom0.coordinates[0];
+        const coordN = subgeomN.coordinates[subgeomN.coordinates.length - 1];
+        this.closed = turf.distance(coord0, coordN, {
+            units: 'meters'
+        }) < 0.1;
+
+        // TODO :: if closed wrap around
+
         let position4326A = feature.geometry.coordinates[0]; // start with initial coordinate
         let position4326I = this.findPointAlong(this.weightCalcIncrement)!;
         let position4326B: Position | undefined; // positionB along contour (in terms of fixed vertex increment)
@@ -80,7 +98,8 @@ export class Contour implements IContour {
         let positionPixlB: Position | undefined;
         let positionPixlS: Position | undefined;
 
-        let length = 0;
+        let lengthI = this.weightCalcIncrement;
+        let lengthB = this.weightCalcIncrement * 2;
         let slope = 0;
         let aspect = 0;
         let scaledLength = 0;
@@ -96,23 +115,47 @@ export class Contour implements IContour {
         while (azimuthDeg > 360) {
             azimuthDeg -= 360;
         }
+        const lenS = 5;
         // console.log('azimuthDeg', azimuthDeg);
+
+        if (closed) {
+
+            const position4326AX = feature.geometry.coordinates[feature.geometry.coordinates.length - 2]; // 1 before end
+            const position4326BX = feature.geometry.coordinates[1]; // 1 after start
+
+            const positionPixlAX = GeometryUtil.position4326ToPixel(position4326AX, this.rasterConfig);
+            const positionPixlBX = GeometryUtil.position4326ToPixel(position4326BX, this.rasterConfig);
+
+            const dX = positionPixlBX[0] - positionPixlAX[0];
+            const dY = positionPixlBX[1] - positionPixlAX[1];
+            aspect = Math.atan2(dY, dX) * Raster.RAD2DEG - 90;
+
+            // DUPLICATION !!
+            positionPixlS = [
+                positionPixlI[0] - Math.cos(aspect * Raster.DEG2RAD) * lenS / this.rasterConfig.cellsize,
+                positionPixlI[1] - Math.sin(aspect * Raster.DEG2RAD) * lenS / this.rasterConfig.cellsize
+            ];
+            const heightI = heightFunction(positionPixlI);
+            const heightS = heightFunction(positionPixlS);
+            slope = Math.atan2(heightI - heightS, lenS) * Raster.RAD2DEG;
+
+        }
 
         this.vertices.push({
             position4326: position4326A,
             positionPixl: positionPixlA,
-            length,
-            slope, // start with 0, but later copy back or extrapolate
-            aspect, // start with 0, but later copy back or extrapolate
+            length: 0,
+            slope,
+            aspect,
             scaledLength
         });
-        const lenS = 5;
 
-        for (let i = 1; i <= weightCalcSegments - 1; i++) {
+        for (let i = 1; i < weightCalcSegments; i++) {
 
-            length = (i + 1) * this.weightCalcIncrement;
+            lengthI = i * this.weightCalcIncrement;
+            lengthB = lengthI + this.weightCalcIncrement;
 
-            position4326B = this.findPointAlong(length)!;
+            position4326B = this.findPointAlong(lengthB)!;
             positionPixlB = GeometryUtil.position4326ToPixel(position4326B, this.rasterConfig);
 
             const dX = positionPixlB[0] - positionPixlA[0];
@@ -145,7 +188,7 @@ export class Contour implements IContour {
             this.vertices.push({
                 position4326: position4326I,
                 positionPixl: positionPixlI,
-                length,
+                length: lengthI,
                 aspect,
                 slope,
                 scaledLength: scaledLength
@@ -162,25 +205,33 @@ export class Contour implements IContour {
         this.vertices[0].aspect = this.vertices[1].aspect; // TODO :: extrapolation of needed
         this.vertices[0].slope = this.vertices[1].slope; // TODO :: extrapolation of needed
 
-        if (this.length > length) {
-            length = this.length;
-            aspect = this.vertices[this.vertices.length - 1].aspect;
-            slope = this.vertices[this.vertices.length - 1].slope;
-            scaledLength = this.vertices[this.vertices.length - 1].scaledLength * 2 - this.vertices[this.vertices.length - 2].scaledLength;
-            this.vertices.push({
-                position4326: position4326B!,
-                positionPixl: positionPixlB!,
-                length,
-                slope,
-                aspect,
-                scaledLength: scaledLength
-            });
+        lengthB = this.length;
+        aspect = this.vertices[this.vertices.length - 1].aspect;
+        slope = this.vertices[this.vertices.length - 1].slope;
+        scaledLength = this.vertices[this.vertices.length - 1].scaledLength * 2 - this.vertices[this.vertices.length - 2].scaledLength;
+        this.vertices.push({
+            position4326: position4326B!,
+            positionPixl: positionPixlB!,
+            length: lengthB,
+            slope,
+            aspect,
+            scaledLength: scaledLength
+        });
+
+        // reevaluate aspect when closed
+        if (this.closed) {
+
+            this.vertices[this.vertices.length - 1].aspect = this.vertices[0].aspect;
+            this.vertices[this.vertices.length - 1].slope = this.vertices[0].slope;
+
         }
 
         const coordinates: Position[] = [];
         this.vertices.forEach(contourVertex => {
             coordinates.push(contourVertex.position4326);
         });
+
+        this.subGeometries = [];
 
         // split to multiple geometries to speed up calculations later
         const subGeometryCountB = Math.ceil(this.vertices.length / 50);
@@ -223,7 +274,9 @@ export class Contour implements IContour {
         const extraHachures: IHachure[] = [];
 
         const scaledLengths: number[] = [];
+
         scaledLengths.push(0);
+        scaledLengths.push(this.scaledLength);
 
         for (let i = 0; i < hachuresProgress.length; i++) {
 
@@ -235,19 +288,19 @@ export class Contour implements IContour {
 
                 const length = nearestPoint.properties.location;
                 const scaledLength = this.lengthToScaledLength(length);
-                const hasWeightLengthSmallerThanMin = scaledLengths.find(w => Math.abs(scaledLength - w) < this.hachureConfig.minSpacing);
+                const hasWeightLengthSmallerThanMin = scaledLengths.find(w => Math.abs(scaledLength - w) < this.minSpacing);
                 if (hasWeightLengthSmallerThanMin) {
                     // TODO :: depending on distances before or after it may also make sense to discontinue/complete the previous line
                     hachure.complete = true;
                 }
-                //  else {
+                // else {
                 scaledLengths.push(scaledLength); // scaledLength is added regardless of complete state that may just have been set, in some cases another line would be started right away otherwise
                 // }
 
             }
 
         }
-        scaledLengths.push(this.scaledLength);
+        // scaledLengths.push(this.scaledLength);
         scaledLengths.sort();
 
         let extraHachureAdded = true;
@@ -261,7 +314,7 @@ export class Contour implements IContour {
             for (let i = 0; i < _scaledLengths.length - 1; i++) {
 
                 const scaledLengthDiff = _scaledLengths[i + 1] - _scaledLengths[i];
-                if (scaledLengthDiff > this.hachureConfig.maxSpacing * 2) { // enough space to fit one extra
+                if (scaledLengthDiff > this.maxSpacing * 2) { // enough space to fit one extra
 
                     const scaledLength = _scaledLengths[i] + scaledLengthDiff / 2;
                     const length = this.scaledLengthToLength(scaledLength);
@@ -273,16 +326,16 @@ export class Contour implements IContour {
 
                         const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
                             const lastVertex = h.getLastVertex();
-                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > this.hachureConfig.minSpacing * 3 / this.rasterConfig.cellsize) {
+                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > this.hachureConfig.avgSpacing * 30 / this.rasterConfig.cellsize) {
                                 return false;
                             }
-                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > this.hachureConfig.minSpacing * 3 / this.rasterConfig.cellsize) {
+                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > this.hachureConfig.avgSpacing * 30 / this.rasterConfig.cellsize) {
                                 return false;
                             }
                             const distance = turf.distance(position4326, lastVertex.position4326, {
                                 units: this.rasterConfig.converter.projUnitName
                             });
-                            return distance < this.hachureConfig.minSpacing * 1;
+                            return distance < this.hachureConfig.avgSpacing * 30 / this.rasterConfig.cellsize;
                         });
 
                         if (!hasNearbyEndOfCompletedHachure) {
@@ -297,7 +350,7 @@ export class Contour implements IContour {
                                 aspect,
                                 height: this.height,
                                 slope
-                            }, this.rasterConfig);
+                            }, this.rasterConfig, this.hachureConfig);
                             extraHachures.push(extraHachure);
                             extraHachureAdded = true;
 
@@ -322,8 +375,13 @@ export class Contour implements IContour {
     intersectHachures(hachures: IHachure[]): IHachure[] {
 
         const intersectHachures: IHachure[] = [];
-        // need to multiply the metersPerUnit multiplier, since height is still in meters, slope angle would be wrong otherwise
+        // ray length in pixel units
+        // const baselineM = (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD));
+        // const cellsizeM = this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit;
+        // console.log('baselineM', baselineM, 'cellsizeM', cellsizeM);
+
         const hachureRay = (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD)) / (this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit);
+        // console.log('hachureRay', hachureRay);
 
         for (let i = 0; i < hachures.length; i++) {
 

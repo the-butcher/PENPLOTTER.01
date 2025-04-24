@@ -1,12 +1,27 @@
+import DownloadIcon from '@mui/icons-material/Download';
+import UploadIcon from '@mui/icons-material/Upload';
+
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { Button, Divider, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, SelectChangeEvent, Slider, TextField } from "@mui/material";
+import { Button, Divider, FormControl, FormControlLabel, FormHelperText, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, Slider, TextField } from "@mui/material";
 import { Mark } from '@mui/material/Slider/useSlider.types';
 import { useEffect, useRef, useState } from "react";
 import { IActiveStepProps } from './IActiveStepProps';
-import { IHachureConfigProps } from './IHachureConfigProps';
+import { CONTOUR_DSP_OPTIONS, IHachureConfigProps, toContourOffOption, toContourOffOptions } from './IHachureConfigProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS, STEP_INDEX_RASTER_____DATA } from './ImageLoaderComponent';
 import { IRange } from '../util/IRange';
+import { IRasterConfigProps } from './IRasterConfigProps';
+import { ObjectUtil } from '../util/ObjectUtil';
+
+export const toAvgSpacingDefault = (rasterConfig: Pick<IRasterConfigProps, 'cellsize' | 'converter'>) => {
+    return ObjectUtil.roundFlex(0.7 * rasterConfig.cellsize / rasterConfig.converter.metersPerUnit);
+};
+export const toContourDivDefault = (rasterConfig: Pick<IRasterConfigProps, 'cellsize' | 'converter'>) => {
+    return ObjectUtil.roundFlex(0.5 * rasterConfig.cellsize / rasterConfig.converter.metersPerUnit);
+};
+export const toHachureDimDefault = (rasterConfig: Pick<IRasterConfigProps, 'cellsize' | 'converter'>) => {
+    return ObjectUtil.roundFlex(10 * rasterConfig.cellsize / rasterConfig.converter.metersPerUnit);
+};
 
 /**
  * this component offerst inputs for the hachure configuration
@@ -17,16 +32,17 @@ import { IRange } from '../util/IRange';
  * @author h.fleischer
  * @since 19.04.2025
  */
-function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
+function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps & IActiveStepProps) {
 
-    const { minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg, propsCheck, handleHachureConfig, activeStep, showHelperTexts, handleActiveStep } = { ...props };
+    const { avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg, propsCheck, handleHachureConfig, converter, activeStep, showHelperTexts, handleActiveStep } = { ...props };
 
-    const [minSpacingInt, setMinSpacingInt] = useState<number>(minSpacing);
-    const [maxSpacingInt, setMaxSpacingInt] = useState<number>(maxSpacing);
+    const [avgSpacingInt, setAvgSpacingInt] = useState<number>(avgSpacing);
     const [blurFactorInt, setBlurFactorInt] = useState<number>(blurFactor);
     const [contourOffInt, setContourOffInt] = useState<number>(contourOff);
     const [contourDivInt, setContourDivInt] = useState<number>(contourDiv);
     const [hachureDegInt, setHachureDegInt] = useState<number>(hachureDeg);
+    const [hachureDimInt, setHachureDimInt] = useState<number>(hachureDim);
+    const [hachureArrInt, setHachureArrInt] = useState<boolean>(hachureArr);
     const [contourDspInt, setContourDspInt] = useState<number>(contourDsp);
     const [azimuthDegInt, setAzimuthDegInt] = useState<number>(azimuthDeg);
     const [propsCheckInt, setPropsCheckInt] = useState<boolean>(propsCheck);
@@ -35,20 +51,27 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         min: 0.1,
         max: 5
     };
-    const minSpacingMin = 1;
-    const maxSpacingMax = 30;
-    const contourOffRange: IRange = {
-        min: 0.1,
-        max: 5
+
+    const avgSpacingDefault = toAvgSpacingDefault(props);
+    const avgSpacingRange: IRange = {
+        min: ObjectUtil.roundFlex(avgSpacingDefault / 10),
+        max: ObjectUtil.roundFlex(avgSpacingDefault * 5)
     };
+    const contourDivDefault = toContourDivDefault(props);
     const contourDivRange: IRange = {
-        min: 1,
-        max: 20
+        min: ObjectUtil.roundFlex(contourDivDefault / 10),
+        max: ObjectUtil.roundFlex(contourDivDefault * 5)
     };
     const hachureDegRange: IRange = {
         min: 1,
         max: 20
     };
+    const hachureDimDefault = toHachureDimDefault(props);
+    const hachureDimRange: IRange = {
+        min: ObjectUtil.roundFlex(hachureDimDefault / 5),
+        max: ObjectUtil.roundFlex(hachureDimDefault * 5)
+    };
+    // console.log('hachureDimRange', hachureDimRange);
 
     const handleHachureConfigToRef = useRef<number>(-1);
 
@@ -58,12 +81,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
 
     useEffect(() => {
 
-        console.debug('⚙ updating HachureConfigComponent (minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg)', minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, azimuthDeg, contourDsp);
-        if (minSpacing) {
-            setMinSpacingInt(minSpacing);
-        }
-        if (maxSpacing) {
-            setMaxSpacingInt(maxSpacing);
+        console.debug('⚙ updating HachureConfigComponent (avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg)', avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, azimuthDeg, contourDsp);
+        if (avgSpacing) {
+            setAvgSpacingInt(avgSpacing);
         }
         if (blurFactor) {
             setBlurFactorInt(blurFactor);
@@ -77,6 +97,10 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         if (hachureDeg) {
             setHachureDegInt(hachureDeg);
         }
+        if (hachureDim) {
+            setHachureDimInt(hachureDim);
+        }
+        setHachureArrInt(hachureArr);
         if (contourDsp) {
             setContourDspInt(contourDsp);
         }
@@ -84,46 +108,35 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
             setAzimuthDegInt(azimuthDeg);
         }
 
-    }, [minSpacing, maxSpacing, blurFactor, contourOff, contourDiv, hachureDeg, contourDsp, azimuthDeg]);
+    }, [avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating HachureConfigComponent (minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt)', minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt);
+        console.debug('⚙ updating HachureConfigComponent (avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, azimuthDegInt, propsCheckInt)', avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, azimuthDegInt, propsCheckInt);
         window.clearTimeout(handleHachureConfigToRef.current);
         handleHachureConfigToRef.current = window.setTimeout(() => {
             handleHachureConfig({
-                minSpacing: minSpacingInt,
-                maxSpacing: maxSpacingInt,
-                blurFactor: blurFactorInt,
-                contourOff: contourOffInt,
-                contourDiv: contourDivInt,
-                hachureDeg: hachureDegInt,
-                contourDsp: contourDspInt,
-                azimuthDeg: azimuthDegInt,
+                ...createHachureConfigFromInt(),
                 propsCheck: propsCheckInt
             });
         }, 100);
 
-    }, [minSpacingInt, maxSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, contourDspInt, azimuthDegInt, propsCheckInt]);
+    }, [avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, azimuthDegInt, propsCheckInt]);
 
     const limitToRange = (value: number, range: IRange): number => {
         return Math.max(range.min, Math.min(range.max, value));
+    };
+
+    const handleHachureArrChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setHachureArrInt((event.target as HTMLInputElement).value === 'arrow');
     };
 
     const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setBlurFactorInt(event.target.value === '' ? blurFactorInt : limitToRange(Number(event.target.value), blurFactorRange));
     };
 
-    const handleMinSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMinSpacingInt(event.target.value === '' ? minSpacingInt : Math.min(getMinSpacingMax(), Math.max(minSpacingMin, Number(event.target.value))));
-    };
-
-    const handleMaxSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMaxSpacingInt(event.target.value === '' ? maxSpacingInt : Math.max(getMaxSpacingMin(), Math.min(maxSpacingMax, Number(event.target.value))));
-    };
-
-    const handleContourOffInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setContourOffInt(event.target.value === '' ? contourOffInt : limitToRange(Number(event.target.value), contourOffRange));
+    const handleAvgSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAvgSpacingInt(event.target.value === '' ? avgSpacingInt : Number(event.target.value));
     };
 
     const handleContourDivInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,20 +147,23 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         setHachureDegInt(event.target.value === '' ? hachureDegInt : limitToRange(Number(event.target.value), hachureDegRange));
     };
 
+    const handleHachureDimInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setHachureDimInt(event.target.value === '' ? hachureDimInt : limitToRange(Number(event.target.value), hachureDimRange));
+    };
+
+    const handleContourOffSelectChange = (event: SelectChangeEvent<number>) => {
+        setContourOffInt(event.target.value === '' ? contourDspInt : Number(event.target.value));
+    };
+
     const handleContourDspSelectChange = (event: SelectChangeEvent<number>) => {
-        setContourDspInt(event.target.value === '' ? contourDspInt : Number(event.target.value));
+        const _contourDiv = event.target.value === '' ? contourDspInt : Number(event.target.value);
+        const _contourOff = toContourOffOption(_contourDiv, contourOffInt);
+        setContourDspInt(_contourDiv);
+        setContourOffInt(_contourOff);
     };
 
     const handleAzimuthDegSliderChange = (_event: Event, newValue: number | number[]) => {
         setAzimuthDegInt(newValue as number);
-    };
-
-    const getMinSpacingMax = () => {
-        return maxSpacingInt - 1;
-    };
-
-    const getMaxSpacingMin = () => {
-        return minSpacingInt + 1;
     };
 
     const areAllValuesValid = () => {
@@ -161,6 +177,47 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
         };
     };
 
+    const createHachureConfigFromInt = (): Omit<IHachureConfigProps, 'handleHachureConfig' | 'propsCheck'> => {
+        return {
+            avgSpacing: avgSpacingInt,
+            blurFactor: blurFactorInt,
+            contourOff: contourOffInt,
+            contourDiv: contourDivInt,
+            hachureDeg: hachureDegInt,
+            hachureDim: hachureDimInt,
+            hachureArr: hachureArrInt,
+            contourDsp: contourDspInt,
+            azimuthDeg: azimuthDegInt
+        };
+    };
+
+    const hachureConfigFileFormat = '.hcc';
+    const handleHachureConfigExport = () => {
+        const a = document.createElement("a");
+        const e = new MouseEvent("click");
+        a.download = `hachure_config_${ObjectUtil.createId()}${hachureConfigFileFormat}`;
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(createHachureConfigFromInt(), (_key, val) => {
+            return val.toFixed ? Number(val.toFixed(7)) : val;
+        }, 2));
+        a.dispatchEvent(e);
+    };
+
+    const handleHachureConfigImport = (fileList: FileList) => {
+        if (fileList.length > 0) {
+            const file = fileList.item(0);
+            file!.text().then(text => {
+
+                // TODO :: value validation agains current ranges
+                const _hachureConfigProps: Omit<IHachureConfigProps, 'handleHachureConfig' | 'propsCheck'> = JSON.parse(text);
+                handleHachureConfig({
+                    ..._hachureConfigProps,
+                    propsCheck: propsCheckInt
+                });
+
+            });
+        }
+    };
+
     return (
         <Grid container spacing={2}
             sx={{
@@ -168,6 +225,42 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                 paddingTop: '12px'
             }}
         >
+            <Grid item xs={12}>
+                <FormControl>
+                    <FormLabel>
+                        <FormHelperText
+                            disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                            sx={{
+                                margin: '0px'
+                            }}
+                        >hachure style</FormHelperText>
+                    </FormLabel>
+                    <RadioGroup
+                        onChange={handleHachureArrChange}
+                        value={hachureArrInt ? 'arrow' : 'plain'}
+                    >
+                        <FormControlLabel value="arrow" control={<Radio
+                            disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                            size={'small'}
+                            sx={{
+                                padding: '3px 12px'
+                            }}
+                        />} label="arrow" />
+                        <FormControlLabel value="plain" control={<Radio
+                            disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                            size={'small'}
+                            sx={{
+                                padding: '3px 12px'
+                            }}
+                        />} label="plain" />
+                    </RadioGroup>
+                    {
+                        showHelperTexts ? <FormHelperText
+                            disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                        >the style of the hachure lines.</FormHelperText> : null
+                    }
+                </FormControl>
+            </Grid>
             <Grid item xs={12}>
                 <TextField
                     label={'raster blur factor'}
@@ -195,71 +288,44 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
             </Grid>
             <Grid item xs={12}>
                 <TextField
-                    label={'hachure min spacing'}
-                    value={minSpacingInt}
+                    label={`hachure avg spacing (${converter.projUnitAbbr})`}
+                    value={avgSpacingInt}
                     type={'number'}
                     variant={'outlined'}
                     size={'small'}
-                    onChange={handleMinSpacingInputChange}
+                    onChange={handleAvgSpacingInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
                         width: '100%'
                     }}
                     slotProps={{
                         htmlInput: {
+                            ...avgSpacingRange,
                             step: 0.1,
-                            min: minSpacingMin,
-                            max: getMinSpacingMax(),
                             type: 'number'
                         },
                         inputLabel: {
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'the minimum spacing between hachure lines. if hachures become too close, one of the lines is discontinued.' : undefined}
+                    helperText={showHelperTexts ? `the average spacing between hachure lines in  (${converter.projUnitName}). if hachures become too close, one of the lines is discontinued, if they become too far apart, new lines are inserted. the actual output value may vary to to facilitate hillshade.` : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
                 <TextField
-                    label={'hachure max spacing'}
-                    value={maxSpacingInt}
+                    label={`hachure avg length (${converter.projUnitAbbr})`}
+                    value={hachureDimInt}
                     type={'number'}
                     variant={'outlined'}
                     size={'small'}
-                    onChange={handleMaxSpacingInputChange}
+                    onChange={handleHachureDimInputChange}
                     disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                     sx={{
                         width: '100%'
                     }}
                     slotProps={{
                         htmlInput: {
-                            step: 0.1,
-                            min: getMaxSpacingMin(),
-                            max: maxSpacingMax,
-                            type: 'number'
-                        },
-                        inputLabel: {
-                            shrink: true
-                        }
-                    }}
-                    helperText={showHelperTexts ? 'the maximum spacing between hachure lines. if hachures get too far apart, a new hachure line is started between.' : undefined}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <TextField
-                    label={'contour vertical interval (m)'}
-                    value={contourOffInt}
-                    type={'number'}
-                    variant={'outlined'}
-                    size={'small'}
-                    onChange={handleContourOffInputChange}
-                    disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
-                    sx={{
-                        width: '100%'
-                    }}
-                    slotProps={{
-                        htmlInput: {
-                            ...contourOffRange,
+                            ...hachureDimRange,
                             step: 0.1,
                             type: 'number'
                         },
@@ -267,7 +333,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'the vertical distance in meters between contours during processing. low values (i.e. 0.5) produce more detail, high values (i.e. 5.0) produce less detail, but are faster.' : undefined}
+                    helperText={showHelperTexts ? `the average maximum length that a hachure line may have (${converter.projUnitName}) . shorter lines may provide a more even distribution of lines, longer lines may flow more smoothly.` : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -322,6 +388,27 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
             </Grid>
             <Grid item xs={12}>
                 <FormControl fullWidth>
+                    <InputLabel id="demo-simple-select-label">contour processing interval (m)</InputLabel>
+                    <Select
+                        value={contourOffInt}
+                        label={'contour vertical interval (m)'}
+                        onChange={handleContourOffSelectChange}
+                        disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                        size={'small'}
+                    >
+                        {
+                            toContourOffOptions(contourDspInt).map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)
+                        }
+                    </Select>
+                    {
+                        showHelperTexts ? <FormHelperText
+                            disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                        >the vertical distance in meters between contours during processing. low values produce more detail, high values are faster.</FormHelperText> : null
+                    }
+                </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+                <FormControl fullWidth>
                     <InputLabel id="demo-simple-select-label">contour display interval (m)</InputLabel>
                     <Select
                         value={contourDspInt}
@@ -330,19 +417,14 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                         disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
                         size={'small'}
                     >
-                        <MenuItem value={5}>5</MenuItem>
-                        <MenuItem value={10}>10</MenuItem>
-                        <MenuItem value={20}>20</MenuItem>
-                        <MenuItem value={25}>25</MenuItem>
-                        <MenuItem value={25}>25</MenuItem>
-                        <MenuItem value={50}>50</MenuItem>
-                        <MenuItem value={100}>100</MenuItem>
-                        <MenuItem value={200}>200</MenuItem>
-                        <MenuItem value={250}>250</MenuItem>
-                        <MenuItem value={500}>500</MenuItem>
+                        {
+                            CONTOUR_DSP_OPTIONS.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)
+                        }
                     </Select>
                     {
-                        showHelperTexts ? <FormHelperText>the vertical distance in meters between contours to be added to the output.</FormHelperText> : null
+                        showHelperTexts ? <FormHelperText
+                            disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                        >the vertical distance in meters between contours to be added to the output.</FormHelperText> : null
                     }
                 </FormControl>
             </Grid>
@@ -351,7 +433,9 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     padding: '12px 24px 0px 30px !important',
                 }}
             >
-                <FormHelperText>illumination azimuth (deg)</FormHelperText>
+                <FormHelperText
+                    disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                >illumination azimuth (deg)</FormHelperText>
                 <Slider
                     valueLabelDisplay={'on'}
                     orientation={'horizontal'}
@@ -372,11 +456,72 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     }}
                 />
                 {
-                    showHelperTexts ? <FormHelperText>the azimuth angle of illumination, zero pointing north.</FormHelperText> : null
+                    showHelperTexts ? <FormHelperText
+                        disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
+                    >the azimuth angle of illumination, zero pointing north.</FormHelperText> : null
                 }
             </Grid>
             {
                 activeStep === STEP_INDEX_HACHURE__CONFIG ? <>
+                    <Grid item xs={12}
+                        sx={{
+                            paddingTop: '8px !important'
+                        }}
+                    >
+                        <Button
+                            sx={{
+                                width: '100%'
+                            }}
+                            component={'label'}
+                            role={undefined}
+                            variant={'contained'}
+                            size={'small'}
+                            tabIndex={-1}
+                            startIcon={<DownloadIcon />}
+                            onClick={handleHachureConfigExport}
+                        >export settings</Button>
+                        {
+                            showHelperTexts ? <FormHelperText>export a {hachureConfigFileFormat} hachure config file</FormHelperText> : null
+                        }
+                    </Grid>
+                    <Grid item xs={12}
+                        sx={{
+                            paddingTop: '8px !important'
+                        }}
+                    >
+                        <Button
+                            sx={{
+                                width: '100%',
+                            }}
+                            component={'label'}
+                            role={undefined}
+                            variant={'contained'}
+                            size={'small'}
+                            tabIndex={-1}
+                            startIcon={<UploadIcon />}
+                        >
+                            import settings
+                            <input
+                                type={'file'}
+                                onChange={(event) => handleHachureConfigImport(event.target.files!)}
+                                accept={hachureConfigFileFormat}
+                                style={{
+                                    clip: 'rect(0 0 0 0)',
+                                    clipPath: 'inset(50%)',
+                                    height: 1,
+                                    overflow: 'hidden',
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    left: 0,
+                                    whiteSpace: 'nowrap',
+                                    width: 1,
+                                }}
+                            />
+                        </Button>
+                        {
+                            showHelperTexts ? <FormHelperText>import a {hachureConfigFileFormat} hachure config file</FormHelperText> : null
+                        }
+                    </Grid>
                     <Grid item xs={12}
                         sx={{
                             paddingTop: '8px !important'
@@ -430,8 +575,6 @@ function HachureConfigComponent(props: IHachureConfigProps & IActiveStepProps) {
                     </Grid>
                 </> : null
             }
-
-
         </Grid>
     );
 }

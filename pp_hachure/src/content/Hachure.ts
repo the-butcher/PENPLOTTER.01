@@ -7,6 +7,7 @@ import { ObjectUtil } from "../util/ObjectUtil";
 import { IHachure } from "./IHachure";
 import { IHachureVertex } from "./IHachureVertex";
 import { IPositionProperties } from "./IPositionProperties";
+import { IHachureConfigProps } from "../components/IHachureConfigProps";
 
 /**
  * container for a single hachure line
@@ -21,14 +22,16 @@ export class Hachure implements IHachure {
     private readonly vertices: IHachureVertex[];
     complete: boolean;
     private rasterConfig: IRasterConfigProps;
+    private hachureConfig: IHachureConfigProps;
 
     private maxHeight: number;
     private maxLength: number;
 
-    constructor(firstVertex: IHachureVertex, rasterConfig: IRasterConfigProps) {
+    constructor(firstVertex: IHachureVertex, rasterConfig: IRasterConfigProps, hachureConfig: IHachureConfigProps) {
 
         this.id = ObjectUtil.createId();
         this.rasterConfig = rasterConfig;
+        this.hachureConfig = hachureConfig;
         this.svgData = '';
 
         this.vertices = [];
@@ -37,8 +40,11 @@ export class Hachure implements IHachure {
         this.vertices.push(firstVertex);
         // this.svgData = `M${firstVertex.positionPixl[0].toFixed(2)} ${firstVertex.positionPixl[1].toFixed(2)}`;
 
-        this.maxHeight = firstVertex.height + 100 + (Math.random() - 0.5) * 50;
-        this.maxLength = 100 + (Math.random() - 0.5) * 50; // meters
+        const hachureDimH = this.hachureConfig.hachureDim * rasterConfig.converter.metersPerUnit;
+        const hachureDimL = this.hachureConfig.hachureDim;
+        this.maxHeight = firstVertex.height + hachureDimH + (Math.random() - 0.5) * hachureDimH * 0.5;
+        this.maxLength = hachureDimL + (Math.random() - 0.5) * hachureDimL * 0.5; // meters
+        // console.log('hachureDimH', hachureDimH, 'hachureDimL', hachureDimL);
 
     }
 
@@ -48,25 +54,27 @@ export class Hachure implements IHachure {
 
     buildOffsetPositions(smooth: boolean): IPositionProperties[] {
 
-        const offsetScale = 0.03;
+        const offsetScale = this.hachureConfig.hachureArr ? 0.03 : 0.00;
 
         let offsetPositionsA: IPositionProperties[] = [];
         for (let i = 0; i < this.vertices.length; i++) { // upwards
-            // const offset = (this.vertices[this.vertices.length - 1].height - this.vertices[i].height) * offsetScale;
             const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
             offsetPositionsA.push(this.getOffsetPosition(this.vertices[i], offset));
         }
 
         let offsetPositionsB: IPositionProperties[] = [];
-        for (let i = this.vertices.length - 1; i >= 0; i--) { // downwards
-            // const offset = (this.vertices[this.vertices.length - 1].height - this.vertices[i].height) * offsetScale;
-            const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
-            offsetPositionsB.push(this.getOffsetPosition(this.vertices[i], -offset));
+        if (this.hachureConfig.hachureArr) {
+            for (let i = this.vertices.length - 1; i >= 0; i--) { // downwards
+                const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
+                offsetPositionsB.push(this.getOffsetPosition(this.vertices[i], -offset));
+            }
         }
 
         if (smooth) {
             offsetPositionsA = GeometryUtil.smoothPositions(offsetPositionsA, this.rasterConfig);
-            offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB, this.rasterConfig);
+            if (this.hachureConfig.hachureArr) {
+                offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB, this.rasterConfig);
+            }
         }
 
         let mergedPositions: IPositionProperties[] = [

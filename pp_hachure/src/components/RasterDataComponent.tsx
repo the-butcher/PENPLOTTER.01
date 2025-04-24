@@ -1,22 +1,21 @@
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import UploadIcon from '@mui/icons-material/Upload';
 import { Button, Divider, FormHelperText, Grid, TextField } from "@mui/material";
 import { decode } from 'fast-png';
 import { useEffect } from "react";
 import { Raster } from '../raster/Raster';
+import { ObjectUtil } from '../util/ObjectUtil';
 import { IActiveStepProps } from './IActiveStepProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterDataProps } from './IRasterDataProps';
-import { ObjectUtil } from '../util/ObjectUtil';
-import { IRasterConfigProps } from './IRasterConfigProps';
 
 export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRasterData'>) => {
     return props.name !== '' && props.width > 0 && props.height > 0 && props.data.length > 0 && props.valueRange.max > props.valueRange.min;
 };
 
 /**
- * this component renders raster properties and offers the possibility to upload a raster file
+ * this component renders raster properties and offers the possibility to import a raster file
  *
  * @param props
  * @returns
@@ -24,9 +23,9 @@ export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRas
  * @author h.fleischer
  * @since 19.04.2025
  */
-function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IActiveStepProps) {
+function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
 
-    const { name, data, width, height, valueRange, handleRasterData, cellsize, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };
+    const { name, data, width, height, valueRange, handleRasterData, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building RasterDataComponent');
@@ -36,7 +35,7 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
     //     console.debug('⚙ updating RasterDataComponent (name, data)', name, data);
     // }, [data]);
 
-    const handleRasterFileUpload = (fileList: FileList) => {
+    const handleRasterFileImport = (fileList: FileList) => {
 
         if (fileList.length > 0) {
             const file = fileList.item(0);
@@ -199,10 +198,10 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                         tabIndex={-1}
                         startIcon={<UploadIcon />}
                     >
-                        upload raster file
+                        import raster file
                         <input
                             type={'file'}
-                            onChange={(event) => handleRasterFileUpload(event.target.files!)}
+                            onChange={(event) => handleRasterFileImport(event.target.files!)}
                             accept={'.png'}
                             style={{
                                 clip: 'rect(0 0 0 0)',
@@ -218,7 +217,7 @@ function RasterDataComponent(props: IRasterDataProps & IRasterConfigProps & IAct
                         />
                     </Button>
                     {
-                        showHelperTexts ? <FormHelperText>upload a .png raster file (<a href="example.png" target='_blank'>example.png</a>). the raster must have a single channel in the 16_BIT_UNSIGNED format.</FormHelperText> : null
+                        showHelperTexts ? <FormHelperText>import a .png raster file (<a href="example.png" target='_blank'>example.png</a>). the raster must have a single channel in the 16_BIT_UNSIGNED format.</FormHelperText> : null
                     }
                 </Grid> : null
             }
