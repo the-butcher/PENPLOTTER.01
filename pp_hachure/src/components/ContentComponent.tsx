@@ -21,7 +21,7 @@ const COLORS_COMPLETE: { [K in TContentBackground]: string } = {
  */
 function ContentComponent(props: IContentProps) {
 
-    const { svgData, strokeWidth, complete, background } = { ...props };
+    const { svgData, strokeWidth, complete, closed, background } = { ...props };
 
     const [data, setData] = useState<string>('');
 
@@ -39,7 +39,7 @@ function ContentComponent(props: IContentProps) {
     return (
         <path
             style={{
-                stroke: complete ? COLORS_COMPLETE[background] : COLORS_INCOMPLETE[background],
+                stroke: closed ? 'blue' : complete ? COLORS_COMPLETE[background] : COLORS_INCOMPLETE[background],
                 strokeWidth: complete ? strokeWidth : strokeWidth,
                 fill: 'none',
                 strokeLinecap: 'round',

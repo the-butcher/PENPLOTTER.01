@@ -21,6 +21,7 @@ export class Hachure implements IHachure {
     svgData: string;
     private readonly vertices: IHachureVertex[];
     complete: boolean;
+    closed: boolean = false;
     private rasterConfig: IRasterConfigProps;
     private hachureConfig: IHachureConfigProps;
 
@@ -92,8 +93,21 @@ export class Hachure implements IHachure {
 
     rebuildSvgData() {
 
+        // const ray = 10 * (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD)) / (this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit);
+
+
         let command = 'M';
         this.svgData = '';
+
+        // this.vertices.forEach(vertex => {
+        //     this.svgData += `${command}${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)} `;
+        //     command = 'L';
+        // });
+        // const vertex = this.vertices[this.vertices.length - 1];
+        // if (!this.complete) {
+        //     this.svgData += `L${vertex.positionPixl[0] + Math.cos(vertex.aspect * Raster.DEG2RAD) * ray} ${vertex.positionPixl[1] + Math.sin(vertex.aspect * Raster.DEG2RAD) * ray} `;
+        //     this.svgData += `M${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)} `;
+        // }
 
         const offsetPositions = this.buildOffsetPositions(this.complete);
         for (let i = 0; i < offsetPositions.length; i++) {
@@ -129,6 +143,10 @@ export class Hachure implements IHachure {
         this.vertices.pop();
         this.rebuildSvgData();
 
+    };
+
+    getFirstVertex() {
+        return this.vertices[0];
     };
 
     getLastVertex() {

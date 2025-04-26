@@ -22,11 +22,14 @@ export class ObjectUtil {
     }
 
     static roundFlex(value: number): number {
-        const log = Math.round(Math.log10(value * 0.001));
+        const log = Math.round(Math.log10(Math.abs(value) * 0.001));
         const mlt = 10 ** log;
-        const res = Math.round(Math.round(value / mlt) * mlt * 100) / 100; // never more than 2 digits
-        // console.log(value, log, mlt, res);
-        return res;
+        // console.log(value, Math.log10(value), log, mlt);
+        if (mlt !== 0) {
+            return Math.round(Math.round(value / mlt) * mlt * 100) / 100; // never more than 2 digits
+        } else {
+            return value;
+        }
     }
 
 }

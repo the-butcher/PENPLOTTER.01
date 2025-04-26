@@ -5,7 +5,7 @@ import { Position } from "geojson";
 import proj4, { ProjectionDefinition } from 'proj4';
 import { useEffect, useRef, useState } from "react";
 import { IRange } from '../util/IRange';
-import { IActiveStepProps } from './IActiveStepProps';
+import { ICommonConfigProps } from './ICommonConfigProps';
 import { ICoordinateConverter } from './ICoordinateConverter';
 import { STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterConfigProps } from "./IRasterConfigProps";
@@ -27,9 +27,9 @@ type FIELD_COLOR = "primary" | "error" | "secondary" | "info" | "success" | "war
  * @author h.fleischer
  * @since 19.04.2025
  */
-function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
+function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
 
-    const { cellsize, wkt, valueRange, originProj, converter, handleRasterConfig, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };
+    const { cellsize, wkt, valueRange, originProj, converter, handleRasterConfig, activeStep, showHelperTexts, handleCommonConfig, handleAlertProps } = { ...props };
 
     const [cellsizeInt, setCellsizeInt] = useState<number>(cellsize);
     const [wktInt, setWktInt] = useState<string>(wkt);
@@ -425,7 +425,7 @@ function RasterConfigComponent(props: IRasterConfigProps & IActiveStepProps) {
                             disabled={!areAllValuesValid()}
                             variant={'contained'}
                             size={'small'}
-                            onClick={() => handleActiveStep({
+                            onClick={() => handleCommonConfig({
                                 activeStep: STEP_INDEX_RASTER_____DATA
                             })}
                             endIcon={<ArrowDownwardIcon />}

@@ -11,4 +11,5 @@ export interface IContentProps {
     strokeWidth: number;
     background: TContentBackground;
     complete: boolean;
+    closed: boolean;
 }

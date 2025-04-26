@@ -1,3 +1,4 @@
+import { ObjectUtil } from "../util/ObjectUtil";
 
 /**
  * properties for the HachureConfigComponent
@@ -42,6 +43,10 @@ export interface IHachureConfigProps {
      * illumination azimuth, zero points north
      */
     azimuthDeg: number;
+    /**
+     * random string, to force updates, i.e. in case an invalid input was made
+     */
+    hachureUid: string;
     propsCheck: boolean;
     handleHachureConfig: (hachureConfigUpdates: Omit<IHachureConfigProps, 'handleHachureConfig'>) => void;
 }
@@ -99,5 +104,6 @@ export const HACHURE_CONFIG_DEFAULT_METERS: Omit<IHachureConfigProps, 'handleHac
     hachureArr: true,
     contourDsp: 50,
     azimuthDeg: 280,
-    propsCheck: false
+    propsCheck: false,
+    hachureUid: ObjectUtil.createId()
 };

@@ -1,5 +1,7 @@
 import * as turf from "@turf/turf";
 import { Feature, LineString, Point, Position } from "geojson";
+import { IHachureConfigProps } from "../components/IHachureConfigProps";
+import { IRasterConfigProps } from "../components/IRasterConfigProps";
 import { Raster } from "../raster/Raster";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
@@ -9,8 +11,6 @@ import { IContourProperties } from "./IContourProperties";
 import { IContourVertex } from "./IContourVertex";
 import { IHachure } from "./IHachure";
 import { ISubGeometry } from "./ISubGeometry";
-import { IHachureConfigProps } from "../components/IHachureConfigProps";
-import { IRasterConfigProps } from "../components/IRasterConfigProps";
 
 /**
  * Implementation of {@link IContour}, holds a major part of the hachure implementation.
@@ -23,7 +23,7 @@ export class Contour implements IContour {
     readonly id: string;
     readonly svgData: string;
     complete: boolean;
-    private closed: boolean;
+    closed: boolean;
     private height: number;
     private length: number;
     private scaledLength: number;
@@ -63,7 +63,17 @@ export class Contour implements IContour {
         this.vertices = [];
         this.subGeometries = [];
 
-        const subGeometryCountA = Math.ceil(this.length / 100);
+        const subLengthDest = hachureConfig.avgSpacing * 25;
+        // let subLengthCurr = this.length;
+        // if (subLengthCurr > subLengthDest) {
+        //     while (subLengthCurr > subLengthDest) {
+
+        //         subLengthCurr /= 2;
+        //     }
+        // }
+        // console.log('subLengthDest', subLengthDest, 'subLengthCurr', subLengthCurr);
+
+        const subGeometryCountA = Math.ceil(this.length / subLengthDest);
         const subGeometryLengthIncr = this.length / subGeometryCountA;
         for (let i = 0; i < subGeometryCountA; i++) {
             const lengthMin = Math.max(0, i * subGeometryLengthIncr);
@@ -83,9 +93,12 @@ export class Contour implements IContour {
         const subgeomN = this.subGeometries[this.subGeometries.length - 1].geometry;
         const coord0 = subgeom0.coordinates[0];
         const coordN = subgeomN.coordinates[subgeomN.coordinates.length - 1];
-        this.closed = turf.distance(coord0, coordN, {
-            units: 'meters'
-        }) < 0.1;
+
+        const closingDistance = turf.distance(coord0, coordN, {
+            units: this.rasterConfig.converter.projUnitName
+        });
+        this.closed = closingDistance < hachureConfig.avgSpacing;
+        console.log('closingDistance', closingDistance, hachureConfig.avgSpacing, this.closed);
 
         // TODO :: if closed wrap around
 
@@ -118,10 +131,10 @@ export class Contour implements IContour {
         const lenS = 5;
         // console.log('azimuthDeg', azimuthDeg);
 
-        if (closed) {
+        if (this.closed) {
 
-            const position4326AX = feature.geometry.coordinates[feature.geometry.coordinates.length - 2]; // 1 before end
-            const position4326BX = feature.geometry.coordinates[1]; // 1 after start
+            const position4326AX = position4326B = this.findPointAlong(this.length - this.weightCalcIncrement)!; // feature.geometry.coordinates[feature.geometry.coordinates.length - 2]; // 1 before end
+            const position4326BX = position4326B = this.findPointAlong(this.weightCalcIncrement)!; // feature.geometry.coordinates[1]; // 1 after start
 
             const positionPixlAX = GeometryUtil.position4326ToPixel(position4326AX, this.rasterConfig);
             const positionPixlBX = GeometryUtil.position4326ToPixel(position4326BX, this.rasterConfig);
@@ -130,7 +143,7 @@ export class Contour implements IContour {
             const dY = positionPixlBX[1] - positionPixlAX[1];
             aspect = Math.atan2(dY, dX) * Raster.RAD2DEG - 90;
 
-            // DUPLICATION !!
+            // TODO :: remove DUPLICATION !!
             positionPixlS = [
                 positionPixlI[0] - Math.cos(aspect * Raster.DEG2RAD) * lenS / this.rasterConfig.cellsize,
                 positionPixlI[1] - Math.sin(aspect * Raster.DEG2RAD) * lenS / this.rasterConfig.cellsize
@@ -202,12 +215,17 @@ export class Contour implements IContour {
 
         }
 
-        this.vertices[0].aspect = this.vertices[1].aspect; // TODO :: extrapolation of needed
-        this.vertices[0].slope = this.vertices[1].slope; // TODO :: extrapolation of needed
+        if (this.closed) {
+            aspect = this.vertices[0].aspect;
+            slope = this.vertices[0].slope;
+        } else {
+            this.vertices[0].aspect = this.vertices[1].aspect; // TODO :: extrapolation of needed
+            this.vertices[0].slope = this.vertices[1].slope; // TODO :: extrapolation of needed
+            aspect = this.vertices[this.vertices.length - 1].aspect;
+            slope = this.vertices[this.vertices.length - 1].slope;
+        }
 
         lengthB = this.length;
-        aspect = this.vertices[this.vertices.length - 1].aspect;
-        slope = this.vertices[this.vertices.length - 1].slope;
         scaledLength = this.vertices[this.vertices.length - 1].scaledLength * 2 - this.vertices[this.vertices.length - 2].scaledLength;
         this.vertices.push({
             position4326: position4326B!,
@@ -217,14 +235,6 @@ export class Contour implements IContour {
             aspect,
             scaledLength: scaledLength
         });
-
-        // reevaluate aspect when closed
-        if (this.closed) {
-
-            this.vertices[this.vertices.length - 1].aspect = this.vertices[0].aspect;
-            this.vertices[this.vertices.length - 1].slope = this.vertices[0].slope;
-
-        }
 
         const coordinates: Position[] = [];
         this.vertices.forEach(contourVertex => {
@@ -284,7 +294,7 @@ export class Contour implements IContour {
 
             const lastVertex4326 = hachure.getLastVertex().position4326;
             const nearestPoint = this.findNearestPointOnLine(lastVertex4326)!;
-            if (nearestPoint && nearestPoint.properties.dist < 0.01) {
+            if (nearestPoint && nearestPoint.properties.dist < 0.1) { // TODO :: magic number
 
                 const length = nearestPoint.properties.location;
                 const scaledLength = this.lengthToScaledLength(length);
@@ -301,11 +311,11 @@ export class Contour implements IContour {
 
         }
         // scaledLengths.push(this.scaledLength);
-        scaledLengths.sort();
+        scaledLengths.sort((a, b) => a - b);
 
         let extraHachureAdded = true;
         let counter = 0;
-        while (extraHachureAdded && counter++ < 25) {
+        while (extraHachureAdded && counter++ < 50) {
 
             const _scaledLengths = [...scaledLengths.sort((a, b) => a - b)];
 
@@ -326,16 +336,16 @@ export class Contour implements IContour {
 
                         const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
                             const lastVertex = h.getLastVertex();
-                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > this.hachureConfig.avgSpacing * 30 / this.rasterConfig.cellsize) {
+                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize) {
                                 return false;
                             }
-                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > this.hachureConfig.avgSpacing * 30 / this.rasterConfig.cellsize) {
+                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize) {
                                 return false;
                             }
                             const distance = turf.distance(position4326, lastVertex.position4326, {
                                 units: this.rasterConfig.converter.projUnitName
                             });
-                            return distance < this.hachureConfig.avgSpacing * 30 / this.rasterConfig.cellsize;
+                            return distance < this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize;
                         });
 
                         if (!hasNearbyEndOfCompletedHachure) {
@@ -404,7 +414,7 @@ export class Contour implements IContour {
             if (intersection4326) {
 
                 const nearestPoint = this.findNearestPointOnLine(intersection4326)!;
-                if (nearestPoint && nearestPoint.properties.dist < 0.01) {
+                if (nearestPoint && nearestPoint.properties.dist < 0.1) {
 
                     // console.log('intersectionNear', hachure, intersectionNear);
                     const position4326 = nearestPoint.geometry.coordinates;
@@ -422,7 +432,7 @@ export class Contour implements IContour {
                     });
 
                 } else {
-                    // should actually not happen
+                    console.warn("did not find nearst but had intersection", nearestPoint.properties.dist);
                 }
 
             }
@@ -451,7 +461,6 @@ export class Contour implements IContour {
             const subGeometry = this.subGeometries[i];
 
             if (GeometryUtil.booleanBboxOverlap(rayBbox, subGeometry.bbox)) {
-                // if (GeometryUtil.booleanWithinBbox(subGeometry.bbox, coordinate4326A) || GeometryUtil.booleanWithinBbox(subGeometry.bbox, coordinate4326B)) {
 
                 const intersections = turf.lineIntersect(subGeometry.geometry, rayGeom);
                 if (intersections.features.length > 0) {
@@ -509,20 +518,29 @@ export class Contour implements IContour {
         location: number;
     }> | undefined {
 
+        let bestPoint: Feature<Point, {
+            dist: number;
+            index: number;
+            location: number;
+        }> | undefined;
+        let bestDist = 0.1;
         for (let i = 0; i < this.subGeometries.length; i++) {
             const subGeometry = this.subGeometries[i];
+
             if (GeometryUtil.booleanWithinBbox(subGeometry.bbox, positionA)) { // a candidate
                 const pointOnLine = turf.nearestPointOnLine(subGeometry.geometry, positionA, {
                     units: this.rasterConfig.converter.projUnitName
                 });
-                if (pointOnLine.properties.dist < 0.01) {
-                    return turf.feature(pointOnLine.geometry, {
+                if (pointOnLine.properties.dist < bestDist) {
+                    bestPoint = turf.feature(pointOnLine.geometry, {
                         ...pointOnLine.properties,
                         location: subGeometry.lengthMin + pointOnLine.properties.location
                     });
+                    bestDist = pointOnLine.properties.dist;
                 }
             }
         }
+        return bestPoint;
 
     }
 
@@ -623,28 +641,34 @@ export class Contour implements IContour {
 
     getSvgData(): string {
 
+        // const ray = 10;
+
         let command = 'M';
         let d = '';
         this.vertices.forEach(vertex => {
             d += `${command}${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)} `;
+            // d += `L${vertex.positionPixl[0] + Math.cos(vertex.aspect * Raster.DEG2RAD) * ray} ${vertex.positionPixl[1] + Math.sin(vertex.aspect * Raster.DEG2RAD) * ray} `;
+            // d += `M${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)} `;
             command = 'L';
         });
 
+        // // if (this.complete) {
         // this.subGeometries.forEach(subGeometry => {
         //     const coordinateMin = GeometryUtil.position4326ToPixel([
         //         subGeometry.bbox[0],
         //         subGeometry.bbox[1]
-        //     ]);
+        //     ], this.rasterConfig);
         //     const coordinateMax = GeometryUtil.position4326ToPixel([
         //         subGeometry.bbox[2],
         //         subGeometry.bbox[3]
-        //     ]);
-        //     d += `M${coordinateMin[0]} ${coordinateMin[1]}`
-        //     d += `L${coordinateMin[0]} ${coordinateMax[1]}`
-        //     d += `L${coordinateMax[0]} ${coordinateMax[1]}`
-        //     d += `L${coordinateMax[0]} ${coordinateMin[1]}`
-        //     d += `L${coordinateMin[0]} ${coordinateMin[1]}`
-        // })
+        //     ], this.rasterConfig);
+        //     d += `M${coordinateMin[0]} ${coordinateMin[1]}`;
+        //     d += `L${coordinateMin[0]} ${coordinateMax[1]}`;
+        //     d += `L${coordinateMax[0]} ${coordinateMax[1]}`;
+        //     d += `L${coordinateMax[0]} ${coordinateMin[1]}`;
+        //     d += `L${coordinateMin[0]} ${coordinateMin[1]}`;
+        // });
+        // // }
 
         return d;
 

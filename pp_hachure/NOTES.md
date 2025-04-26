@@ -1,7 +1,30 @@
 https://craterregistry.com/lunar-nomenclature-database
 https://ode.rsl.wustl.edu/moon/pagehelp/Content/Missions_Instruments/LRO/LOLA/SLDEM.htm
 
--- any spatial references with yards or other units?
+One more iteration on the hachure app. I added and straightened a few things, i.e.:
+
+- Allow spatial references other than web-mercator.
+- Add better handling of varying scales and cellsizes.
+- Add option to generate plain lines rather than arrows.
+
+https://www.the-butchers.at/DEM-Hachure/
+
+-- misbehaviour with very large cellsizes. hachures collapse to be horizontal
+OK link to Daniel Huffman https://somethingaboutmaps.wordpress.com/2024/07/07/automated-hachuring-in-qgis/
+OK test with some spatial references like UTM zones, Austria Lambert, ...
+NO add spatial reference to the preview
+OK provide an updated ArcGIS Pro python script
+OK provide updated examples
+OK PNG export
+OK helper text settings get lost when proceeding with step
+OK could add attributes to hachures (min-height, max-height)
+OK review helper texts
+
+-- let workers do the heavy lifting
+-- better defaults when the raster is large
+-- maybe do some resampling on the raster for performance reasons
+
+NO any spatial references with yards or other units? => only specific yards, like yard-indian
 
 OK contour rings are not fully closed
 OK contourOff must be a not floating fraction of contourDsp, or no contours are added to output

@@ -20,6 +20,8 @@ export interface IHachure extends IContent {
      */
     popLastVertex: () => void;
 
+
+    getFirstVertex: () => IHachureVertex;
     /**
      * get the last vertex in this hachure line
      * when the curve is initialized, there may be a single vertex initially

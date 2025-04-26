@@ -6,9 +6,9 @@ import { IAlertProps } from "./IAlertProps";
  * @author h.fleischer
  * @since 19.04.2025
  */
-export interface IActiveStepProps {
+export interface ICommonConfigProps {
     activeStep: number;
     showHelperTexts: boolean;
-    handleActiveStep: (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep' | 'handleAlertProps' | 'showHelperTexts'>) => void;
+    handleCommonConfig: (activeStepUpdates: Omit<ICommonConfigProps, 'handleCommonConfig' | 'handleAlertProps' | 'showHelperTexts'>) => void;
     handleAlertProps: (alertPropsUpdates: Omit<IAlertProps, 'open'>) => void;
 }

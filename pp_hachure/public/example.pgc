@@ -1,11 +1,12 @@
 {
     "cellsize": 10.0,
+    "wkt": "PROJCS[\"WGS_1984_Web_Mercator_Auxiliary_Sphere\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Mercator_Auxiliary_Sphere\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",0.0],PARAMETER[\"Standard_Parallel_1\",0.0],PARAMETER[\"Auxiliary_Sphere_Type\",0.0],UNIT[\"Meter\",1.0]];-20037700 -30241100 10000;-100000 10000;-100000 10000;0.001;0.001;0.001;IsHighPrecision",
     "valueRange": {
-        "min": 506.67636108398,
-        "max": 1391.3282470703
+        "min": 193.53433227539,
+        "max": 562.87243652344
     },
-    "origin3857": [
-        1516999.6402537469,
-        6035869.459849371
+    "originProj": [
+        1724199.6402537469,
+        6175169.459849371
     ]
 }

@@ -3,7 +3,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { Button, Divider, FormHelperText, Grid, Slider } from "@mui/material";
 import { Mark } from '@mui/material/Slider/useSlider.types';
 import { useEffect } from "react";
-import { IActiveStepProps } from './IActiveStepProps';
+import { ICommonConfigProps } from './ICommonConfigProps';
 import { IHachureProcessProps } from "./IHachureProcessProps";
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageLoaderComponent';
 
@@ -16,9 +16,9 @@ import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageL
  * @author h.fleischer
  * @since 19.04.2025
  */
-function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps) {
+function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProps) {
 
-    const { value, valueRange, handleHachureExport, handleContourExport, activeStep, handleActiveStep } = { ...props };
+    const { value, valueRange, handleHachureExport, handleContourExport, activeStep, handleCommonConfig } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building HachureConfigComponent');
@@ -113,7 +113,7 @@ function HachureProcessComponent(props: IHachureProcessProps & IActiveStepProps)
                         <Button
                             variant={'contained'}
                             size={'small'}
-                            onClick={() => handleActiveStep({
+                            onClick={() => handleCommonConfig({
                                 activeStep: STEP_INDEX_HACHURE__CONFIG
                             })}
                             startIcon={<ArrowUpwardIcon />}

@@ -6,7 +6,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { Button, Divider, FormControl, FormControlLabel, FormHelperText, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, Slider, TextField } from "@mui/material";
 import { Mark } from '@mui/material/Slider/useSlider.types';
 import { useEffect, useRef, useState } from "react";
-import { IActiveStepProps } from './IActiveStepProps';
+import { ICommonConfigProps } from './ICommonConfigProps';
 import { CONTOUR_DSP_OPTIONS, IHachureConfigProps, toContourOffOption, toContourOffOptions } from './IHachureConfigProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS, STEP_INDEX_RASTER_____DATA } from './ImageLoaderComponent';
 import { IRange } from '../util/IRange';
@@ -32,9 +32,9 @@ export const toHachureDimDefault = (rasterConfig: Pick<IRasterConfigProps, 'cell
  * @author h.fleischer
  * @since 19.04.2025
  */
-function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps & IActiveStepProps) {
+function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps & ICommonConfigProps) {
 
-    const { avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg, propsCheck, handleHachureConfig, converter, activeStep, showHelperTexts, handleActiveStep } = { ...props };
+    const { avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg, propsCheck, hachureUid, handleHachureConfig, converter, activeStep, showHelperTexts, handleCommonConfig } = { ...props };
 
     const [avgSpacingInt, setAvgSpacingInt] = useState<number>(avgSpacing);
     const [blurFactorInt, setBlurFactorInt] = useState<number>(blurFactor);
@@ -49,7 +49,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
 
     const blurFactorRange: IRange = {
         min: 0.1,
-        max: 5
+        max: 10
     };
 
     const avgSpacingDefault = toAvgSpacingDefault(props);
@@ -63,7 +63,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
         max: ObjectUtil.roundFlex(contourDivDefault * 5)
     };
     const hachureDegRange: IRange = {
-        min: 1,
+        min: 0.25,
         max: 20
     };
     const hachureDimDefault = toHachureDimDefault(props);
@@ -81,7 +81,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
 
     useEffect(() => {
 
-        console.debug('⚙ updating HachureConfigComponent (avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg)', avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, azimuthDeg, contourDsp);
+        console.debug('⚙ updating HachureConfigComponent (avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg, hachureUid)', avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, azimuthDeg, contourDsp, hachureUid);
         if (avgSpacing) {
             setAvgSpacingInt(avgSpacing);
         }
@@ -108,18 +108,19 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
             setAzimuthDegInt(azimuthDeg);
         }
 
-    }, [avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg]);
+    }, [avgSpacing, blurFactor, contourOff, contourDiv, hachureDeg, hachureDim, hachureArr, contourDsp, azimuthDeg, hachureUid]);
 
     useEffect(() => {
 
         console.debug('⚙ updating HachureConfigComponent (avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, azimuthDegInt, propsCheckInt)', avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, azimuthDegInt, propsCheckInt);
         window.clearTimeout(handleHachureConfigToRef.current);
+        const _hachureConfigFromInt = createHachureConfigFromInt();
         handleHachureConfigToRef.current = window.setTimeout(() => {
             handleHachureConfig({
-                ...createHachureConfigFromInt(),
+                ..._hachureConfigFromInt,
                 propsCheck: propsCheckInt
             });
-        }, 100);
+        }, 1000);
 
     }, [avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, azimuthDegInt, propsCheckInt]);
 
@@ -132,7 +133,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
     };
 
     const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setBlurFactorInt(event.target.value === '' ? blurFactorInt : limitToRange(Number(event.target.value), blurFactorRange));
+        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value));
     };
 
     const handleAvgSpacingInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,15 +141,15 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
     };
 
     const handleContourDivInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setContourDivInt(event.target.value === '' ? contourDivInt : limitToRange(Number(event.target.value), contourDivRange));
+        setContourDivInt(event.target.value === '' ? contourDivInt : Number(event.target.value));
     };
 
     const handleHachureDegInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setHachureDegInt(event.target.value === '' ? hachureDegInt : limitToRange(Number(event.target.value), hachureDegRange));
+        setHachureDegInt(event.target.value === '' ? hachureDegInt : Number(event.target.value));
     };
 
     const handleHachureDimInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setHachureDimInt(event.target.value === '' ? hachureDimInt : limitToRange(Number(event.target.value), hachureDimRange));
+        setHachureDimInt(event.target.value === '' ? hachureDimInt : Number(event.target.value));
     };
 
     const handleContourOffSelectChange = (event: SelectChangeEvent<number>) => {
@@ -179,15 +180,16 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
 
     const createHachureConfigFromInt = (): Omit<IHachureConfigProps, 'handleHachureConfig' | 'propsCheck'> => {
         return {
-            avgSpacing: avgSpacingInt,
-            blurFactor: blurFactorInt,
+            avgSpacing: limitToRange(avgSpacingInt, avgSpacingRange),
+            blurFactor: limitToRange(blurFactorInt, blurFactorRange),
             contourOff: contourOffInt,
-            contourDiv: contourDivInt,
-            hachureDeg: hachureDegInt,
-            hachureDim: hachureDimInt,
+            contourDiv: limitToRange(contourDivInt, contourDivRange),
+            hachureDeg: limitToRange(hachureDegInt, hachureDegRange),
+            hachureDim: limitToRange(hachureDimInt, hachureDimRange),
             hachureArr: hachureArrInt,
             contourDsp: contourDspInt,
-            azimuthDeg: azimuthDegInt
+            azimuthDeg: azimuthDegInt,
+            hachureUid: ObjectUtil.createId()
         };
     };
 
@@ -283,7 +285,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'the amount of blur applied to the raster data. low values (i.e. 0.1) produce more detail, high values (i.e. 3.0) produce smoother contours and hachures.' : undefined}
+                    helperText={showHelperTexts ? 'the amount of blur applied to the raster data. low values (i.e. 0.1) produce more detail, high values (i.e. 3.0) produce smoother contours and hachures' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -308,7 +310,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? `the average spacing between hachure lines in  (${converter.projUnitName}). if hachures become too close, one of the lines is discontinued, if they become too far apart, new lines are inserted. the actual output value may vary to to facilitate hillshade.` : undefined}
+                    helperText={showHelperTexts ? `the average spacing between hachure lines in  (${converter.projUnitName}). if hachures become too close, one of the lines is discontinued, if they become too far apart, new lines are inserted. the actual output value may vary to to facilitate hillshade` : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -333,7 +335,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? `the average maximum length that a hachure line may have (${converter.projUnitName}) . shorter lines may provide a more even distribution of lines, longer lines may flow more smoothly.` : undefined}
+                    helperText={showHelperTexts ? `the average maximum length that a hachure line may have (${converter.projUnitName}). shorter lines may provide a more even distribution of lines, longer lines may flow more smoothly.` : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -358,7 +360,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'the segment length in meters used to divide contours during processing. low values (i.e. 2.0) produce more detail, high values (i.e. 5.0) produce less detail, but are faster.' : undefined}
+                    helperText={showHelperTexts ? 'the segment length in meters used to divide contours during processing. low values produce more detail, high values produce less detail, but are faster' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -383,7 +385,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                             shrink: true
                         }
                     }}
-                    helperText={showHelperTexts ? 'the minimum slope in degrees for hachure lines to be drawn. low values (i.e. 2.0) can produce more detail, but may give undesired artifacts, high values (i.e. 10.0) will miss details in terrain that is less pronounced.' : undefined}
+                    helperText={showHelperTexts ? 'the minimum slope in degrees for hachure lines to be drawn. low values (i.e. 1.0) can produce more detail, but may give undesired artifacts, high values (i.e. 10.0) will miss details in terrain that is less pronounced, but may give better appearance in larger scales' : undefined}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -403,7 +405,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                     {
                         showHelperTexts ? <FormHelperText
                             disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
-                        >the vertical distance in meters between contours during processing. low values produce more detail, high values are faster.</FormHelperText> : null
+                        >the vertical distance in meters between contours during processing. low values produce more detail, high values are faster</FormHelperText> : null
                     }
                 </FormControl>
             </Grid>
@@ -424,7 +426,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                     {
                         showHelperTexts ? <FormHelperText
                             disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
-                        >the vertical distance in meters between contours to be added to the output.</FormHelperText> : null
+                        >the vertical distance in meters between contours to be added to the output</FormHelperText> : null
                     }
                 </FormControl>
             </Grid>
@@ -458,7 +460,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                 {
                     showHelperTexts ? <FormHelperText
                         disabled={activeStep !== STEP_INDEX_HACHURE__CONFIG}
-                    >the azimuth angle of illumination, zero pointing north.</FormHelperText> : null
+                    >the azimuth angle of illumination, zero pointing north</FormHelperText> : null
                 }
             </Grid>
             {
@@ -537,7 +539,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                         <Button
                             variant={'contained'}
                             size={'small'}
-                            onClick={() => handleActiveStep({
+                            onClick={() => handleCommonConfig({
                                 activeStep: STEP_INDEX_RASTER_____DATA
                             })}
                             startIcon={<ArrowUpwardIcon />}
@@ -560,7 +562,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                             size={'small'}
                             onClick={() => {
                                 setPropsCheckInt(true);
-                                handleActiveStep({
+                                handleCommonConfig({
                                     activeStep: STEP_INDEX_HACHURE_PROCESS
                                 });
                             }}

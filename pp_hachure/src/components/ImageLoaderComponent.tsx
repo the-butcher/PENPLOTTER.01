@@ -1,4 +1,6 @@
-import { Alert, AlertTitle, Box, Checkbox, FormControlLabel, FormGroup, FormHelperText, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import XIcon from '@mui/icons-material/X';
+import { Alert, AlertTitle, Box, Checkbox, Divider, FormControlLabel, FormGroup, FormHelperText, IconButton, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -6,20 +8,20 @@ import { Contour } from '../content/Contour';
 import { IContour } from '../content/IContour';
 import { IHachure } from '../content/IHachure';
 import { Raster } from '../raster/Raster';
+import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from '../util/ObjectUtil';
 import ContentComponent from './ContentComponent';
 import CropComponent from './CropComponent';
 import HachureConfigComponent, { toAvgSpacingDefault, toContourDivDefault, toHachureDimDefault } from './HachureConfigComponent';
 import HachureProcessComponent from './HachureProcessComponent';
-import { IActiveStepProps } from './IActiveStepProps';
+import { IAlertProps } from "./IAlertProps";
+import { ICommonConfigProps } from './ICommonConfigProps';
 import { HACHURE_CONFIG_DEFAULT_METERS, IHachureConfigProps, toContourDspOption, toContourOffOptions } from './IHachureConfigProps';
 import { IHachureProcessProps } from './IHachureProcessProps';
 import { IRasterConfigProps } from './IRasterConfigProps';
 import { IRasterDataProps } from './IRasterDataProps';
 import RasterConfigComponent, { areRasterConfigPropsValid } from './RasterConfigComponent';
 import RasterDataComponent, { areRasterDataPropsValid } from './RasterDataComponent';
-import { IAlertProps } from "./IAlertProps";
-import { GeometryUtil } from "../util/GeometryUtil";
 
 export const STEP_INDEX_COMMON___CONFIG = 0;
 export const STEP_INDEX_RASTER___CONFIG = 1;
@@ -38,7 +40,32 @@ export const STEP_INDEX_HACHURE_PROCESS = 4;
 function ImageLoaderComponent() {
 
     const canvasRef = createRef<HTMLCanvasElement>();
-    const svgRef = createRef<SVGSVGElement>();
+
+    // const svgRef = useCallback((svgElement: SVGSVGElement) => {
+    //     if (svgElement !== null) {
+    //         console.log('svgElement', svgElement);
+    //     }
+    // }, []);
+    const svgRef = useRef<SVGSVGElement>();
+    const svgCallbackRef = (svgElement: SVGSVGElement) => {
+
+        if (svgElement && !svgRef.current) {
+
+            console.log('svgElement', svgElement);
+            svgRef.current = svgElement;
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'p') {
+                    window.clearTimeout(setExportPngRef.current);
+                    setExportPngRef.current = window.setTimeout(() => {
+                        exportToPng(svgRef.current!);
+                    }, 100);
+                }
+            });
+
+        }
+    };
+
 
     const [hachures, setHachures] = useState<IHachure[]>([]);
     const hachuresProgressRef = useRef<IHachure[]>([]);
@@ -51,9 +78,10 @@ function ImageLoaderComponent() {
     const [showRaster, setShowRaster] = useState<boolean>(true);
 
     const setContourToRef = useRef<number>(-1);
+    const setExportPngRef = useRef<number>(-1);
 
     const handleRasterConfig = (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
-        console.log(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
+        console.debug(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
         setRasterConfig({
             ...rasterConfigUpdates,
             handleRasterConfig
@@ -102,12 +130,15 @@ function ImageLoaderComponent() {
             ...hachuresProgressRef.current,
             ...hachuresCompleteRef.current
         ];
-        handleGeoJsonExport(_hachures.map(h => turf.feature(h.toLineString())), 'hachures');
+        handleGeoJsonExport(_hachures.map(h => turf.feature(h.toLineString(), {
+            minHeight: h.getFirstVertex().height,
+            maxHeight: h.getLastVertex().height,
+        })), 'hachures');
     };
 
     const handleContourExport = () => {
         handleGeoJsonExport(contoursRef.current.filter(c => c.getHeight() % hachureConfig.contourDsp === 0).map(c => turf.feature(c.toLineString(), {
-            label: c.getHeight().toFixed(0)
+            height: c.getHeight().toFixed(0)
         })), 'contours');
     };
 
@@ -122,12 +153,13 @@ function ImageLoaderComponent() {
         a.dispatchEvent(e);
     };
 
-    const handleActiveStep = (activeStepUpdates: Omit<IActiveStepProps, 'handleActiveStep' | 'handleAlertProps' | 'showHelperTexts'>) => {
-        console.debug(`📞 handling active step (activeStepUpdates)`, activeStepUpdates);
-        setActiveStep({
-            ...activeStep,
-            ...activeStepUpdates,
-        });
+    const handleCommonConfig = (commonConfigUpdates: Omit<ICommonConfigProps, 'handleCommonConfig' | 'handleAlertProps' | 'showHelperTexts'>) => {
+        console.log(`📞 handling common config (commonConfigUpdates)`, commonConfigUpdates, commonConfigRef.current);
+        commonConfigRef.current = {
+            ...commonConfigRef.current,
+            ...commonConfigUpdates,
+        };
+        setCommonConfig(commonConfigRef.current);
     };
 
     const handleAlertProps = (alertPropsUpdates: Omit<IAlertProps, 'open'>) => {
@@ -149,12 +181,13 @@ function ImageLoaderComponent() {
         });
     };
 
-    const [activeStep, setActiveStep] = useState<IActiveStepProps>({
+    const commonConfigRef = useRef<ICommonConfigProps>({
         activeStep: STEP_INDEX_RASTER___CONFIG,
         showHelperTexts: true,
-        handleActiveStep,
+        handleCommonConfig,
         handleAlertProps
     });
+    const [commonConfig, setCommonConfig] = useState<ICommonConfigProps>(commonConfigRef.current);
     const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
         cellsize: -1,
         wkt: GeometryUtil.WKT_3857,
@@ -219,12 +252,12 @@ function ImageLoaderComponent() {
         open: false
     });
 
-
-
     const imageMargin = 55;
 
     useEffect(() => {
         console.debug('✨ building ImageLoaderComponent');
+        // console.log('svgRef', svgRef);
+
     }, []);
 
     const rebuildHachureRefs = () => {
@@ -258,10 +291,7 @@ function ImageLoaderComponent() {
 
     };
 
-    useEffect(() => {
-
-        console.debug('⚙ updating ImageLoaderComponent (rasterConfig)', rasterConfig);
-
+    const recalculateHeights = () => {
         const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
         const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
         setHachureProcess({
@@ -272,6 +302,18 @@ function ImageLoaderComponent() {
                 max: maxHeight
             }
         });
+    };
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (commonConfig)', commonConfig);
+
+    }, [commonConfig]);
+
+    useEffect(() => {
+
+        console.debug('⚙ updating ImageLoaderComponent (rasterConfig)', rasterConfig);
+        recalculateHeights();
 
     }, [rasterConfig]);
 
@@ -289,11 +331,8 @@ function ImageLoaderComponent() {
 
         console.debug('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
 
-        // handleSettingsUpdate();
-
         if (areRasterDataPropsValid(rasterData)) {
 
-            // const canvasElement = canvasRef.current;
             const svgElement = svgRef.current!;
 
             // TODO :: as attributes on the element itself
@@ -313,7 +352,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
+        console.debug('⚙ updating ImageLoaderComponent (hachureConfig)', hachureConfig);
 
         if (hachureConfig.blurFactor !== rasterData.blurFactor) {
             if (areRasterDataPropsValid(rasterDataRaw)) {
@@ -323,6 +362,7 @@ function ImageLoaderComponent() {
 
         if (hachureConfig.propsCheck) {
 
+            recalculateHeights();
             setActive(false);
             setShowRaster(false);
             setTimeout(() => {
@@ -415,7 +455,7 @@ function ImageLoaderComponent() {
 
                 rebuildHachureRefs();
 
-                const nxtHeight = curHeight + hachureConfig.contourOff;
+                const nxtHeight = Math.round((curHeight + hachureConfig.contourOff) * 1000) / 1000;
                 const nxtContours = fetchContours(nxtHeight);
                 // console.log('nxtHeight', nxtHeight, nxtContours.length);
 
@@ -434,7 +474,6 @@ function ImageLoaderComponent() {
                     rebuildHachureRefs();
                     window.clearTimeout(setContourToRef.current);
                     setContourToRef.current = window.setTimeout(() => {
-                        // contoursRef.current = _contours;
                         contoursRef.current = _contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete);
                         setContours(contoursRef.current);
                         setHachureProcess({
@@ -526,6 +565,88 @@ function ImageLoaderComponent() {
 
     };
 
+    const handleShowHelperTextChange = (showHelperTexts: boolean) => {
+        commonConfigRef.current = {
+            ...commonConfigRef.current,
+            showHelperTexts
+        };
+        setCommonConfig(commonConfigRef.current);
+    };
+
+
+    /**
+     * https://gist.github.com/SunPj/14fe4f10db43be2d84751f5595d48246
+     * @param stylesheet
+     * @returns
+     */
+    const stringifyStylesheet = (stylesheet: CSSStyleSheet): string => {
+        return stylesheet.cssRules ? Array.from(stylesheet.cssRules).map(rule => rule.cssText || '').join('\n') : '';
+    };
+    /**
+     * iterates all stylesheets in the document and collects and concatenates all rules from those stylesheets
+     * @returns
+     */
+    const collectStyles = (): string => {
+        return Array.from(document.styleSheets).map(s => stringifyStylesheet(s)).join('\n');
+    };
+    /**
+     * collects all styles in the document and creates a <def/> node from it
+     * needed for exporting when all current styles need to be attached to the <svg/> clone
+     * @returns
+     */
+    const collectDefs = (): string => {
+        const styles = collectStyles();
+        return `<defs><style type="text/css"><![CDATA[${styles}]]></style></defs>`;
+    };
+
+    /**
+     * exports this chart to a png image
+     */
+    const exportToPng = (svgElement: SVGSVGElement) => {
+
+        const { width, height } = svgElement.getBoundingClientRect();
+
+        const chartSvgClone: SVGElement = svgElement.cloneNode(true) as SVGElement;
+
+        const defs = collectDefs();
+        chartSvgClone.insertAdjacentHTML('afterbegin', defs);
+
+        const svgContent = (new XMLSerializer()).serializeToString(chartSvgClone);
+        const svgBlob = new Blob([svgContent], {
+            type: 'image/svg+xml;charset=utf-8'
+        });
+        const svgDataUrl = URL.createObjectURL(svgBlob);
+
+        const image = new Image();
+        image.onload = () => {
+
+            const pngPadding = 10;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width + pngPadding * 2;
+            canvas.height = height + pngPadding * 2;
+
+            const context = canvas.getContext('2d')!;
+            context.fillStyle = 'white';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, pngPadding, pngPadding, width, height);
+
+            context.font = '14px smb';
+            context.fillStyle = 'black';
+
+            const pngDataUrl = canvas.toDataURL();
+            const pngDownloadLink = document.createElement('a');
+            pngDownloadLink.setAttribute('href', pngDataUrl);
+            pngDownloadLink.setAttribute('download', `testpng_${ObjectUtil.createId()}`); // TODO format with dates
+            pngDownloadLink.click();
+
+        };
+        image.onerror = (e) => {
+            console.error('failed to complete export', e);
+        };
+        image.src = svgDataUrl;
+
+    };
 
     return (
         <>
@@ -558,7 +679,7 @@ function ImageLoaderComponent() {
                     overflowY: "scroll",
                 }}>
 
-                    <Stepper activeStep={activeStep.activeStep} orientation="vertical"
+                    <Stepper activeStep={commonConfig.activeStep} orientation="vertical"
                         sx={{
                             width: '100%'
                         }}
@@ -578,6 +699,9 @@ function ImageLoaderComponent() {
                                 <FormGroup>
                                     <FormControlLabel
                                         control={<Checkbox
+                                            sx={{
+                                                padding: '3px 12px'
+                                            }}
                                             size={'small'}
                                             onChange={e => setShowRaster(e.target.checked)}
                                         />}
@@ -587,13 +711,13 @@ function ImageLoaderComponent() {
                                     />
                                     <FormControlLabel
                                         control={<Checkbox
+                                            sx={{
+                                                padding: '3px 12px'
+                                            }}
                                             size={'small'}
-                                            onChange={e => setActiveStep({
-                                                ...activeStep,
-                                                showHelperTexts: e.target.checked
-                                            })}
+                                            onChange={e => handleShowHelperTextChange(e.target.checked)}
                                         />}
-                                        checked={activeStep.showHelperTexts}
+                                        checked={commonConfig.showHelperTexts}
                                         label="show helper texts"
                                     />
                                 </FormGroup>
@@ -612,11 +736,11 @@ function ImageLoaderComponent() {
                             </StepLabel>
                             <StepContent>
                                 {
-                                    activeStep.showHelperTexts ? <FormHelperText>raster settings describe the position of the raster, its scale through cellsize and its minimum and maximum elevation. values can either be entered manually or by importing a configuration file or partially by importing a world file. the raster itself is loaded in the next step.</FormHelperText> : null
+                                    commonConfig.showHelperTexts ? <FormHelperText>raster settings describe the position of the raster, its scale through cellsize and its minimum and maximum elevation. values can either be entered manually or by importing a configuration file or partially by importing a world file. the raster itself is loaded in the next step.</FormHelperText> : null
                                 }
                                 <RasterConfigComponent {...{
                                     ...rasterConfig,
-                                    ...activeStep
+                                    ...commonConfig
                                 }} />
                             </StepContent>
                         </Step>
@@ -633,12 +757,12 @@ function ImageLoaderComponent() {
                             </StepLabel>
                             <StepContent>
                                 {
-                                    activeStep.showHelperTexts ? <FormHelperText>raster data can be imported in this step. the raster must be in 16_BIT_UNSIGNED format. there is an example <a href="example_arcpy.py" target="_blank">example_arcpy.py</a> script that can be used in ArcGIS Pro to export rasters in that format from a DEM layer. the raster data must be present in the Web Mercator projection (EPSG:3857).</FormHelperText> : null
+                                    commonConfig.showHelperTexts ? <FormHelperText>raster data can be imported in this step. the raster must be in 16_BIT_UNSIGNED format. there is an example <a href="example_arcpy.py" target="_blank">example_arcpy.py</a> script that can be used in ArcGIS Pro to export rasters in that format from a DEM layer. the raster data must be present in the Web Mercator projection (EPSG:3857).</FormHelperText> : null
                                 }
                                 <RasterDataComponent {...{
                                     ...rasterData,
                                     ...rasterConfig,
-                                    ...activeStep
+                                    ...commonConfig
                                 }} />
                             </StepContent>
                         </Step>
@@ -650,17 +774,17 @@ function ImageLoaderComponent() {
                         >
                             <StepLabel>
                                 <Typography>
-                                    hachure sttings
+                                    hachure settings
                                 </Typography>
                             </StepLabel>
                             <StepContent>
                                 {
-                                    activeStep.showHelperTexts ? <FormHelperText>the hachure settings offer possibilities to alter adapt output. raster processing will start after proceeding to the next step.</FormHelperText> : null
+                                    commonConfig.showHelperTexts ? <FormHelperText>the hachure settings offer possibilities to alter adapt output. raster processing will start after proceeding to the next step.</FormHelperText> : null
                                 }
                                 <HachureConfigComponent {...{
                                     ...hachureConfig,
                                     ...rasterConfig,
-                                    ...activeStep
+                                    ...commonConfig
                                 }} />
                             </StepContent>
                         </Step>
@@ -677,12 +801,37 @@ function ImageLoaderComponent() {
                             </StepLabel>
                             <StepContent>
                                 {
-                                    activeStep.showHelperTexts ? <FormHelperText>this step offers information about progress and the option to export hachures and contours in geojson format.</FormHelperText> : null
+                                    commonConfig.showHelperTexts ? <FormHelperText>this step offers information about progress and the option to export hachures and contours in geojson format.</FormHelperText> : null
                                 }
                                 <HachureProcessComponent {...{
                                     ...hachureProcess,
-                                    ...activeStep
+                                    ...commonConfig
                                 }} />
+                            </StepContent>
+                        </Step>
+                        <Step key={'credits'}
+                            active={true}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    credits
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                <Stack direction={'row'} alignItems={'center'}>
+                                    <FormHelperText>Hannes Fleischer </FormHelperText>
+                                    <IconButton size='small' onClick={() => window.open('https://www.linkedin.com/in/hannes-fleischer-97621415b/')}>
+                                        <LinkedInIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton size='small' onClick={() => window.open('https://x.com/FleischerHannes')}>
+                                        <XIcon fontSize="small" />
+                                    </IconButton>
+                                </Stack>
+                                <Divider></Divider>
+                                <FormHelperText>Inspired by an article from Daniel Huffman: <a href="https://somethingaboutmaps.wordpress.com/2024/07/07/automated-hachuring-in-qgis/">Automated Hachuring in QGIS</a></FormHelperText>
                             </StepContent>
                         </Step>
                     </Stepper>
@@ -703,7 +852,7 @@ function ImageLoaderComponent() {
                     >
                     </canvas>
                     <svg
-                        ref={svgRef}
+                        ref={svgCallbackRef}
                         style={{
                             backgroundColor: 'rgba(0,0,0,0.0)',
                             gridColumn: 1,
@@ -721,10 +870,10 @@ function ImageLoaderComponent() {
                             }}></CropComponent> : null
                         }
                         {
-                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} complete={c.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.33} />)
+                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} closed={false} complete={c.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.25} />)
                         }
                         {
-                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} complete={h.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.25} />)
+                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} closed={false} complete={h.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.25} />)
                         }
                     </svg>
                 </div>

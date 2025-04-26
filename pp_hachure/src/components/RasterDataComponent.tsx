@@ -6,7 +6,7 @@ import { decode } from 'fast-png';
 import { useEffect } from "react";
 import { Raster } from '../raster/Raster';
 import { ObjectUtil } from '../util/ObjectUtil';
-import { IActiveStepProps } from './IActiveStepProps';
+import { ICommonConfigProps } from './ICommonConfigProps';
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
 import { IRasterDataProps } from './IRasterDataProps';
 
@@ -23,9 +23,9 @@ export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRas
  * @author h.fleischer
  * @since 19.04.2025
  */
-function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
+function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
 
-    const { name, data, width, height, valueRange, handleRasterData, activeStep, showHelperTexts, handleActiveStep, handleAlertProps } = { ...props };
+    const { name, data, width, height, valueRange, handleRasterData, activeStep, showHelperTexts, handleCommonConfig, handleAlertProps } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building RasterDataComponent');
@@ -217,7 +217,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                         />
                     </Button>
                     {
-                        showHelperTexts ? <FormHelperText>import a .png raster file (<a href="example.png" target='_blank'>example.png</a>). the raster must have a single channel in the 16_BIT_UNSIGNED format.</FormHelperText> : null
+                        showHelperTexts ? <FormHelperText>import a .png raster file (<a href="example.png" target='_blank'>example.png</a>). the raster must have a single channel in 16_BIT_UNSIGNED format</FormHelperText> : null
                     }
                 </Grid> : null
             }
@@ -238,7 +238,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                         <Button
                             variant={'contained'}
                             size={'small'}
-                            onClick={() => handleActiveStep({
+                            onClick={() => handleCommonConfig({
                                 activeStep: STEP_INDEX_RASTER___CONFIG
                             })}
                             startIcon={<ArrowUpwardIcon />}
@@ -259,7 +259,7 @@ function RasterDataComponent(props: IRasterDataProps & IActiveStepProps) {
                             disabled={!areAllValuesValid()}
                             variant={'contained'}
                             size={'small'}
-                            onClick={() => handleActiveStep({
+                            onClick={() => handleCommonConfig({
                                 activeStep: STEP_INDEX_HACHURE__CONFIG
                             })}
                             endIcon={<ArrowDownwardIcon />}

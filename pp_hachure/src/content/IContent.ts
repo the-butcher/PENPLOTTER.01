@@ -14,6 +14,8 @@ export interface IContent {
 
     complete: boolean;
 
+    closed: boolean;
+
     /**
      * get this contour as a geojson {@link LineString} holding WGS84 (epsg:4326) coordinates
      * @returns
