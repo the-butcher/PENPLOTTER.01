@@ -472,27 +472,6 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                     >
                         <Button
                             sx={{
-                                width: '100%'
-                            }}
-                            component={'label'}
-                            role={undefined}
-                            variant={'contained'}
-                            size={'small'}
-                            tabIndex={-1}
-                            startIcon={<DownloadIcon />}
-                            onClick={handleHachureConfigExport}
-                        >export settings</Button>
-                        {
-                            showHelperTexts ? <FormHelperText>export a {hachureConfigFileFormat} hachure config file</FormHelperText> : null
-                        }
-                    </Grid>
-                    <Grid item xs={12}
-                        sx={{
-                            paddingTop: '8px !important'
-                        }}
-                    >
-                        <Button
-                            sx={{
                                 width: '100%',
                             }}
                             component={'label'}
@@ -522,6 +501,27 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
                         </Button>
                         {
                             showHelperTexts ? <FormHelperText>import a {hachureConfigFileFormat} hachure config file</FormHelperText> : null
+                        }
+                    </Grid>
+                    <Grid item xs={12}
+                        sx={{
+                            paddingTop: '8px !important'
+                        }}
+                    >
+                        <Button
+                            sx={{
+                                width: '100%'
+                            }}
+                            component={'label'}
+                            role={undefined}
+                            variant={'contained'}
+                            size={'small'}
+                            tabIndex={-1}
+                            startIcon={<DownloadIcon />}
+                            onClick={handleHachureConfigExport}
+                        >export settings</Button>
+                        {
+                            showHelperTexts ? <FormHelperText>export a {hachureConfigFileFormat} hachure config file</FormHelperText> : null
                         }
                     </Grid>
                     <Grid item xs={12}

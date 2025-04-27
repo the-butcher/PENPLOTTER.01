@@ -38,6 +38,8 @@ export class Contour implements IContour {
     private weightCalcIncrement: number;
     private vertices: IContourVertex[];
 
+    private nearThreshold: number; // 0.1
+
     constructor(feature: Feature<LineString, IContourProperties>, rasterConfig: IRasterConfigProps, hachureConfig: IHachureConfigProps, heightFunction: (positionPixl: Position) => number) {
 
         // console.log(feature.geometry);
@@ -46,6 +48,8 @@ export class Contour implements IContour {
         this.height = feature.properties.height;
         this.rasterConfig = rasterConfig;
         this.hachureConfig = hachureConfig;
+        this.nearThreshold = rasterConfig.cellsize / 1000;
+        // console.log('this.nearThreshold', this.nearThreshold);
 
         this.length = turf.length(feature, {
             units: this.rasterConfig.converter.projUnitName
@@ -294,7 +298,7 @@ export class Contour implements IContour {
 
             const lastVertex4326 = hachure.getLastVertex().position4326;
             const nearestPoint = this.findNearestPointOnLine(lastVertex4326)!;
-            if (nearestPoint && nearestPoint.properties.dist < 0.1) { // TODO :: magic number
+            if (nearestPoint && nearestPoint.properties.dist < this.nearThreshold) { // TODO :: magic number
 
                 const length = nearestPoint.properties.location;
                 const scaledLength = this.lengthToScaledLength(length);
@@ -369,7 +373,7 @@ export class Contour implements IContour {
                         }
 
                     } else {
-                        console.error('did not find point along');
+                        console.warn('did not find point along');
                     }
 
                 }
@@ -414,7 +418,7 @@ export class Contour implements IContour {
             if (intersection4326) {
 
                 const nearestPoint = this.findNearestPointOnLine(intersection4326)!;
-                if (nearestPoint && nearestPoint.properties.dist < 0.1) {
+                if (nearestPoint && nearestPoint.properties.dist < this.nearThreshold) {
 
                     // console.log('intersectionNear', hachure, intersectionNear);
                     const position4326 = nearestPoint.geometry.coordinates;
@@ -432,7 +436,7 @@ export class Contour implements IContour {
                     });
 
                 } else {
-                    console.warn("did not find nearst but had intersection", nearestPoint.properties.dist);
+                    console.warn("did not find nearst but had intersection", nearestPoint?.properties?.dist);
                 }
 
             }
@@ -523,7 +527,7 @@ export class Contour implements IContour {
             index: number;
             location: number;
         }> | undefined;
-        let bestDist = 0.1;
+        let bestDist = this.nearThreshold;
         for (let i = 0; i < this.subGeometries.length; i++) {
             const subGeometry = this.subGeometries[i];
 

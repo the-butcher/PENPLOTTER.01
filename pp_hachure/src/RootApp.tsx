@@ -7,15 +7,12 @@ function RootApp() {
 
   const theme = ThemeUtil.createTheme();
 
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ImageLoaderComponent />
-      {/* <FoldsComponent /> */}
     </ThemeProvider>
-
-  )
+  );
 }
 
-export default RootApp
+export default RootApp;

@@ -1,5 +1,6 @@
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import UploadIcon from '@mui/icons-material/Upload';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { Button, Divider, FormHelperText, Grid, TextField } from "@mui/material";
 import { Position } from "geojson";
 import proj4, { ProjectionDefinition } from 'proj4';
@@ -36,6 +37,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
     const [originProjInt, setOriginProjInt] = useState<Position>(originProj);
     const [converterInt, setConverterInt] = useState<ICoordinateConverter>(converter);
     const [valueRangeInt, setValueRangeInt] = useState<IRange>(valueRange);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [wktColor, setWktColor] = useState<FIELD_COLOR>('primary');
 
@@ -192,7 +194,11 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
     };
 
     const handleRasterConfigImport = (fileList: FileList) => {
+
         if (fileList.length > 0) {
+
+            setLoading(true);
+
             const file = fileList.item(0);
             file!.text().then(text => {
 
@@ -216,7 +222,19 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     }
                 }
 
+                setLoading(false);
+
+            }).catch((e: Error) => {
+
+                handleAlertProps({
+                    severity: 'error',
+                    title: 'Failed to load settings!',
+                    message: e.message
+                });
+                setLoading(false);
+
             });
+
         }
     };
 
@@ -381,7 +399,19 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                         variant={'contained'}
                         size={'small'}
                         tabIndex={-1}
-                        startIcon={<UploadIcon />}
+                        startIcon={loading ? <RefreshIcon fontSize='small'
+                            sx={{
+                                animation: "spin 2s linear infinite",
+                                "@keyframes spin": {
+                                    "0%": {
+                                        transform: "rotate(0deg)",
+                                    },
+                                    "100%": {
+                                        transform: "rotate(360deg)",
+                                    },
+                                },
+                            }}
+                        /> : <UploadIcon />}
                     >
                         import raster config
                         <input

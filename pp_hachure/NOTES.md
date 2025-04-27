@@ -9,6 +9,9 @@ One more iteration on the hachure app. I added and straightened a few things, i.
 
 https://www.the-butchers.at/DEM-Hachure/
 
+OK build and upload
+OK verify that nearThreshold is working
+?? initial wait for proj4 to load
 OK misbehaviour with very large cellsizes. hachures collapse to be horizontal :: precision problem when checking for intersection
 OK link to Daniel Huffman https://somethingaboutmaps.wordpress.com/2024/07/07/automated-hachuring-in-qgis/
 OK test with some spatial references like UTM zones, Austria Lambert, ...
