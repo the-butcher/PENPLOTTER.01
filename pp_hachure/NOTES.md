@@ -9,7 +9,7 @@ One more iteration on the hachure app. I added and straightened a few things, i.
 
 https://www.the-butchers.at/DEM-Hachure/
 
--- misbehaviour with very large cellsizes. hachures collapse to be horizontal
+OK misbehaviour with very large cellsizes. hachures collapse to be horizontal :: precision problem when checking for intersection
 OK link to Daniel Huffman https://somethingaboutmaps.wordpress.com/2024/07/07/automated-hachuring-in-qgis/
 OK test with some spatial references like UTM zones, Austria Lambert, ...
 NO add spatial reference to the preview

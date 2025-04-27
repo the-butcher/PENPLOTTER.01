@@ -98,7 +98,7 @@ export class Contour implements IContour {
             units: this.rasterConfig.converter.projUnitName
         });
         this.closed = closingDistance < hachureConfig.avgSpacing;
-        console.log('closingDistance', closingDistance, hachureConfig.avgSpacing, this.closed);
+        // console.log('closingDistance', closingDistance, hachureConfig.avgSpacing, this.closed);
 
         // TODO :: if closed wrap around
 
