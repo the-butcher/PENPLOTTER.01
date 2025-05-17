@@ -65,8 +65,10 @@ export class Map {
     static readonly LOD_15 = 15;
     static readonly LOD_16 = 16;
 
+    static readonly LOD_VS = 14;
+
     readonly min3857Pos: Position;
-    readonly tileDim14: Position;
+    readonly tileDimVs: Position;
 
     readonly layers: AMapLayer<Geometry, GeoJsonProperties>[];
 
@@ -88,12 +90,12 @@ export class Map {
             console.log("pen width", penDiameterMM, "mm", Pen.getPenWidthMeters(penDiameterMM, Map.SCALE).toFixed(2).padStart(6, " "), "m", Pen.getPenWidthPixels(penDiameterMM, Map.SCALE, lod).toFixed(2).padStart(6, " "), `px @ 1:${Map.SCALE.toLocaleString()} @ lod[${lod}]`);
         });
 
-        const minTileKey14 = this.getMinTileKey(Map.LOD_14);
-        const maxTileKey14 = this.getMaxTileKey(Map.LOD_14);
-        this.min3857Pos = VectorTileGeometryUtil.toMercator(minTileKey14);
-        this.tileDim14 = [
-            maxTileKey14.col - minTileKey14.col + 1,
-            maxTileKey14.row - minTileKey14.row + 1,
+        const minTileKeyVs = this.getMinTileKey(Map.LOD_VS);
+        const maxTileKeyVs = this.getMaxTileKey(Map.LOD_VS);
+        this.min3857Pos = VectorTileGeometryUtil.toMercator(minTileKeyVs);
+        this.tileDimVs = [
+            maxTileKeyVs.col - minTileKeyVs.col + 1,
+            maxTileKeyVs.row - minTileKeyVs.row + 1,
         ];
         this.layers = [];
         props.layers.forEach((layerProps) => {
@@ -145,8 +147,8 @@ export class Map {
     drawToCanvas(context: CanvasRenderingContext2D, mapLayerProps: IMapLayerProps[], geometryTypes: Set<TGeomentryType>): void {
 
         const coordinate3857ToCoordinateCanvas = (coordinate3857: Position): Position => {
-            const x = (coordinate3857[0] - this.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_14].resolution;
-            const y = (this.min3857Pos[1] - coordinate3857[1]) / VectorTileKey.lods[Map.LOD_14].resolution;
+            const x = (coordinate3857[0] - this.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_VS].resolution;
+            const y = (this.min3857Pos[1] - coordinate3857[1]) / VectorTileKey.lods[Map.LOD_VS].resolution;
             return [x, y];
         };
 

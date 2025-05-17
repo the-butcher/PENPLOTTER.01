@@ -9,6 +9,7 @@ import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { MapDefs } from '../MapDefs';
 import { LabelBuilder } from '../../vectortile/LabelBuilder';
 import { noto_serif_regular } from '../../util/NotoSerifRegular';
+import { noto_serif_italic } from '../../util/NotoSerifItalic';
 
 self.onmessage = (e) => {
 
@@ -27,6 +28,8 @@ self.onmessage = (e) => {
         }
     }
     workerInput.tileData = _tileData;
+
+
 
     const polyText = VectorTileGeometryUtil.emptyMultiPolygon();
     let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
@@ -61,13 +64,13 @@ self.onmessage = (e) => {
                     }
                 }
 
-                const labelBuilder = new LabelBuilder(noto_serif_regular);
+                const labelBuilder = labelDef.fonttype === 'regular' ? new LabelBuilder(noto_serif_regular) : new LabelBuilder(noto_serif_italic);
 
                 const labelCoordinate3857A = turf.toMercator(point.geometry.coordinates);
                 const scale = labelDef.txtscale;
                 const chars = Array.from(name);
                 const zeroOffset: Position = [0, 0];
-                let charOffset: Position = [0, 0];
+                let charOffset: Position = [labelDef.distance, labelDef.vertical];
                 for (let i = 0; i < chars.length; i++) {
 
                     let charCoordinates = labelBuilder.getMultiPolygonChar(chars[i], scale, charOffset).coordinates;

@@ -9,18 +9,20 @@ import { ILabelDef } from '../ILabelDef';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
-
+import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 
 export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     symbolFactory: string;
     polyText: MultiPolygon;
     labelDefs: ILabelDef[];
+    private geoJsonPath: string;
 
-    constructor(name: string, filter: IVectorTileFeatureFilter, symbolFactory: string, labelDefs: ILabelDef[]) {
+    constructor(name: string, filter: IVectorTileFeatureFilter, symbolFactory: string, labelDefs: ILabelDef[], geoJsonPath: string) {
         super(name, filter);
         this.symbolFactory = symbolFactory;
         this.labelDefs = labelDefs;
+        this.geoJsonPath = geoJsonPath;
         this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
     }
 
@@ -79,6 +81,11 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
+        if (this.geoJsonPath !== '') {
+            const featureCollection = await new GeoJsonLoader().load<Point, GeoJsonProperties>(this.geoJsonPath);
+            featureCollection.features.forEach(f => this.tileData.push(f));
+        }
+
         console.log(`${this.name}, processing data ...`);
 
         const labelDefsWorkerInput: ILabelDefPointLabel[] = this.labelDefs.map(d => {
@@ -90,7 +97,7 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 idxvalid: undefined
             }
         });
-        console.log('labelDefsWorkerInput', labelDefsWorkerInput);
+        // console.log('labelDefsWorkerInput', labelDefsWorkerInput);
 
         const workerInput: IWorkerPolyInputPoint = {
             name: this.name,

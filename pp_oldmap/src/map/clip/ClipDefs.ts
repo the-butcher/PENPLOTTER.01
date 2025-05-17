@@ -449,6 +449,15 @@ export class ClipDefs {
                 skipMlt: false
             }
         },
+        {
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
         /////////////////////////////////////////////
         // MISC
         /////////////////////////////////////////////

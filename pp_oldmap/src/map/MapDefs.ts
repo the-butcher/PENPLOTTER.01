@@ -4,12 +4,71 @@ import { IMapDef } from "./IMapDef"
 export class MapDefs {
 
     static DEFAULT_TEXT_SCALE_LINELABEL = 0.022;
-    static DEFAULT_TEXT_SCALE__LOCATION = 0.032;
+    static DEFAULT_TEXT_SCALE__LOCATION = 16; // 0.032;
     static DEFAULT_TEXT_SCALE_____WATER = 0.036;
+
+    static MAP_DEF_________MOON: IMapDef = {
+        hachures: 'hachures_moon.geojson',
+        contours: 'contours_moon.geojson',
+        locatons: 'craters.geojson',
+        clippoly: '',
+        bordertx: '',
+        water_tx: '',
+        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+            2744919.086552,
+            -1311337.863211
+        ],
+            4000 * 399,
+            2828 * 399
+        ),
+        padding: 0,
+        labelDefs: [
+            {
+                tileName: 'Theophilus',
+                plotName: 'Theophilus',
+                distance: 10000,
+                vertical: 15000,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'italic',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Cyrillus',
+                plotName: 'Cyrillus',
+                distance: 5000,
+                vertical: 30000,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'italic',
+                idxvalid: () => true
+            },
+            {
+                tileName: 'Cyrillus F',
+                plotName: 'Cyrillus F',
+                distance: 5000,
+                vertical: 10000,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'italic',
+                idxvalid: () => true
+            }, {
+                tileName: 'Mons Penck',
+                plotName: 'Mons Penck',
+                distance: -70000,
+                vertical: -10000,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'italic',
+                idxvalid: () => true
+            }
+        ]
+    }
 
     static MAP_DEF_FUSCHERTOERL: IMapDef = {
         hachures: 'hachures_fuschertoerl.geojson',
         contours: 'contours_fuschertoerl.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -140,6 +199,7 @@ export class MapDefs {
     static MAP_DEF___DUERNSTEIN: IMapDef = {
         hachures: 'hachures_duernstein.geojson',
         contours: 'contours_duernstein.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -249,6 +309,7 @@ export class MapDefs {
     static MAP_DEF____HALLSTATT: IMapDef = {
         hachures: 'hachures_hallstatt.geojson',
         contours: 'contours_hallstatt.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: 'watertx_hallstatt.geojson',
@@ -367,6 +428,7 @@ export class MapDefs {
     static MAP_DEF_____HAINBURG: IMapDef = {
         hachures: 'hachures_hainburg.geojson',
         contours: 'contours_hainburg.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -405,6 +467,7 @@ export class MapDefs {
     static MAP_DEF____OLDDANUBE: IMapDef = {
         contours: 'contours_altedonau.geojson',
         hachures: 'hachures_altedonau.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -443,6 +506,7 @@ export class MapDefs {
     static MAP_DEF___BADGASTEIN: IMapDef = {
         contours: 'contours_badgastein.geojson',
         hachures: 'hachures_badgastein.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -462,6 +526,7 @@ export class MapDefs {
     static MAP_DEF___KAHLENBERG: IMapDef = {
         contours: 'contours_kahlenberg.geojson',
         hachures: 'hachures_kahlenberg.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -481,6 +546,7 @@ export class MapDefs {
     static MAP_DEF__SCHOENBRUNN: IMapDef = {
         contours: 'contours_schoenbrunn.geojson',
         hachures: 'hachures_schoenbrunn.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -509,6 +575,7 @@ export class MapDefs {
     static MAP_DEF_____WOLFGANG: IMapDef = {
         contours: 'contours_wolfgang.geojson',
         hachures: 'hachures_wolfgang.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: 'watertx_wolfgang.geojson',
@@ -596,6 +663,7 @@ export class MapDefs {
     static MAP_DEF_____SALZBURG: IMapDef = {
         contours: 'contours_salzburg.geojson',
         hachures: 'hachures_salzburg.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',
@@ -636,6 +704,7 @@ export class MapDefs {
         hachures: 'hachures_hallein.geojson',
         clippoly: 'clippoly_hallein.geojson',
         bordertx: 'bordertx_hallein.geojson',
+        locatons: '',
         water_tx: '',
         bbox3857: VectorTileGeometryUtil.bboxAtCenter([
             1457650,
@@ -736,6 +805,7 @@ export class MapDefs {
     static MAP_DEF_______VIGAUN: IMapDef = {
         contours: 'contours_vigaun.geojson',
         hachures: 'hachures_vigaun.geojson',
+        locatons: '',
         clippoly: '',
         bordertx: '',
         water_tx: '',

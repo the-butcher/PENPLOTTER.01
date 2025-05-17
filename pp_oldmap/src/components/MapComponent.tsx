@@ -78,206 +78,206 @@ function MapComponent() {
               },
             }),
         },
-        {
-          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
-            }
-          }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
-        },
-        {
-          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX_GREENAREA, Map.SYMBOL_INDEX___LEISURE);
-            }
-          }, [2, -2], 500)
-        },
-        {
-          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME_VEGETATION, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              // 3 Wald
-              // 6 Gewässerrand
-              // 7 Friedhof
-              // 8 Freizeit
-              // 9 Weingarten
-              if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7, 9)) {
-                return true;
-              } else {
-                return false;
-              }
-            }
-          }, [2, -2], 500, {
-            '3': {
-              gridType: 'hexagon',
-              gridSize: 25,
-              randSize: 0.0002,
-              symbolFactory: 'createTreeSymbol',
-              outerDim: 75
-            },
-            '6': {
-              gridType: 'triangle',
-              gridSize: 28,
-              randSize: 0.0002,
-              symbolFactory: 'createMarshSymbol',
-              outerDim: 0
-            },
-            '7': {
-              gridType: 'triangle',
-              gridSize: 25,
-              randSize: 0,
-              symbolFactory: 'createGraveSymbol',
-              outerDim: 0
-            },
-            '9': {
-              gridType: 'rectangle',
-              gridSize: 22,
-              randSize: 0.000075,
-              symbolFactory: 'createWineSymbol',
-              outerDim: 50
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____RAILWAY, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              // 9 Hauptnetz
-              // 10, 11 Ergänzungsnetz
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 10, 11, 14)); // 9, 12, 13, 14
-            }
-          }, l => l.multiPolyline025)
-        },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_______TRAM, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              // 12 Zahnradbahn / Schmalspurbahn
-              // 13 Seilbahn
-              // 16 Strassenbahn
-              // Naturbestand :: Wien
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
-            }
-          }, l => l.multiPolyline025, [0, 0], 0, {
-            '13': {
-              symbolFactory: 'createCableCarSymbol',
-              dashSize: 50
-            }
-          }) // tram_schoenbrunn.geojson
-        },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              // console.log(vectorTileFeature.getValue('_symbol'));
-              // 15 Fähre
-              return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
-            }
-          }, l => l.multiPolyline025, [12, 4])
-        },
-        {
-          createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
-              return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerBridge2(Map.LAYER__NAME_____BRIDGE, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
-              return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
-            }
-          })
-        },
-        {
-          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'GIPFEL_L09-20'
-            }
-          }, 'createSummitSymbol', _mapDef.labelDefs)
-        },
-        {
-          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
-            }
-          }, 'createChurchSymbol', _mapDef.labelDefs)
-        },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
-                console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
-                return true;
-              } else {
-                return false;
-              }
-            }
-          }, l => l.multiPolyline050, [0, 0], -10)
-        },
-        {
-          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
-            }
-          }, 'createTownSymbol', _mapDef.labelDefs)
-        },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____HACHURE, {
-            accepts: () => {
-              return false;
-            }
-          }, l => l.multiPolyline018, [0, 0], 0, {}, _mapDef.hachures)
-        },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____CONTOUR, {
-            accepts: () => {
-              return false;
-            }
-          }, l => l.multiPolyline025, [0, 0], 0, {}, _mapDef.contours)
-        },
-        {
-          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME_CONTOUR_TX, {
-            accepts: () => {
-              return false;
-            }
-          }, _mapDef.labelDefs, _mapDef.contours)
-        },
-        {
-          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
-            accepts: () => {
-              return false;
-            }
-          }, _mapDef.labelDefs, _mapDef.bordertx)
-        },
-        {
-          createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
-            accepts: () => {
-              return false;
-            }
-          }, [2, -2], 500, {}, _mapDef.clippoly)
-        },
-        {
-          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
-            accepts: () => {
-              return false;
-            }
-          })
-        },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
+        //     }
+        //   }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX_GREENAREA, Map.SYMBOL_INDEX___LEISURE);
+        //     }
+        //   }, [2, -2], 500)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME_VEGETATION, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       // 3 Wald
+        //       // 6 Gewässerrand
+        //       // 7 Friedhof
+        //       // 8 Freizeit
+        //       // 9 Weingarten
+        //       if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7, 9)) {
+        //         return true;
+        //       } else {
+        //         return false;
+        //       }
+        //     }
+        //   }, [2, -2], 500, {
+        //     '3': {
+        //       gridType: 'hexagon',
+        //       gridSize: 25,
+        //       randSize: 0.0002,
+        //       symbolFactory: 'createTreeSymbol',
+        //       outerDim: 75
+        //     },
+        //     '6': {
+        //       gridType: 'triangle',
+        //       gridSize: 28,
+        //       randSize: 0.0002,
+        //       symbolFactory: 'createMarshSymbol',
+        //       outerDim: 0
+        //     },
+        //     '7': {
+        //       gridType: 'triangle',
+        //       gridSize: 25,
+        //       randSize: 0,
+        //       symbolFactory: 'createGraveSymbol',
+        //       outerDim: 0
+        //     },
+        //     '9': {
+        //       gridType: 'rectangle',
+        //       gridSize: 22,
+        //       randSize: 0.000075,
+        //       symbolFactory: 'createWineSymbol',
+        //       outerDim: 50
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____RAILWAY, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       // 9 Hauptnetz
+        //       // 10, 11 Ergänzungsnetz
+        //       return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 9, 10, 11, 14)); // 9, 12, 13, 14
+        //     }
+        //   }, l => l.multiPolyline025)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_______TRAM, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       // 12 Zahnradbahn / Schmalspurbahn
+        //       // 13 Seilbahn
+        //       // 16 Strassenbahn
+        //       // Naturbestand :: Wien
+        //       return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 12, 13, 16)) || (vectorTileFeature.layerName === 'NATURBESTAND_L_NATURBESTAND_L' && vectorTileFeature.hasValue('_symbol', Map.SYMBOL_INDEX____TRACKS))
+        //     }
+        //   }, l => l.multiPolyline025, [0, 0], 0, {
+        //     '13': {
+        //       symbolFactory: 'createCableCarSymbol',
+        //       dashSize: 50
+        //     }
+        //   }) // tram_schoenbrunn.geojson
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME__SHIP_LINE, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       // console.log(vectorTileFeature.getValue('_symbol'));
+        //       // 15 Fähre
+        //       return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
+        //     }
+        //   }, l => l.multiPolyline025, [12, 4])
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
+        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerBridge2(Map.LAYER__NAME_____BRIDGE, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
+        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
+        //     }
+        //   })
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'GIPFEL_L09-20'
+        //     }
+        //   }, 'createSummitSymbol', _mapDef.labelDefs, '')
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
+        //     }
+        //   }, 'createChurchSymbol', _mapDef.labelDefs, '')
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
+        //         console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
+        //         return true;
+        //       } else {
+        //         return false;
+        //       }
+        //     }
+        //   }, l => l.multiPolyline050, [0, 0], -10)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+        //     }
+        //   }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____HACHURE, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, l => l.multiPolyline018, [0, 0], 0, {}, _mapDef.hachures)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____CONTOUR, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, l => l.multiPolyline025, [0, 0], 0, {}, _mapDef.contours)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME_CONTOUR_TX, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, _mapDef.labelDefs, _mapDef.contours)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, _mapDef.labelDefs, _mapDef.bordertx)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, [2, -2], 500, {}, _mapDef.clippoly)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   })
+        // },
 
 
       ],
@@ -349,8 +349,8 @@ function MapComponent() {
     if (map && canvas && svg) {
 
       const coordinate3857ToCoordinateCanvas = (coordinate3857: Position): Position => {
-        const x = (coordinate3857[0] - map.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_14].resolution;
-        const y = (map.min3857Pos[1] - coordinate3857[1]) / VectorTileKey.lods[Map.LOD_14].resolution;
+        const x = (coordinate3857[0] - map.min3857Pos[0]) / VectorTileKey.lods[Map.LOD_VS].resolution;
+        const y = (map.min3857Pos[1] - coordinate3857[1]) / VectorTileKey.lods[Map.LOD_VS].resolution;
         return [x, y];
       };
 
@@ -920,7 +920,7 @@ function MapComponent() {
 
   };
 
-  const upscale = 1;
+  const upscaleA = 1;
 
   return (
     <Stack spacing={2} direction={'row'}>
@@ -1000,13 +1000,13 @@ function MapComponent() {
             ref={canvasRef}
             style={{
               backgroundColor: "#eeeeee",
-              minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
-              minHeight: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
+              minWidth: `${map.tileDimVs[0] * upscaleA * VectorTileKey.DIM}px`,
+              minHeight: `${map.tileDimVs[1] * upscaleA * VectorTileKey.DIM}px`,
               gridColumn: 1,
               gridRow: 1
             }}
-            width={map.tileDim14[0] * VectorTileKey.DIM}
-            height={map.tileDim14[1] * VectorTileKey.DIM}
+            width={map.tileDimVs[0] * VectorTileKey.DIM}
+            height={map.tileDimVs[1] * VectorTileKey.DIM}
           />
         ) : null}
 
@@ -1014,19 +1014,19 @@ function MapComponent() {
           <div
             style={{
               position: 'relative',
-              minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
-              minHeight: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
+              minWidth: `${map.tileDimVs[0] * upscaleA * VectorTileKey.DIM}px`,
+              minHeight: `${map.tileDimVs[1] * upscaleA * VectorTileKey.DIM}px`,
               gridColumn: 1,
               gridRow: 1
             }}
           >
             <svg
-              viewBox={`0, 0, ${map.tileDim14[0] * VectorTileKey.DIM}, ${map.tileDim14[1] * VectorTileKey.DIM}`}
+              viewBox={`0, 0, ${map.tileDimVs[0] * VectorTileKey.DIM}, ${map.tileDimVs[1] * VectorTileKey.DIM}`}
               ref={svgRef}
               style={{
                 position: 'relative',
-                minWidth: `${map.tileDim14[0] * upscale * VectorTileKey.DIM}px`,
-                minHeight: `${map.tileDim14[1] * upscale * VectorTileKey.DIM}px`,
+                minWidth: `${map.tileDimVs[0] * upscaleA * VectorTileKey.DIM}px`,
+                minHeight: `${map.tileDimVs[1] * upscaleA * VectorTileKey.DIM}px`,
               }}
             >
               {mapContainer === 'canvas' ? mapRectangleProps.map((l) => <SvgRectangleComponent key={l.id} {...l} />) : null}

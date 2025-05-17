@@ -5,4 +5,5 @@ export interface ILabelDefPointLabel {
     vertical: number; // vertical offset from the line
     charsign: number;
     txtscale: number;
+    fonttype: 'regular' | 'italic';
 }

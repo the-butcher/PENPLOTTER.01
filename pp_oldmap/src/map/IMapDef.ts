@@ -7,6 +7,7 @@ export interface IMapDef {
     hachures: string;
     contours: string;
     clippoly: string;
+    locatons: string;
     /**
      * path to geojson lines to be used for matching against label-defs
      */

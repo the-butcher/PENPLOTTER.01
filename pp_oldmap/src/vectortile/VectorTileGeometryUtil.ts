@@ -213,7 +213,19 @@ export class VectorTileGeometryUtil {
 
         const remainingLines: LineString[] = [];
 
+        let counter = 0;
+
+        // console.log('bufferFeature', bufferFeature.geometry.coordinates.length);
+        const bufferPolygons = VectorTileGeometryUtil.destructureUnionPolygon(bufferFeature.geometry);
+        const bufferBBoxes = bufferPolygons.map(p => turf.bbox(p));
+
+
         multiPolyline.coordinates.forEach(polyline => {
+
+            if (counter % 1000 === 0) {
+                console.log('counter', counter);
+            }
+            counter++
 
             const polylineS: LineString = {
                 type: 'LineString',
@@ -222,105 +234,118 @@ export class VectorTileGeometryUtil {
             VectorTileGeometryUtil.cleanAndSimplify(polylineS);
 
             const polylineSFeature = turf.feature(polylineS);
-            const polylineSLength = turf.length(polylineSFeature, {
-                units: 'meters'
-            });
+            const polylineBBox = turf.bbox(polylineSFeature);
 
-            if (polylineSLength > 0) {
-
-                const lineIntersects = turf.lineIntersect(polylineSFeature, bufferFeature);
-                const indxIntersects: Feature<Point, GeoJsonProperties>[] = [];
-
-                indxIntersects.push(turf.feature({
-                    'type': 'Point',
-                    coordinates: polylineS.coordinates[0]
-                }, {
-                    location: 0
-                }));
-                lineIntersects.features.forEach(lineIntersect => {
-                    indxIntersects.push(turf.nearestPointOnLine(polylineS, lineIntersect.geometry, {
-                        units: 'meters'
-                    }));
-                });
-                indxIntersects.push(turf.feature({
-                    'type': 'Point',
-                    coordinates: polylineS.coordinates[polylineS.coordinates.length - 1]
-                }, {
-                    location: polylineSLength
-                }));
-                indxIntersects.sort((a, b) => a.properties!.location - b.properties!.location);
-
-                const indxIntersectsNoDuplicates: Feature<Point, GeoJsonProperties>[] = [];
-                let location = -1;
-                for (let i = 0; i < indxIntersects.length; i++) {
-                    const locationI = indxIntersects[i].properties!.location;
-                    if (locationI !== location) {
-                        indxIntersectsNoDuplicates.push(indxIntersects[i]);
-                        location = locationI;
-                    }
+            let overlap = false;
+            for (let i = 0; i < bufferBBoxes.length; i++) {
+                if (VectorTileGeometryUtil.booleanBboxOverlap(bufferBBoxes[i], polylineBBox)) {
+                    overlap = true;
+                    break;
                 }
+            }
+            if (overlap) {
 
-                if (indxIntersectsNoDuplicates.length > 0) {
+                const polylineSLength = turf.length(polylineSFeature, {
+                    units: 'meters'
+                });
 
-                    // if (indxIntersects[0].properties!.location > 0) {
-                    //     indxIntersects.unshift(turf.feature({
-                    //         'type': 'Point',
-                    //         coordinates: polylineS.coordinates[0]
-                    //     }, {
-                    //         location: 0
-                    //     }));
-                    // }
+                if (polylineSLength > 0) {
 
-                    // if (indxIntersects[indxIntersects.length - 1].properties!.location < polylineSLength) {
-                    //     indxIntersects.push(turf.feature({
-                    //         'type': 'Point',
-                    //         coordinates: polylineS.coordinates[polylineS.coordinates.length - 1]
-                    //     }, {
-                    //         location: polylineSLength
-                    //     }));
-                    // }
+                    const lineIntersects = turf.lineIntersect(polylineSFeature, bufferFeature);
+                    const indxIntersects: Feature<Point, GeoJsonProperties>[] = [];
 
-                    // console.log('indxIntersects', indxIntersects);
-
-
-
-                    for (let i = 0; i < indxIntersectsNoDuplicates.length - 1; i++) {
-
-                        const distA = indxIntersectsNoDuplicates[i].properties!.location;
-                        const distB = indxIntersectsNoDuplicates[i + 1].properties!.location;
-                        const segment = turf.lineSliceAlong(polylineS, distA, distB, {
+                    indxIntersects.push(turf.feature({
+                        'type': 'Point',
+                        coordinates: polylineS.coordinates[0]
+                    }, {
+                        location: 0
+                    }));
+                    lineIntersects.features.forEach(lineIntersect => {
+                        indxIntersects.push(turf.nearestPointOnLine(polylineS, lineIntersect.geometry, {
                             units: 'meters'
-                        });
+                        }));
+                    });
+                    indxIntersects.push(turf.feature({
+                        'type': 'Point',
+                        coordinates: polylineS.coordinates[polylineS.coordinates.length - 1]
+                    }, {
+                        location: polylineSLength
+                    }));
+                    indxIntersects.sort((a, b) => a.properties!.location - b.properties!.location);
 
-                        const length = turf.length(segment, {
-                            units: 'meters'
-                        });
-                        const pof = turf.along(segment, length / 2, {
-                            units: 'meters'
-                        });
-                        if (turf.booleanWithin(pof, bufferFeature)) { //  && turf.length(feature, { units: 'meters' }) > maxKeepLength
-                            // dont keep
-                        } else {
-                            remainingLines.push(segment.geometry);
+                    const indxIntersectsNoDuplicates: Feature<Point, GeoJsonProperties>[] = [];
+                    let location = -1;
+                    for (let i = 0; i < indxIntersects.length; i++) {
+                        const locationI = indxIntersects[i].properties!.location;
+                        if (locationI !== location) {
+                            indxIntersectsNoDuplicates.push(indxIntersects[i]);
+                            location = locationI;
+                        }
+                    }
+
+                    if (indxIntersectsNoDuplicates.length > 2) {
+
+                        // if (indxIntersects[0].properties!.location > 0) {
+                        //     indxIntersects.unshift(turf.feature({
+                        //         'type': 'Point',
+                        //         coordinates: polylineS.coordinates[0]
+                        //     }, {
+                        //         location: 0
+                        //     }));
+                        // }
+
+                        // if (indxIntersects[indxIntersects.length - 1].properties!.location < polylineSLength) {
+                        //     indxIntersects.push(turf.feature({
+                        //         'type': 'Point',
+                        //         coordinates: polylineS.coordinates[polylineS.coordinates.length - 1]
+                        //     }, {
+                        //         location: polylineSLength
+                        //     }));
+                        // }
+
+                        // console.log('indxIntersects', indxIntersects);
+
+                        for (let i = 0; i < indxIntersectsNoDuplicates.length - 1; i++) {
+
+                            const distA = indxIntersectsNoDuplicates[i].properties!.location;
+                            const distB = indxIntersectsNoDuplicates[i + 1].properties!.location;
+                            const segment = turf.lineSliceAlong(polylineS, distA, distB, {
+                                units: 'meters'
+                            });
+
+                            const length = turf.length(segment, {
+                                units: 'meters'
+                            });
+                            const pof = turf.along(segment, length / 2, {
+                                units: 'meters'
+                            });
+                            if (turf.booleanWithin(pof, bufferFeature)) { //  && turf.length(feature, { units: 'meters' }) > maxKeepLength
+                                // dont keep
+                            } else {
+                                remainingLines.push(segment.geometry);
+                            }
+
                         }
 
-                    }
-
-                } else {
-
-                    const pof = turf.along(polylineS, polylineSLength / 2, {
-                        units: 'meters'
-                    });
-                    if (turf.booleanWithin(pof, bufferFeature!)) {
-                        // dont keep
                     } else {
-                        remainingLines.push(polylineS);
-                    }
 
-                    remainingLines.push(polylineS);
+                        const pof = turf.along(polylineS, polylineSLength / 2, {
+                            units: 'meters'
+                        });
+                        if (turf.booleanWithin(pof, bufferFeature!)) {
+                            // dont keep
+                        } else {
+                            remainingLines.push(polylineS);
+                        }
+
+                        // remainingLines.push(polylineS);
+
+                    }
 
                 }
 
+            } else {
+                remainingLines.push(polylineS);
             }
 
         });
@@ -609,6 +634,28 @@ export class VectorTileGeometryUtil {
 
     static booleanWithin(bbox: BBox, point: Position) {
         return (point[0] >= bbox[0] && point[0] <= bbox[2] && point[1] >= bbox[1] && point[1] <= bbox[3]);
+    }
+
+    static booleanWithinRange(val: number, min: number, max: number): boolean {
+        return val >= min && val <= max;
+    }
+
+    static booleanBboxOverlap(bboxA: BBox, bboxB: BBox) {
+
+        let xOverlap = false;
+        xOverlap = xOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxA[0], bboxB[0], bboxB[2]);
+        xOverlap = xOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxA[2], bboxB[0], bboxB[2]);
+        xOverlap = xOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxB[0], bboxA[0], bboxA[2]);
+        xOverlap = xOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxB[2], bboxA[0], bboxA[2]);
+
+        let yOverlap = false;
+        yOverlap = yOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxA[1], bboxB[1], bboxB[3]);
+        yOverlap = yOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxA[3], bboxB[1], bboxB[3]);
+        yOverlap = yOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxB[1], bboxA[1], bboxA[3]);
+        yOverlap = yOverlap || VectorTileGeometryUtil.booleanWithinRange(bboxB[3], bboxA[1], bboxA[3]);
+
+        return xOverlap && yOverlap;
+
     }
 
 
