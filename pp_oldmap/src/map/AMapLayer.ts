@@ -187,9 +187,9 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }
 
     mergeMultiPolylines(multiPolylineA: MultiLineString, multiPolylineB: MultiLineString): MultiLineString {
-        const polylinesA = VectorTileGeometryUtil.destructureMultiPolyline(multiPolylineA);
-        const polylinesB = VectorTileGeometryUtil.destructureMultiPolyline(multiPolylineB);
-        return VectorTileGeometryUtil.restructureMultiPolyline([
+        const polylinesA = VectorTileGeometryUtil.destructurePolylines(multiPolylineA);
+        const polylinesB = VectorTileGeometryUtil.destructurePolylines(multiPolylineB);
+        return VectorTileGeometryUtil.restructurePolylines([
             ...polylinesA,
             ...polylinesB
         ])
@@ -222,6 +222,28 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
         }
         if (!options.skip050) {
             this.multiPolyline050 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline050, toleranceMeters);
+        }
+    }
+
+    filterPolylinesShorterThan(minLength: number, options: ISkipOptions = {
+        skip018: false,
+        skip025: false,
+        skip035: false,
+        skip050: false,
+        skipMlt: true
+    }): void {
+        console.log(`${this.name}, connect-polylines ...`);
+        if (!options.skip018) {
+            this.multiPolyline018 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline018, minLength);
+        }
+        if (!options.skip025) {
+            this.multiPolyline025 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline025, minLength);
+        }
+        if (!options.skip035) {
+            this.multiPolyline035 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline035, minLength);
+        }
+        if (!options.skip050) {
+            this.multiPolyline050 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline050, minLength);
         }
     }
 

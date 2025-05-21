@@ -1,10 +1,11 @@
 import { BBox, Feature, MultiPoint, MultiPolygon, Polygon, Position } from "geojson";
-import { UnionPolygon, VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
+import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { ISymbolDefPointFill, IWorkerLineInputPolygon } from "./IWorkerLineInputPolygon";
 import * as turf from '@turf/turf';
 import { SymbolUtil } from "../../util/SymbolUtil";
 import { ISymbolProperties } from "../common/ISymbolProperties";
+import { TUnionPolygon } from "pp-geom";
 
 self.onmessage = (e) => {
 
@@ -26,7 +27,7 @@ self.onmessage = (e) => {
             return result;
         }
 
-        const getHexPoints = (multiPolygon: UnionPolygon, bbox: BBox, symbolDefinition: ISymbolDefPointFill): Position[] => {
+        const getHexPoints = (multiPolygon: TUnionPolygon, bbox: BBox, symbolDefinition: ISymbolDefPointFill): Position[] => {
 
             const hexCoordinatesA: Position[] = [];
 
@@ -110,14 +111,14 @@ self.onmessage = (e) => {
                 const symbolDefinition: ISymbolDefPointFill = workerInput.symbolDefinitions[symbolKeys[symbolKeyIndex]];
 
                 const centerPolygons02 = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -15);
-                const centerMultipolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(centerPolygons02);
+                const centerMultipolygon02 = VectorTileGeometryUtil.restructurePolygons(centerPolygons02);
 
                 const hexCoordinatesB: Position[] = [];
                 const bbox = turf.bbox(symbolizablePolygons);
                 if (symbolDefinition.outerDim > 0) {
 
                     const centerPolygonsOd = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -(symbolDefinition.outerDim + 10));
-                    const centerMultipolygonOd = VectorTileGeometryUtil.restructureMultiPolygon(centerPolygonsOd);
+                    const centerMultipolygonOd = VectorTileGeometryUtil.restructurePolygons(centerPolygonsOd);
 
                     if (centerMultipolygonOd.coordinates.length > 0) {
 

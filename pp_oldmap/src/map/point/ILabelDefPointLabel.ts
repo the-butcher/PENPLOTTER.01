@@ -1,3 +1,5 @@
+import { TPredefinedFontName } from "pp-font";
+
 export interface ILabelDefPointLabel {
     tileName: string;
     plotName: string;
@@ -5,5 +7,5 @@ export interface ILabelDefPointLabel {
     vertical: number; // vertical offset from the line
     charsign: number;
     txtscale: number;
-    fonttype: 'regular' | 'italic';
+    fonttype: TPredefinedFontName;
 }

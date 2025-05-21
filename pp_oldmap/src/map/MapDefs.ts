@@ -4,7 +4,7 @@ import { IMapDef } from "./IMapDef"
 export class MapDefs {
 
     static DEFAULT_TEXT_SCALE_LINELABEL = 0.022;
-    static DEFAULT_TEXT_SCALE__LOCATION = 16; // 0.032;
+    static DEFAULT_TEXT_SCALE__LOCATION = 0.032;
     static DEFAULT_TEXT_SCALE_____WATER = 0.036;
 
     static MAP_DEF_________MOON: IMapDef = {
@@ -30,7 +30,7 @@ export class MapDefs {
                 vertical: 15000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -40,7 +40,7 @@ export class MapDefs {
                 vertical: 30000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -50,7 +50,7 @@ export class MapDefs {
                 vertical: 10000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             }, {
                 tileName: 'Mons Penck',
@@ -59,7 +59,7 @@ export class MapDefs {
                 vertical: -10000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             }
         ]
@@ -88,7 +88,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -98,7 +98,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -108,7 +108,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -118,7 +118,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -128,7 +128,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -138,7 +138,7 @@ export class MapDefs {
                 vertical: -20,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -148,7 +148,7 @@ export class MapDefs {
                 vertical: 15,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -158,7 +158,7 @@ export class MapDefs {
                 vertical: -40,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -168,7 +168,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -178,7 +178,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
         ]
@@ -219,7 +219,7 @@ export class MapDefs {
                 vertical: -110,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -229,7 +229,7 @@ export class MapDefs {
                 vertical: 25,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -239,7 +239,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: (index: number) => index === 6
             },
             {
@@ -249,7 +249,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -259,7 +259,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL * 1.2,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -268,7 +268,7 @@ export class MapDefs {
                 distance: 0.17,
                 vertical: 0,
                 charsign: -1.1,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 idxvalid: (index: number) => index === 1
             },
@@ -329,7 +329,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -339,7 +339,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -349,7 +349,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -359,7 +359,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -369,7 +369,7 @@ export class MapDefs {
                 vertical: 120,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -379,7 +379,7 @@ export class MapDefs {
                 vertical: -30,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -389,7 +389,7 @@ export class MapDefs {
                 vertical: -20,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -399,7 +399,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -409,7 +409,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -419,7 +419,7 @@ export class MapDefs {
                 vertical: 40,
                 charsign: 1.05,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.5,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true,
             }
         ]
@@ -447,7 +447,7 @@ export class MapDefs {
                 distance: 0.15,
                 vertical: 8,
                 charsign: -1,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 idxvalid: (index: number) => index === 1
             },
@@ -457,7 +457,7 @@ export class MapDefs {
                 distance: 350,
                 vertical: -160,
                 charsign: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => true
             }
@@ -487,7 +487,7 @@ export class MapDefs {
                 vertical: 20,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -497,7 +497,7 @@ export class MapDefs {
                 vertical: 20,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
         ]
@@ -566,7 +566,7 @@ export class MapDefs {
                 vertical: -275,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             }
         ]
@@ -595,7 +595,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -605,7 +605,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -615,7 +615,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -625,7 +625,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -635,7 +635,7 @@ export class MapDefs {
                 vertical: -30,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -646,7 +646,7 @@ export class MapDefs {
                 charsign: 0.8,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.5,
                 idxvalid: () => true,
-                fonttype: 'italic'
+                fonttype: 'Noto Serif'
             }
         ]
     }
@@ -683,7 +683,7 @@ export class MapDefs {
                 vertical: 23,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 idxvalid: (index: number) => index === 1
             },
             {
@@ -693,7 +693,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             }
         ]
@@ -726,7 +726,7 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -736,7 +736,7 @@ export class MapDefs {
                 vertical: -28,
                 charsign: -1.1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -746,7 +746,7 @@ export class MapDefs {
                 vertical: 50,
                 charsign: -1.1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -755,8 +755,8 @@ export class MapDefs {
                 distance: 50,
                 vertical: -12,
                 charsign: 1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 3,
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -766,7 +766,7 @@ export class MapDefs {
                 vertical: 20,
                 charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -776,17 +776,17 @@ export class MapDefs {
                 vertical: 60,
                 charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
                 tileName: 'Salzach',
                 plotName: 'Salzach',
-                distance: 0.060,
-                vertical: -5,
-                charsign: -1.1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'italic',
+                distance: 0.285,
+                vertical: 0,
+                charsign: 1.1,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.25,
+                fonttype: 'Noto Serif',
                 idxvalid: () => true
             },
             {
@@ -796,7 +796,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             }
         ]
@@ -824,7 +824,7 @@ export class MapDefs {
                 distance: 130,
                 vertical: 0,
                 charsign: 1.02,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => false
             },
@@ -834,7 +834,7 @@ export class MapDefs {
                 distance: 60,
                 vertical: -90,
                 charsign: 1.02,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => false
             },
@@ -844,7 +844,7 @@ export class MapDefs {
                 distance: -40,
                 vertical: 30,
                 charsign: 1.02,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => false
             },
@@ -854,7 +854,7 @@ export class MapDefs {
                 distance: -50,
                 vertical: -30,
                 charsign: 1.02,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 idxvalid: () => false
             },
@@ -865,7 +865,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -875,7 +875,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -885,7 +885,7 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'regular',
+                fonttype: 'Noto Serif',
                 idxvalid: () => false
             },
             {
@@ -894,7 +894,7 @@ export class MapDefs {
                 distance: 0.25,
                 vertical: 24,
                 charsign: 1.02,
-                fonttype: 'italic',
+                fonttype: 'Noto Serif',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
                 idxvalid: (index: number) => index === 1
             },

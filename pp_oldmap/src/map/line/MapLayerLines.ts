@@ -72,7 +72,7 @@ export class MapLayerLines extends AMapLayer<LineString, ISymbolProperties> {
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);
@@ -105,7 +105,7 @@ export class MapLayerLines extends AMapLayer<LineString, ISymbolProperties> {
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

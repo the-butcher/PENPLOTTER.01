@@ -1,7 +1,8 @@
 import * as turf from '@turf/turf';
-import { UnionPolygon, VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerClipInput } from './IWorkerClipInput';
 import { IWorkerClipOutput } from './IWorkerClipOutput';
+import { TUnionPolygon } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -46,9 +47,9 @@ self.onmessage = (e) => {
                 const featureC = turf.featureCollection([turf.feature(polyDataDest), bufferResult!]);
                 const difference = turf.difference(featureC);
                 if (difference) {
-                    const differenceGeometry: UnionPolygon = difference!.geometry; // subtract inner polygons from outer
-                    const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(differenceGeometry);
-                    workerInput.polyDataDest = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+                    const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                    const polygonsD = VectorTileGeometryUtil.destructurePolygons(differenceGeometry);
+                    workerInput.polyDataDest = VectorTileGeometryUtil.restructurePolygons(polygonsD);
                 }
             }
 

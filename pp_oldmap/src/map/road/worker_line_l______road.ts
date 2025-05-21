@@ -11,9 +11,9 @@ self.onmessage = (e) => {
     let multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
     let multiPolyline050 = VectorTileGeometryUtil.emptyMultiPolyline();
 
-    const multiPolygon02 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons02); // highways
-    const multiPolygon34 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons34); // bigger roads
-    const multiPolygon56 = VectorTileGeometryUtil.restructureMultiPolygon(workerInput.polygons56); // smaller roads
+    const multiPolygon02 = VectorTileGeometryUtil.restructurePolygons(workerInput.polygons02); // highways
+    const multiPolygon34 = VectorTileGeometryUtil.restructurePolygons(workerInput.polygons34); // bigger roads
+    const multiPolygon56 = VectorTileGeometryUtil.restructurePolygons(workerInput.polygons56); // smaller roads
 
     const coordinates02: Position[][] = multiPolygon02.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
     const multiOutline02: MultiLineString = {

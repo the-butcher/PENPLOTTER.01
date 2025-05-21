@@ -42,7 +42,7 @@ self.onmessage = (e) => {
         const linebuffer02 = turf.buffer(multiPolyline02, 6, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polygons02.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer02.geometry));
+        polygons02.push(...VectorTileGeometryUtil.destructurePolygons(linebuffer02.geometry));
     }
 
     // larger streets
@@ -50,7 +50,7 @@ self.onmessage = (e) => {
         const linebuffer34 = turf.buffer(multiPolyline34, 5, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polygons34.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer34.geometry));
+        polygons34.push(...VectorTileGeometryUtil.destructurePolygons(linebuffer34.geometry));
     }
 
     // smaller streets
@@ -58,7 +58,7 @@ self.onmessage = (e) => {
         const linebuffer56 = turf.buffer(multiPolyline56, 4, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polygons56.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer56.geometry));
+        polygons56.push(...VectorTileGeometryUtil.destructurePolygons(linebuffer56.geometry));
     }
 
     // smallest streets
@@ -66,17 +66,17 @@ self.onmessage = (e) => {
         const linebuffer78 = turf.buffer(multiPolyline78, 2, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polygons78.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer78.geometry));
+        polygons78.push(...VectorTileGeometryUtil.destructurePolygons(linebuffer78.geometry));
     }
 
     // rebuild multipolygon for clipping operations agains other layers
     const union08 = VectorTileGeometryUtil.unionPolygons([...polygons02, ...polygons34, ...polygons56, ...polygons78]); // ...polygons02, ...polygons34, ...polygons56, ...polygons78
-    const polygons08 = VectorTileGeometryUtil.destructureUnionPolygon(union08);
-    let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons08);
+    const polygons08 = VectorTileGeometryUtil.destructurePolygons(union08);
+    let polyData = VectorTileGeometryUtil.restructurePolygons(polygons08);
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
     const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...workerInput.outin!);
-    polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
+    polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

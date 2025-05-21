@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon, Position } from "geojson";
+import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon } from "geojson";
 import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { ILabelDef } from "../ILabelDef";
 import { IWorkerPolyInputLineLabel } from "./IWorkerPolyInputLineLabel";
@@ -7,14 +7,21 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
-import { GeometryUtil } from '../../util/GeometryUtil';
-import { ILabelDefLineLabel } from './ILabelDefLineLabel';
-import { LabelBuilder } from '../../vectortile/LabelBuilder';
-import { noto_serif_regular } from '../../util/NotoSerifRegular';
-import { noto_serif_italic } from '../../util/NotoSerifItalic';
 import { MapDefs } from '../MapDefs';
+import { ILabelDefLineLabel } from './ILabelDefLineLabel';
+
+import { FacetypeFont, GlyphSetter } from 'pp-font';
+import { IProjectableProperties, TProjectableFeature } from 'pp-geom';
 
 self.onmessage = (e) => {
+
+    handleMessage(e).then(workerOutput => {
+        self.postMessage(workerOutput);
+    });
+
+}
+
+const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promise<IWorkerPolyOutputLineLabel> => {
 
     const workerInput: IWorkerPolyInputLineLabel = e.data;
 
@@ -22,14 +29,14 @@ self.onmessage = (e) => {
     workerInput.tileData.forEach(t => {
         const clipped = turf.bboxClip(t.geometry, workerInput.bboxMap4326);
         if (clipped.geometry.type === 'MultiLineString') {
-            const clippedPolylines = VectorTileGeometryUtil.destructureMultiPolyline(clipped.geometry);
+            const clippedPolylines = VectorTileGeometryUtil.destructurePolylines(clipped.geometry);
             clippedPolylines.forEach(clippedPolyline => {
                 tileData.push(turf.feature(clippedPolyline, t.properties));
             })
         } else if (clipped.geometry.type === 'LineString') {
             tileData.push(turf.feature(clipped.geometry, t.properties));
         }
-    })
+    });
 
     const lineNames = new Set(tileData.map(f => f.properties!.name));
     console.log('lineNames', lineNames);
@@ -46,12 +53,15 @@ self.onmessage = (e) => {
         }
     });
 
-    lineNames.forEach(lineName => {
+    const lineNameArray = Array.from(lineNames);
+    for (let i = 0; i < lineNameArray.length; i++) {
+
+        const lineName = lineNameArray[i];
 
         const namedLines = tileData.filter(f => f.properties!.name === lineName).map(f => f.geometry);
-        const connectedLinesA = VectorTileGeometryUtil.restructureMultiPolyline(namedLines);
+        const connectedLinesA = VectorTileGeometryUtil.restructurePolylines(namedLines);
         const connectedLinesB = VectorTileGeometryUtil.connectMultiPolyline(connectedLinesA, 5);
-        const connectedLinesC = VectorTileGeometryUtil.destructureMultiPolyline(connectedLinesB);
+        const connectedLinesC = VectorTileGeometryUtil.destructurePolylines(connectedLinesB);
 
         // console.log(namedLines, connectedLinesC);
 
@@ -59,7 +69,7 @@ self.onmessage = (e) => {
 
             for (let a = 0; a < connectedLinesC.length; a++) {
 
-                let polyName = VectorTileGeometryUtil.emptyMultiPolygon();
+                // let polyName = VectorTileGeometryUtil.emptyMultiPolygon();
 
                 let labelDef: ILabelDef = {
                     tileName: lineName,
@@ -68,10 +78,10 @@ self.onmessage = (e) => {
                     vertical: 12,
                     charsign: 0,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                    fonttype: 'regular',
+                    fonttype: 'Noto Serif',
                     idxvalid: () => true
                 };
-                console.log('lineName', lineName, labelDefs)
+                // console.log('lineName', lineName, labelDefs)
                 for (let i = 0; i < labelDefs.length; i++) {
                     if (labelDefs[i].plotName === lineName) {
                         labelDef = labelDefs[i];
@@ -83,131 +93,80 @@ self.onmessage = (e) => {
                     continue;
                 }
 
-                const labelBuilder = labelDef.fonttype === 'regular' ? new LabelBuilder(noto_serif_regular) : new LabelBuilder(noto_serif_italic);
-
-                const labelLine = connectedLinesC[a]; // turf.bboxClip(connectedLinesB[a], bboxMap4326).geometry as LineString;
-                // console.log('labelLine', labelLine);
-                turf.cleanCoords(labelLine, {
+                let labelLine4326 = connectedLinesC[a]; // turf.bboxClip(connectedLinesB[a], bboxMap4326).geometry as LineString;
+                turf.cleanCoords(labelLine4326, {
                     mutate: true
                 });
-                const labelLineLength = turf.length(turf.feature(labelLine), {
+                const labelLineLength = turf.length(turf.feature(labelLine4326), {
                     units: 'meters'
                 });
                 if (labelLineLength === 0) {
                     continue; // next
                 };
 
-                let labelLinePositionA = labelLineLength * labelDef.distance;
-                let labelCoordinate4326A = turf.along(labelLine, labelLinePositionA, {
+                turf.rewind(labelLine4326, {
+                    mutate: true
+                });
+                labelLine4326 = turf.lineSliceAlong(labelLine4326, labelLineLength * labelDef.distance, labelLineLength, {
                     units: 'meters'
-                }).geometry.coordinates;
-                let labelCoordinate3857A = turf.toMercator(labelCoordinate4326A);
+                }).geometry;
 
-                const scale = labelDef.txtscale;
-                const chars = Array.from(labelDef.plotName);
-                const zeroOffset: Position = [0, 0];
-                for (let i = 0; i < chars.length; i++) {
+                const font = await FacetypeFont.getInstance(labelDef.fonttype, labelDef.txtscale);
 
-                    let charCoordinates = labelBuilder.getMultiPolygonChar(chars[i], scale, zeroOffset).coordinates;
-                    const charOffset = labelBuilder.getCharOffset(chars[i], scale, zeroOffset, zeroOffset);
-
-                    if (labelDef.charsign === 0) { // auto
-                        const labelLinePositionT = labelLinePositionA + charOffset[0];
-                        const labelCoordinate4326T = turf.along(labelLine, labelLinePositionT, {
-                            units: 'meters'
-                        }).geometry.coordinates;
-                        const labelCoordinate3857T = turf.toMercator(labelCoordinate4326T);
-                        const angleT = Math.atan2(labelCoordinate3857T[1] - labelCoordinate3857A[1], labelCoordinate3857T[0] - labelCoordinate3857A[0]);
-                        // console.log(labelDef.plotName, angleT * 180 / Math.PI)
-                        if (Math.abs(angleT) > Math.PI / 2) {
-                            labelDef.charsign = -1;
-                        } else {
-                            labelDef.charsign = 1;
+                labelLine4326 = turf.lineOffset(labelLine4326, labelDef.vertical - font.getMidY(), {
+                    units: 'meters'
+                }).geometry;
+                const labelLineFeature4326: TProjectableFeature<LineString, IProjectableProperties> = {
+                    type: 'Feature',
+                    geometry: labelLine4326,
+                    properties: {
+                        metersPerUnit: 1,
+                        projType: '4326',
+                        unitAbbr: 'm',
+                        unitName: 'meters',
+                        projectors: {
+                            "4326": turf.toWgs84,
+                            "proj": turf.toMercator
                         }
                     }
+                };
 
-                    const labelLinePositionB = labelLinePositionA + charOffset[0] * labelDef.charsign;
-                    if (labelLinePositionB < 0 || labelLinePositionB > labelLineLength) {
-                        polyName = VectorTileGeometryUtil.emptyMultiPolygon(); // abort and clear this text
-                        console.log('abort');
-                        break;
-                    }
-                    const labelCoordinate4326B = turf.along(labelLine, labelLinePositionB, {
-                        units: 'meters'
-                    }).geometry.coordinates;
-                    const labelCoordinate3857B = turf.toMercator(labelCoordinate4326B);
+                const glyphSetter = GlyphSetter.alongLabelLine(labelLineFeature4326, labelDef.charsign);
+                const _polyText = font.getLabel(lineName, glyphSetter);
+                polyText.coordinates.push(..._polyText.coordinates);
 
-                    const angle = Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
-                    const matrixA = GeometryUtil.matrixRotationInstance(-angle);
-                    const matrixB = GeometryUtil.matrixTranslationInstance(0, labelDef.vertical);
-                    charCoordinates = GeometryUtil.transformPosition3(charCoordinates, GeometryUtil.matrixMultiply(matrixA, matrixB));
-
-                    let position4326: Position;
-                    charCoordinates.forEach(polygon => {
-                        polygon.forEach(ring => {
-                            ring.forEach(position => {
-                                const position3857 = [
-                                    labelCoordinate3857A[0] + position[0],
-                                    labelCoordinate3857A[1] - position[1]
-                                ];
-                                position4326 = turf.toWgs84([
-                                    position3857[0],
-                                    position3857[1]
-                                ]);
-                                position[0] = position4326[0];
-                                position[1] = position4326[1];
-                            })
-                        });
-                    });
-
-                    labelLinePositionA = labelLinePositionB;
-                    labelCoordinate4326A = labelCoordinate4326B;
-                    labelCoordinate3857A = labelCoordinate3857B;
-
-                    polyName.coordinates.push(...charCoordinates);
-
-                }
-
-                polyText.coordinates.push(...polyName.coordinates);
-
-            }
+            };
 
         }
 
-    });
-
-    const polyTextBufferPolygons: Polygon[] = [];
-    if (polyText.coordinates.length > 0) {
-        const polyTextBuffer = turf.buffer(polyText, 8, {
-            units: 'meters'
-        }) as Feature<Polygon | MultiPolygon>;
-        polyTextBufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(polyTextBuffer.geometry));
     }
 
-    let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polyTextBufferPolygons);
+    const polyTextBufferPolygonsA: Polygon[] = [];
+    if (polyText.coordinates.length > 0) {
+        const polyTextBufferA = turf.buffer(polyText, 8, {
+            units: 'meters'
+        }) as Feature<Polygon | MultiPolygon>;
+        polyTextBufferPolygonsA.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBufferA.geometry));
+    }
+    let polyData = VectorTileGeometryUtil.restructurePolygons(polyTextBufferPolygonsA);
+
+    // minor inwards buffer to account for pen width
+    const polyTextBufferPolygonsB: Polygon[] = [];
+    if (polyText.coordinates.length > 0) {
+        const polyTextBufferB = turf.buffer(polyText, -0.5, {
+            units: 'meters'
+        }) as Feature<Polygon | MultiPolygon>;
+        polyTextBufferPolygonsB.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBufferB.geometry));
+    }
+    polyText = VectorTileGeometryUtil.restructurePolygons(polyTextBufferPolygonsB);
 
     console.log(`${workerInput.name}, clipping ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
     polyText = VectorTileGeometryUtil.bboxClipMultiPolygon(polyText, workerInput.bboxMap4326);
 
-    const workerOutput: IWorkerPolyOutputLineLabel = {
+    return {
         polyData,
         polyText
     };
-    self.postMessage(workerOutput);
-
-    // const polygonsT: Polygon[] = workerInput.tileData.map(f => f.geometry);
-
-    // console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    // const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(polygonsT), ...workerInput.outin!);
-    // let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA);
-
-    // console.log(`${workerInput.name}, clipping ...`);
-    // polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
-
-    // const workerOutput: IWorkerPolyOutput = {
-    //     polyData
-    // };
-    // self.postMessage(workerOutput);
 
 }

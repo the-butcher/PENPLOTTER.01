@@ -3,18 +3,12 @@ import { Button, Checkbox, FormControl, FormControlLabel, List, ListItem, ListIt
 import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
-import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
 import { ClipDefs } from "../map/clip/ClipDefs";
 import { IClipDef } from "../map/clip/IClipDef";
-import { MapLayerFrame } from "../map/frame/MapLayerFrame";
-import { MapLayerLines } from "../map/line/MapLayerLines";
 import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 import { Map } from "../map/Map";
 import { MapDefs } from "../map/MapDefs";
 import { MapLayerPoints } from "../map/point/MapLayerPoints";
-import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
-import { MapLayerRoad2 } from "../map/road2/MapLayerRoad2";
-import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
 import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
@@ -28,7 +22,6 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerBridge2 } from "../map/road2/MapLayerBridge2";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -62,7 +55,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF___DUERNSTEIN;
+    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
 
     const _map = new Map({
 
@@ -78,13 +71,13 @@ function MapComponent() {
               },
             }),
         },
-        // {
-        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
-        //     }
-        //   }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
-        // },
+        {
+          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
+            }
+          }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
+        },
         // {
         //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
         //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -182,7 +175,7 @@ function MapComponent() {
         //   createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
         //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); //
         //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
         //     }
         //   })
@@ -203,13 +196,13 @@ function MapComponent() {
         //     }
         //   })
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'GIPFEL_L09-20'
-        //     }
-        //   }, 'createSummitSymbol', _mapDef.labelDefs, '')
-        // },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'GIPFEL_L09-20'
+            }
+          }, 'createSummitSymbol', _mapDef.labelDefs, '')
+        },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -229,13 +222,13 @@ function MapComponent() {
         //     }
         //   }, l => l.multiPolyline050, [0, 0], -10)
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
-        //     }
-        //   }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
-        // },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+            }
+          }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
+        },
         // {
         //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____HACHURE, {
         //     accepts: () => {
@@ -309,8 +302,7 @@ function MapComponent() {
 
     const layer = map!.findLayerByName(id);
 
-    // const polygons = VectorTileGeometryUtil.destructureMultiPolygon(layer!.polyData);
-    const polylines050 = VectorTileGeometryUtil.destructureMultiPolyline(layer!.multiPolyline035);
+    const polylines050 = VectorTileGeometryUtil.destructurePolylines(layer!.multiPolyline035);
     const features = polylines050.map(p => turf.feature(p));
     const featureCollection = turf.featureCollection(features);
 

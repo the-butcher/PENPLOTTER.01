@@ -30,12 +30,12 @@ self.onmessage = (e) => {
     polygonsT = polygonsT.map(t => removeHolesSmallerThan(t, 500));
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    polygonsT = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructureMultiPolygon(polygonsT), ...workerInput.outin!);
+    polygonsT = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructurePolygons(polygonsT), ...workerInput.outin!);
 
     // there may be new holes after buffering
     polygonsT = polygonsT.map(t => removeHolesSmallerThan(t, 500));
 
-    let polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsT);
+    let polyData = VectorTileGeometryUtil.restructurePolygons(polygonsT);
 
     console.log(`${workerInput.name}, clipping ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
@@ -44,7 +44,7 @@ self.onmessage = (e) => {
     const inoutA: number[] = [-0.11, 0.11];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
-    polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
+    polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA1);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

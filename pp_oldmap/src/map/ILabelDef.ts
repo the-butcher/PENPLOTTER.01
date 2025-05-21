@@ -1,3 +1,4 @@
+import { TPredefinedFontName } from "pp-font";
 
 export interface ILabelDef {
     tileName: string;
@@ -7,5 +8,5 @@ export interface ILabelDef {
     charsign: number;
     txtscale: number;
     idxvalid: (index: number) => boolean;
-    fonttype: 'regular' | 'italic';
+    fonttype: TPredefinedFontName;
 }

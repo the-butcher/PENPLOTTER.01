@@ -29,10 +29,10 @@ self.onmessage = (e) => {
     const features050 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, false, ...distances050);
 
     const connected025 = VectorTileGeometryUtil.connectBufferFeatures(features025);
-    const multiPolyline025 = VectorTileGeometryUtil.restructureMultiPolyline(connected025);
+    const multiPolyline025 = VectorTileGeometryUtil.restructurePolylines(connected025);
 
     const connected050 = VectorTileGeometryUtil.connectBufferFeatures(features050);
-    const multiPolyline050 = VectorTileGeometryUtil.restructureMultiPolyline(connected050);
+    const multiPolyline050 = VectorTileGeometryUtil.restructurePolylines(connected050);
 
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline050);

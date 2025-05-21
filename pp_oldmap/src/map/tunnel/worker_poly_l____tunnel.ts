@@ -8,15 +8,15 @@ self.onmessage = (e) => {
 
     const workerInput: IWorkerPolyInput<LineString, GeoJsonProperties> = e.data;
 
-    let multiPolyline04 = VectorTileGeometryUtil.restructureMultiPolyline(workerInput.tileData.map(f => f.geometry));
+    let multiPolyline04 = VectorTileGeometryUtil.restructurePolylines(workerInput.tileData.map(f => f.geometry));
     let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
     if (multiPolyline04.coordinates.length > 0) {
         const linebuffer04 = turf.buffer(multiPolyline04, 2, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        const polygons04 = VectorTileGeometryUtil.destructureUnionPolygon(linebuffer04.geometry);
-        polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons04);
+        const polygons04 = VectorTileGeometryUtil.destructurePolygons(linebuffer04.geometry);
+        polyData = VectorTileGeometryUtil.restructurePolygons(polygons04);
     }
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);

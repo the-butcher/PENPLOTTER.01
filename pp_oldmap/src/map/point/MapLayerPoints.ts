@@ -57,11 +57,11 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
             }
         }
 
-        console.log(`${this.name}, _name '${name}', _label_class '${clasVal}' ...`);
-
         if (nameVal && !name) {
             return; // ignore label AND point
         }
+
+        // console.log(`${this.name}, _name '${name}', _label_class '${clasVal}' ...`);
 
         points.forEach(point => {
             this.tileData.push(turf.feature(point, {
@@ -97,7 +97,7 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 idxvalid: undefined
             }
         });
-        // console.log('labelDefsWorkerInput', labelDefsWorkerInput);
+        // console.log(this.name, 'labelDefsWorkerInput', labelDefsWorkerInput);
 
         const workerInput: IWorkerPolyInputPoint = {
             name: this.name,
@@ -116,11 +116,11 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
                 this.multiPolyline025 = workerOutput.multiPolyline025;
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

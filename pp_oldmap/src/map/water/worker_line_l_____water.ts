@@ -22,8 +22,8 @@ self.onmessage = (e) => {
     }
     // console.log('distances', distances);
 
-    const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect(workerInput.polyData, false, ...distances);
-    let multiPolygonB = VectorTileGeometryUtil.restructureMultiPolygon(polygonsB);
+    const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect1(workerInput.polyData, false, ...distances);
+    let multiPolygonB = VectorTileGeometryUtil.restructurePolygons(polygonsB);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (2) ...`);
     multiPolygonB = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonB, workerInput.bboxClp4326); // with buffered rings

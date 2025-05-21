@@ -3,20 +3,19 @@ import { BBox, GeoJsonProperties, Geometry, LineString, MultiPolygon } from "geo
 import { IVectorTileFeature } from "../../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../../vectortile/IVectorTileKey";
-import { UnionPolygon, VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
+import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { AMapLayer } from "../AMapLayer";
 import { ILabelDef } from '../ILabelDef';
-import { Map } from '../Map';
-import { Pen } from "../Pen";
 import { IWorkerPolyInputLineLabel } from './IWorkerPolyInputLineLabel';
 import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
-import { ILabelDefLineLabel } from './ILabelDefLineLabel';
-import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 import { ISkipOptions } from '../ISkipOptions';
+import { ILabelDefLineLabel } from './ILabelDefLineLabel';
+import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
+import { TUnionPolygon } from 'pp-geom';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -57,7 +56,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
         if (feature.hasValue('_name') && feature.hasValue('_label_class', ...this.labelClasses)) { //  && feature.hasValue('_label_class', 4, 5)
 
             let name = feature.getValue('_name')!.getValue()!.toString();
-            console.log(`${this.name}, _name '${name}', _label_class '${feature.getValue('_label_class')?.getValue()}' ...`);
+            // console.log(`${this.name}, _name '${name}', _label_class '${feature.getValue('_label_class')?.getValue()}' ...`);
 
             for (let i = 0; i < this.labelDefs.length; i++) {
                 if (this.labelDefs[i].tileName === name) {
@@ -211,9 +210,9 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                     const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
                     const difference = turf.difference(featureC);
                     if (difference) {
-                        const differenceGeometry: UnionPolygon = difference!.geometry; // subtract inner polygons from outer
-                        const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(differenceGeometry);
-                        this.polyText = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+                        const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                        const polygonsD = VectorTileGeometryUtil.destructurePolygons(differenceGeometry);
+                        this.polyText = VectorTileGeometryUtil.restructurePolygons(polygonsD);
                     }
                 }
 

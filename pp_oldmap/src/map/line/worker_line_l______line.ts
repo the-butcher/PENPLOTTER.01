@@ -14,7 +14,7 @@ self.onmessage = (e) => {
     let multiPolylineDef = VectorTileGeometryUtil.emptyMultiPolyline();
 
     const polylines = workerInput.tileData.map(f => f.geometry);
-    const tileDataMult = VectorTileGeometryUtil.restructureMultiPolyline(polylines);
+    const tileDataMult = VectorTileGeometryUtil.restructurePolylines(polylines);
 
     multiPolylineDef.coordinates.push(...tileDataMult.coordinates);
 
@@ -55,7 +55,7 @@ self.onmessage = (e) => {
                 // @ts-expect-error text type
                 const symbolFactory: (coordinate: Position) => Position[][] = SymbolUtil[symbolDefinition.symbolFactory];
 
-                const polylines = VectorTileGeometryUtil.destructureMultiPolyline(symbolizablePolylines);
+                const polylines = VectorTileGeometryUtil.destructurePolylines(symbolizablePolylines);
 
                 polylines.forEach(polyline => {
 

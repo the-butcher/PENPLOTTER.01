@@ -43,21 +43,21 @@ self.onmessage = (e) => {
         }
     });
 
-    let polyData: MultiPolygon = VectorTileGeometryUtil.restructureMultiPolygon(preUnion);
+    let polyData: MultiPolygon = VectorTileGeometryUtil.restructurePolygons(preUnion);
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);
     polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // get outer rings, all holes removed
-    let polygons025 = VectorTileGeometryUtil.destructureMultiPolygon(polyData);
+    let polygons025 = VectorTileGeometryUtil.destructurePolygons(polyData);
     polygons025.forEach(polygonO => {
         polygonO.coordinates = polygonO.coordinates.slice(0, 1);
     });
-    let multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons025);
+    let multiPolygonO = VectorTileGeometryUtil.restructurePolygons(polygons025);
 
     // get inner ring reversed, act like real polygons temporarily
-    let polygonsI: Polygon[] = VectorTileGeometryUtil.destructureMultiPolygon(polyData);
+    let polygonsI: Polygon[] = VectorTileGeometryUtil.destructurePolygons(polyData);
     const polygonsIFlat: Polygon[] = [];
     polygonsI.forEach(polygonI => {
         polygonI.coordinates.slice(1).forEach(hole => {
@@ -72,7 +72,7 @@ self.onmessage = (e) => {
             mutate: true
         });
     });
-    let multiPolygonI = VectorTileGeometryUtil.restructureMultiPolygon(polygonsIFlat);
+    let multiPolygonI = VectorTileGeometryUtil.restructurePolygons(polygonsIFlat);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (1) ...`);
     multiPolygonO = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonO, workerInput.bboxClp4326);
@@ -87,12 +87,12 @@ self.onmessage = (e) => {
     const inoutO: number[] = [inout0, polygonInset - inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutO[0]}, ${inoutO[1]}] ...`);
     polygons025 = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonO, ...inoutO);
-    multiPolygonO = VectorTileGeometryUtil.restructureMultiPolygon(polygons025);
+    multiPolygonO = VectorTileGeometryUtil.restructurePolygons(polygons025);
 
     const inoutI: number[] = [polygonInset - inout0, inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutI[0]}, ${inoutI[1]}] ...`);
     polygonsI = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonI, ...inoutI).filter(i => turf.area(i) > MapLayerBuildings.minArea);
-    multiPolygonI = VectorTileGeometryUtil.restructureMultiPolygon(polygonsI);
+    multiPolygonI = VectorTileGeometryUtil.restructurePolygons(polygonsI);
 
     if (multiPolygonO.coordinates.length > 0 && multiPolygonI.coordinates.length) {
 
@@ -102,8 +102,8 @@ self.onmessage = (e) => {
 
         console.log(`${workerInput.name}, reapplying holes ...`);
         const difference = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
-        const polygonsD = VectorTileGeometryUtil.destructureUnionPolygon(difference);
-        polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsD);
+        const polygonsD = VectorTileGeometryUtil.destructurePolygons(difference);
+        polyData = VectorTileGeometryUtil.restructurePolygons(polygonsD);
 
     }
 
@@ -114,7 +114,7 @@ self.onmessage = (e) => {
     const inoutA: number[] = [-0.11, 0.1];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
-    polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygonsA1);
+    polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA1);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

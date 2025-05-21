@@ -57,14 +57,14 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const multiPolyline = VectorTileGeometryUtil.restructureMultiPolyline(this.tileDataLines.map(f => f.geometry));
+        const multiPolyline = VectorTileGeometryUtil.restructurePolylines(this.tileDataLines.map(f => f.geometry));
         // let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
         if (multiPolyline.coordinates.length > 0) {
             const linebuffer04 = turf.buffer(multiPolyline, 2, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
-            const polygons04 = VectorTileGeometryUtil.destructureUnionPolygon(linebuffer04.geometry);
+            const polygons04 = VectorTileGeometryUtil.destructurePolygons(linebuffer04.geometry);
             polygons04.forEach(polygon => {
                 this.tileData.push(turf.feature(polygon, {
                     lod: -1,
@@ -103,7 +103,7 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
         console.log(`${this.name}, processing line ...`);
 
-        const workerInput: IWorkerLineInput<Polygon> = {
+        const workerInput: IWorkerLineInput<Polygon, GeoJsonProperties> = {
             name: this.name,
             tileData: this.tileData,
             polyData: this.polyData,
@@ -132,6 +132,7 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
         console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(4);
+        this.filterPolylinesShorterThan(20);
 
     }
 

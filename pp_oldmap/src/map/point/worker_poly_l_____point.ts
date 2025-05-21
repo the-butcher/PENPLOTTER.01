@@ -1,17 +1,23 @@
 import * as turf from '@turf/turf';
 import { Feature, MultiPolygon, Point, Polygon, Position } from 'geojson';
-import { GeometryUtil } from '../../util/GeometryUtil';
+import { FacetypeFont, GlyphSetter } from 'pp-font';
+import { IProjectableProperties, Projection, TProjectableFeature } from 'pp-geom';
 import { SymbolUtil } from '../../util/SymbolUtil';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { MapDefs } from '../MapDefs';
+import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
-import { ILabelDefPointLabel } from './ILabelDefPointLabel';
-import { MapDefs } from '../MapDefs';
-import { LabelBuilder } from '../../vectortile/LabelBuilder';
-import { noto_serif_regular } from '../../util/NotoSerifRegular';
-import { noto_serif_italic } from '../../util/NotoSerifItalic';
 
 self.onmessage = (e) => {
+
+    handleMessage(e).then(workerOutput => {
+        self.postMessage(workerOutput);
+    });
+
+}
+
+const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IWorkerPolyOutputPoint> => {
 
     const workerInput: IWorkerPolyInputPoint = e.data;
 
@@ -29,16 +35,17 @@ self.onmessage = (e) => {
     }
     workerInput.tileData = _tileData;
 
-
-
-    const polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+    let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
     let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
     let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
     // @ts-expect-error text type
     const symbolFactory: (coordinate: Position) => Position[][] = SymbolUtil[workerInput.symbolFactory];
 
-    workerInput.tileData.forEach(point => {
+    for (let i = 0; i < workerInput.tileData.length; i++) {
+
+        const point = workerInput.tileData[i];
+
         if (VectorTileGeometryUtil.booleanWithin(workerInput.bboxMap4326, point.geometry.coordinates)) {
 
             const symbolCoordinates = symbolFactory(point.geometry.coordinates);
@@ -49,13 +56,16 @@ self.onmessage = (e) => {
             const name: string = point.properties!.name;
             if (name) {
 
+                console.log('name', name);
+
                 let labelDef: ILabelDefPointLabel = {
                     tileName: name,
                     plotName: name,
                     distance: 12.00,
                     vertical: -12.00,
-                    charsign: 1.02,
-                    txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION
+                    charsign: 1.10,
+                    txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                    fonttype: 'Noto Serif'
                 };
                 for (let i = 0; i < workerInput.labelDefs.length; i++) {
                     if (workerInput.labelDefs[i].plotName === name) {
@@ -64,51 +74,39 @@ self.onmessage = (e) => {
                     }
                 }
 
-                const labelBuilder = labelDef.fonttype === 'regular' ? new LabelBuilder(noto_serif_regular) : new LabelBuilder(noto_serif_italic);
+                const font = await FacetypeFont.getInstance(labelDef.fonttype, labelDef.txtscale);
 
-                const labelCoordinate3857A = turf.toMercator(point.geometry.coordinates);
-                const scale = labelDef.txtscale;
-                const chars = Array.from(name);
-                const zeroOffset: Position = [0, 0];
-                let charOffset: Position = [labelDef.distance, labelDef.vertical];
-                for (let i = 0; i < chars.length; i++) {
+                // add offset as of label-def
+                const labelPointProj = Projection.projectGeometry(point.geometry, turf.toMercator);
+                labelPointProj.coordinates[0] += labelDef.distance;
+                labelPointProj.coordinates[1] -= labelDef.vertical;
+                labelPointProj.coordinates[1] += font.getMidY();
 
-                    let charCoordinates = labelBuilder.getMultiPolygonChar(chars[i], scale, charOffset).coordinates;
-                    charOffset = labelBuilder.getCharOffset(chars[i], scale, zeroOffset, charOffset);
-                    charOffset[0] = charOffset[0] * labelDef.charsign;
+                const labelPoint4326 = Projection.projectGeometry(labelPointProj, turf.toWgs84);
+                const labelPointFeature4326: TProjectableFeature<Point, IProjectableProperties> = {
+                    type: 'Feature',
+                    geometry: labelPoint4326,
+                    properties: {
+                        metersPerUnit: 1,
+                        projType: '4326',
+                        unitAbbr: 'm',
+                        unitName: 'meters',
+                        projectors: {
+                            "4326": turf.toWgs84,
+                            "proj": turf.toMercator
+                        }
+                    }
+                };
 
-                    const angle = 0; //Math.atan2(labelCoordinate3857B[1] - labelCoordinate3857A[1], labelCoordinate3857B[0] - labelCoordinate3857A[0]);
-                    const matrixA = GeometryUtil.matrixRotationInstance(-angle);
-                    const matrixB = GeometryUtil.matrixTranslationInstance(labelDef.distance, labelDef.vertical);
-                    charCoordinates = GeometryUtil.transformPosition3(charCoordinates, GeometryUtil.matrixMultiply(matrixA, matrixB));
-
-                    let position4326: Position;
-                    charCoordinates.forEach(polygon => {
-                        polygon.forEach(ring => {
-                            ring.forEach(position => {
-                                const position3857 = [
-                                    labelCoordinate3857A[0] + position[0],
-                                    labelCoordinate3857A[1] - position[1]
-                                ];
-                                position4326 = turf.toWgs84([
-                                    position3857[0],
-                                    position3857[1]
-                                ]);
-                                position[0] = position4326[0];
-                                position[1] = position4326[1];
-                            })
-                        });
-                    });
-
-                    polyText.coordinates.push(...charCoordinates);
-
-                }
+                const glyphSetter = GlyphSetter.fromPosition(labelPointFeature4326, labelDef.charsign);
+                const _polyText = font.getLabel(name, glyphSetter);
+                polyText.coordinates.push(..._polyText.coordinates);
 
             }
 
         }
 
-    });
+    };
 
     const bufferDist = 6;
 
@@ -118,7 +116,7 @@ self.onmessage = (e) => {
         const linebuffer018 = turf.buffer(multiPolyline025, bufferDist, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        bufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(linebuffer018.geometry));
+        bufferPolygons.push(...VectorTileGeometryUtil.destructurePolygons(linebuffer018.geometry));
     }
 
     // buffer around text polygons
@@ -126,13 +124,23 @@ self.onmessage = (e) => {
         const polyTextBuffer = turf.buffer(polyText, bufferDist, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        bufferPolygons.push(...VectorTileGeometryUtil.destructureUnionPolygon(polyTextBuffer.geometry));
+        bufferPolygons.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBuffer.geometry));
     }
+
+    // minor inwards buffer to account for pen width
+    const polyTextBufferPolygonsB: Polygon[] = [];
+    if (polyText.coordinates.length > 0) {
+        const polyTextBufferB = turf.buffer(polyText, -0.25, {
+            units: 'meters'
+        }) as Feature<Polygon | MultiPolygon>;
+        polyTextBufferPolygonsB.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBufferB.geometry));
+    }
+    polyText = VectorTileGeometryUtil.restructurePolygons(polyTextBufferPolygonsB);
 
     if (bufferPolygons.length > 0) {
         const bufferUnion = VectorTileGeometryUtil.unionPolygons(bufferPolygons);
-        bufferPolygons = VectorTileGeometryUtil.destructureUnionPolygon(bufferUnion);
-        polyData = VectorTileGeometryUtil.restructureMultiPolygon(bufferPolygons);
+        bufferPolygons = VectorTileGeometryUtil.destructurePolygons(bufferUnion);
+        polyData = VectorTileGeometryUtil.restructurePolygons(bufferPolygons);
     }
 
     multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
@@ -140,11 +148,10 @@ self.onmessage = (e) => {
         mutate: true
     });
 
-    const workerOutput: IWorkerPolyOutputPoint = {
+    return {
         polyData,
         polyText,
         multiPolyline025
     };
-    self.postMessage(workerOutput);
 
 }

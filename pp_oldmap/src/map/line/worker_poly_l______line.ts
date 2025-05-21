@@ -12,12 +12,12 @@ self.onmessage = (e) => {
 
     const polylines = workerInput.tileData.map(f => f.geometry);
     if (polylines.length > 0) {
-        const tileDataMult = VectorTileGeometryUtil.restructureMultiPolyline(polylines);
+        const tileDataMult = VectorTileGeometryUtil.restructurePolylines(polylines);
         const tileDataBuff = turf.buffer(tileDataMult, 5, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        const polygons = VectorTileGeometryUtil.destructureUnionPolygon(tileDataBuff.geometry);
-        polyData = VectorTileGeometryUtil.restructureMultiPolygon(polygons);
+        const polygons = VectorTileGeometryUtil.destructurePolygons(tileDataBuff.geometry);
+        polyData = VectorTileGeometryUtil.restructurePolygons(polygons);
     }
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
