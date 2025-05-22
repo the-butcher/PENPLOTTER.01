@@ -1,4 +1,5 @@
 import { TPredefinedFontName } from "pp-font";
+import { TFillProps } from "pp-geom";
 
 export interface ILabelDefPointLabel {
     tileName: string;
@@ -8,4 +9,5 @@ export interface ILabelDefPointLabel {
     charsign: number;
     txtscale: number;
     fonttype: TPredefinedFontName;
+    fillprop: TFillProps;
 }

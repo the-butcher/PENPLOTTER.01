@@ -1,9 +1,8 @@
 import { GeoJsonProperties, Polygon } from 'geojson';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { PPGeometry } from 'pp-geom';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 import { danube___all } from '../Rivers';
-import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -15,7 +14,7 @@ self.onmessage = (e) => {
     polygonsT.push(...PPGeometry.destructurePolygons(danube___all));
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(PPGeometry.restructurePolygons(polygonsT), ...workerInput.outin!);
+    const polygonsA: Polygon[] = PPGeometry.bufferOutAndIn(PPGeometry.restructurePolygons(polygonsT), ...workerInput.outin!);
     let polyData = PPGeometry.restructurePolygons(polygonsA);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (1) ...`);
@@ -24,7 +23,7 @@ self.onmessage = (e) => {
     // another very small in-out removes artifacts at the bounding box edges
     const inoutA: number[] = [-0.11, 0.11];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
-    const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
+    const polygonsA1 = PPGeometry.bufferOutAndIn(polyData, ...inoutA);
     polyData = PPGeometry.restructurePolygons(polygonsA1);
 
     PPGeometry.cleanAndSimplify(polyData);

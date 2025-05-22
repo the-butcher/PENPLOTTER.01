@@ -1,7 +1,7 @@
 import * as turf from '@turf/turf';
 import { Feature, MultiPolygon, Point, Polygon, Position } from 'geojson';
 import { FacetypeFont, GlyphSetter } from 'pp-font';
-import { IProjectableProperties, PPGeometry, PPProjection, TProjectableFeature } from 'pp-geom';
+import { IProjectableProperties, PPGeometry, PPProjection, TFillProps, TProjectableFeature } from 'pp-geom';
 import { SymbolUtil } from '../../util/SymbolUtil';
 import { MapDefs } from '../MapDefs';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
@@ -34,7 +34,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
     }
     workerInput.tileData = _tileData;
 
-    let polyText = PPGeometry.emptyMultiPolygon();
+    let polyText: Feature<MultiPolygon, TFillProps>[] = [];
     let multiPolyline025 = PPGeometry.emptyMultiPolyline();
     let polyData = PPGeometry.emptyMultiPolygon();
 
@@ -64,7 +64,10 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
                     vertical: -12.00,
                     charsign: 1.10,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                    fonttype: 'Noto Serif'
+                    fonttype: 'noto_serif________regular',
+                    fillprop: {
+                        type: 'none'
+                    }
                 };
                 for (let i = 0; i < workerInput.labelDefs.length; i++) {
                     if (workerInput.labelDefs[i].plotName === name) {
@@ -99,7 +102,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
 
                 const glyphSetter = GlyphSetter.fromPosition(labelPointFeature4326, labelDef.charsign);
                 const _polyText = font.getLabel(name, glyphSetter);
-                polyText.coordinates.push(..._polyText.coordinates);
+                polyText.push(turf.feature(_polyText, labelDef.fillprop));
 
             }
 
@@ -118,23 +121,34 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
         bufferPolygons.push(...PPGeometry.destructurePolygons(linebuffer018.geometry));
     }
 
+    const polyBuffer: MultiPolygon = {
+        type: 'MultiPolygon',
+        coordinates: []
+    };
+    polyText.forEach(p => {
+        polyBuffer.coordinates.push(...p.geometry.coordinates)
+    });
+
     // buffer around text polygons
-    if (polyText.coordinates.length > 0) {
-        const polyTextBuffer = turf.buffer(polyText, bufferDist, {
+    if (polyBuffer.coordinates.length > 0) {
+        const polyTextBuffer = turf.buffer(polyBuffer, bufferDist, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
         bufferPolygons.push(...PPGeometry.destructurePolygons(polyTextBuffer.geometry));
     }
 
-    // minor inwards buffer to account for pen width
-    const polyTextBufferPolygonsB: Polygon[] = [];
-    if (polyText.coordinates.length > 0) {
-        const polyTextBufferB = turf.buffer(polyText, -0.25, {
-            units: 'meters'
-        }) as Feature<Polygon | MultiPolygon>;
-        polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));
+    const bufferPolyText = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+        // minor inwards buffer to account for pen width
+        const polyTextBufferPolygonsB: Polygon[] = [];
+        if (feature.geometry.coordinates.length > 0) {
+            const polyTextBufferB = turf.buffer(feature.geometry, -0.30, {
+                units: 'meters'
+            }) as Feature<Polygon | MultiPolygon>;
+            polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));
+        }
+        return turf.feature(PPGeometry.restructurePolygons(polyTextBufferPolygonsB), feature.properties);
     }
-    polyText = PPGeometry.restructurePolygons(polyTextBufferPolygonsB);
+    polyText = polyText.map(p => bufferPolyText(p));
 
     if (bufferPolygons.length > 0) {
         const bufferUnion = PPGeometry.unionPolygons(bufferPolygons);
@@ -146,6 +160,11 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
     turf.cleanCoords(multiPolyline025, {
         mutate: true
     });
+
+    const bboxClipFeature = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+        return turf.feature(PPGeometry.bboxClipMultiPolygon(feature.geometry, workerInput.bboxMap4326), feature.properties);
+    }
+    polyText = polyText.map(p => bboxClipFeature(p));
 
     return {
         polyData,

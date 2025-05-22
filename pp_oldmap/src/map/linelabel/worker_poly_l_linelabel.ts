@@ -1,6 +1,5 @@
 import * as turf from '@turf/turf';
 import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon } from "geojson";
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { ILabelDef } from "../ILabelDef";
 import { IWorkerPolyInputLineLabel } from "./IWorkerPolyInputLineLabel";
 import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
@@ -11,7 +10,7 @@ import { MapDefs } from '../MapDefs';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 
 import { FacetypeFont, GlyphSetter } from 'pp-font';
-import { IProjectableProperties, PPGeometry, TProjectableFeature } from 'pp-geom';
+import { IProjectableProperties, PPGeometry, TFillProps, TProjectableFeature } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -41,7 +40,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
     const lineNames = new Set(tileData.map(f => f.properties!.name));
     console.log('lineNames', lineNames);
 
-    let polyText = PPGeometry.emptyMultiPolygon();
+    let polyText: Feature<MultiPolygon, TFillProps>[] = [];
 
     const labelDefs: ILabelDef[] = workerInput.labelDefs.map(d => {
         const labelDefOmit: Omit<ILabelDefLineLabel, 'idxvalid'> = {
@@ -60,7 +59,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
 
         const namedLines = tileData.filter(f => f.properties!.name === lineName).map(f => f.geometry);
         const connectedLinesA = PPGeometry.restructurePolylines(namedLines);
-        const connectedLinesB = VectorTileGeometryUtil.connectMultiPolyline(connectedLinesA, 5);
+        const connectedLinesB = PPGeometry.connectMultiPolyline(connectedLinesA, 5);
         const connectedLinesC = PPGeometry.destructurePolylines(connectedLinesB);
 
         // console.log(namedLines, connectedLinesC);
@@ -78,8 +77,11 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                     vertical: 12,
                     charsign: 0,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                    fonttype: 'Noto Serif',
-                    idxvalid: () => true
+                    fonttype: 'noto_serif________regular',
+                    idxvalid: () => true,
+                    fillprop: {
+                        type: 'none'
+                    }
                 };
                 // console.log('lineName', lineName, labelDefs)
                 for (let i = 0; i < labelDefs.length; i++) {
@@ -133,7 +135,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
 
                 const glyphSetter = GlyphSetter.alongLabelLine(labelLineFeature4326, labelDef.charsign);
                 const _polyText = font.getLabel(lineName, glyphSetter);
-                polyText.coordinates.push(..._polyText.coordinates);
+                polyText.push(turf.feature(_polyText, labelDef.fillprop));
 
             };
 
@@ -141,28 +143,43 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
 
     }
 
+    const polyBuffer: MultiPolygon = {
+        type: 'MultiPolygon',
+        coordinates: []
+    };
+    polyText.forEach(p => {
+        polyBuffer.coordinates.push(...p.geometry.coordinates)
+    });
+
     const polyTextBufferPolygonsA: Polygon[] = [];
-    if (polyText.coordinates.length > 0) {
-        const polyTextBufferA = turf.buffer(polyText, 8, {
+    if (polyBuffer.coordinates.length > 0) {
+        const polyTextBufferA = turf.buffer(polyBuffer, 8, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
         polyTextBufferPolygonsA.push(...PPGeometry.destructurePolygons(polyTextBufferA.geometry));
     }
     let polyData = PPGeometry.restructurePolygons(polyTextBufferPolygonsA);
 
-    // minor inwards buffer to account for pen width
-    const polyTextBufferPolygonsB: Polygon[] = [];
-    if (polyText.coordinates.length > 0) {
-        const polyTextBufferB = turf.buffer(polyText, -0.5, {
-            units: 'meters'
-        }) as Feature<Polygon | MultiPolygon>;
-        polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));
+    const bufferPolyText = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+        // minor inwards buffer to account for pen width
+        const polyTextBufferPolygonsB: Polygon[] = [];
+        if (feature.geometry.coordinates.length > 0) {
+            const polyTextBufferB = turf.buffer(feature.geometry, -0.30, {
+                units: 'meters'
+            }) as Feature<Polygon | MultiPolygon>;
+            polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));
+        }
+        return turf.feature(PPGeometry.restructurePolygons(polyTextBufferPolygonsB), feature.properties);
     }
-    polyText = PPGeometry.restructurePolygons(polyTextBufferPolygonsB);
+    polyText = polyText.map(p => bufferPolyText(p));
 
     console.log(`${workerInput.name}, clipping ...`);
     polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
-    polyText = PPGeometry.bboxClipMultiPolygon(polyText, workerInput.bboxMap4326);
+
+    const bboxClipFeature = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+        return turf.feature(PPGeometry.bboxClipMultiPolygon(feature.geometry, workerInput.bboxMap4326), feature.properties);
+    }
+    polyText = polyText.map(p => bboxClipFeature(p));
 
     return {
         polyData,

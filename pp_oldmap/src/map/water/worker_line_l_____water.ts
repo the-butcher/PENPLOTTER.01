@@ -1,8 +1,7 @@
 import { GeoJsonProperties, Polygon, Position } from 'geojson';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { PPGeometry } from 'pp-geom';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
-import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -23,7 +22,7 @@ self.onmessage = (e) => {
     }
     // console.log('distances', distances);
 
-    const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect1(workerInput.polyData, false, ...distances);
+    const polygonsB: Polygon[] = PPGeometry.bufferCollect1(workerInput.polyData, false, ...distances);
     let multiPolygonB = PPGeometry.restructurePolygons(polygonsB);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (2) ...`);

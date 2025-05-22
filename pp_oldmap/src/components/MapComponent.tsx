@@ -6,11 +6,11 @@ import { PPGeometry } from "pp-geom";
 import { createRef, useEffect, useRef, useState } from "react";
 import { ClipDefs } from "../map/clip/ClipDefs";
 import { IClipDef } from "../map/clip/IClipDef";
+import { MapLayerLines } from "../map/line/MapLayerLines";
 import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 import { Map } from "../map/Map";
 import { MapDefs } from "../map/MapDefs";
 import { MapLayerPoints } from "../map/point/MapLayerPoints";
-import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -23,6 +23,7 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
+import { MapLayerRoad2 } from "../map/road2/MapLayerRoad2";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -64,21 +65,21 @@ function MapComponent() {
       padding: _mapDef.padding,
 
       layers: [
-        {
-          createLayerInstance: () =>
-            new MapLayerWater(Map.LAYER__NAME______WATER, {
-              accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-                return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === "GEWAESSER_F_GEWF" || vectorTileFeature.layerName === "GEWAESSER_L_GEWL ");
-              },
-            }),
-        },
-        {
-          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
-            }
-          }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
-        },
+        // {
+        //   createLayerInstance: () =>
+        //     new MapLayerWater(Map.LAYER__NAME______WATER, {
+        //       accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //         return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === "GEWAESSER_F_GEWF" || vectorTileFeature.layerName === "GEWAESSER_L_GEWL ");
+        //       },
+        //     }),
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME___RIVER_TX, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'GEWAESSER_L_GEWL /label';
+        //     }
+        //   }, _mapDef.labelDefs, _mapDef.water_tx, 6, 7) // 2,
+        // },
         // {
         //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME__GREENAREA, {
         //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -197,13 +198,13 @@ function MapComponent() {
         //     }
         //   })
         // },
-        {
-          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'GIPFEL_L09-20'
-            }
-          }, 'createSummitSymbol', _mapDef.labelDefs, '')
-        },
+        // {
+        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'GIPFEL_L09-20'
+        //     }
+        //   }, 'createSummitSymbol', _mapDef.labelDefs, '')
+        // },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -211,18 +212,18 @@ function MapComponent() {
         //     }
         //   }, 'createChurchSymbol', _mapDef.labelDefs, '')
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
-        //         console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
-        //         return true;
-        //       } else {
-        //         return false;
-        //       }
-        //     }
-        //   }, l => l.multiPolyline050, [0, 0], -10)
-        // },
+        {
+          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
+                console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
+                return true;
+              } else {
+                return false;
+              }
+            }
+          }, l => l.multiPolyline050, [0, 0], -10)
+        },
         {
           createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
             accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -251,13 +252,13 @@ function MapComponent() {
         //     }
         //   }, _mapDef.labelDefs, _mapDef.contours)
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
-        //     accepts: () => {
-        //       return false;
-        //     }
-        //   }, _mapDef.labelDefs, _mapDef.bordertx)
-        // },
+        {
+          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
+            accepts: () => {
+              return false;
+            }
+          }, _mapDef.labelDefs, _mapDef.bordertx)
+        },
         // {
         //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
         //     accepts: () => {

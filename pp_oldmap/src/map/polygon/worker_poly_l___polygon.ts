@@ -1,9 +1,8 @@
 import * as turf from '@turf/turf';
 import { GeoJsonProperties, Polygon } from 'geojson';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { PPGeometry } from 'pp-geom';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
-import { PPGeometry } from 'pp-geom';
 
 
 self.onmessage = (e) => {
@@ -31,7 +30,7 @@ self.onmessage = (e) => {
     polygonsT = polygonsT.map(t => removeHolesSmallerThan(t, 500));
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    polygonsT = VectorTileGeometryUtil.bufferOutAndIn(PPGeometry.restructurePolygons(polygonsT), ...workerInput.outin!);
+    polygonsT = PPGeometry.bufferOutAndIn(PPGeometry.restructurePolygons(polygonsT), ...workerInput.outin!);
 
     // there may be new holes after buffering
     polygonsT = polygonsT.map(t => removeHolesSmallerThan(t, 500));
@@ -44,7 +43,7 @@ self.onmessage = (e) => {
     // another very small in-out removes artifacts at the bounding box edges
     const inoutA: number[] = [-0.11, 0.11];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
-    const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
+    const polygonsA1 = PPGeometry.bufferOutAndIn(polyData, ...inoutA);
     polyData = PPGeometry.restructurePolygons(polygonsA1);
 
     PPGeometry.cleanAndSimplify(polyData);

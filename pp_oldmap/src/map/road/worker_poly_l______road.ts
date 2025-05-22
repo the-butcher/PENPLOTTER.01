@@ -1,11 +1,10 @@
 import * as turf from '@turf/turf';
 import { Feature, LineString, MultiLineString, MultiPolygon, Polygon } from 'geojson';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { PPGeometry } from 'pp-geom';
+import { ISymbolProperties } from '../common/ISymbolProperties';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { Map } from '../Map';
 import { IWorkerPolyOutputRoad } from './IWorkerPolyOutputRoad';
-import { ISymbolProperties } from '../common/ISymbolProperties';
-import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -76,7 +75,7 @@ self.onmessage = (e) => {
     let polyData = PPGeometry.restructurePolygons(polygons08);
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...workerInput.outin!);
+    const polygonsA: Polygon[] = PPGeometry.bufferOutAndIn(polyData, ...workerInput.outin!);
     polyData = PPGeometry.restructurePolygons(polygonsA);
 
     PPGeometry.cleanAndSimplify(polyData);

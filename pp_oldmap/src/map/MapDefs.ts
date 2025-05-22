@@ -30,8 +30,11 @@ export class MapDefs {
                 vertical: 15000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Cyrillus',
@@ -40,8 +43,11 @@ export class MapDefs {
                 vertical: 30000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Cyrillus F',
@@ -50,8 +56,11 @@ export class MapDefs {
                 vertical: 10000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             }, {
                 tileName: 'Mons Penck',
                 plotName: 'Mons Penck',
@@ -59,8 +68,11 @@ export class MapDefs {
                 vertical: -10000,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -88,8 +100,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '2450',
@@ -98,8 +113,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '2400',
@@ -108,8 +126,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '2250',
@@ -118,8 +139,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Aussichtswarte Edelweißspitze',
@@ -128,8 +152,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Fuschertörl',
@@ -138,8 +165,11 @@ export class MapDefs {
                 vertical: -20,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '2455 m',
@@ -148,8 +178,11 @@ export class MapDefs {
                 vertical: 15,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Edelweißhütte',
@@ -158,8 +191,11 @@ export class MapDefs {
                 vertical: -40,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Fuscher Törl',
@@ -168,8 +204,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '2428 m',
@@ -178,8 +217,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
         ]
     }
@@ -219,8 +261,11 @@ export class MapDefs {
                 vertical: -110,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Rossatz',
@@ -229,8 +274,11 @@ export class MapDefs {
                 vertical: 25,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '200',
@@ -239,8 +287,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: (index: number) => index === 6
+                fonttype: 'noto_serif________regular',
+                idxvalid: (index: number) => index === 6,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '400',
@@ -249,8 +300,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '450',
@@ -259,8 +313,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL * 1.2,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Donau',
@@ -268,9 +325,12 @@ export class MapDefs {
                 distance: 0.17,
                 vertical: 0,
                 charsign: -1.1,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                idxvalid: (index: number) => index === 1
+                idxvalid: (index: number) => index === 1,
+                fillprop: {
+                    type: 'none'
+                }
             },
 
         ]
@@ -329,8 +389,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '800',
@@ -339,8 +402,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '600',
@@ -349,8 +415,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: '550',
@@ -359,8 +428,11 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Hallstatt',
@@ -369,8 +441,11 @@ export class MapDefs {
                 vertical: 120,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Salzberg',
@@ -379,8 +454,11 @@ export class MapDefs {
                 vertical: -30,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Winteralm',
@@ -389,8 +467,11 @@ export class MapDefs {
                 vertical: -20,
                 charsign: 1.02,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Hallstätter See',
@@ -399,8 +480,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Traun',
@@ -409,8 +493,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'HALLSTÄTTER SEE',
@@ -419,8 +506,11 @@ export class MapDefs {
                 vertical: 40,
                 charsign: 1.05,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.5,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -447,9 +537,12 @@ export class MapDefs {
                 distance: 0.15,
                 vertical: 8,
                 charsign: -1,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                idxvalid: (index: number) => index === 1
+                idxvalid: (index: number) => index === 1,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Hainburg an der Donau',
@@ -457,9 +550,12 @@ export class MapDefs {
                 distance: 350,
                 vertical: -160,
                 charsign: 0,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => true
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -487,8 +583,11 @@ export class MapDefs {
                 vertical: 20,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Neue Donau',
@@ -497,8 +596,11 @@ export class MapDefs {
                 vertical: 20,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
         ]
     }
@@ -566,8 +668,11 @@ export class MapDefs {
                 vertical: -275,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -595,8 +700,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Au',
@@ -605,8 +713,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Auer',
@@ -615,8 +726,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Pointhäusl',
@@ -625,8 +739,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'St. Wolfgang',
@@ -635,8 +752,11 @@ export class MapDefs {
                 vertical: -30,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'WOLFGANGSEE',
@@ -646,7 +766,10 @@ export class MapDefs {
                 charsign: 0.8,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.5,
                 idxvalid: () => true,
-                fonttype: 'Noto Serif'
+                fonttype: 'noto_serif________regular',
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -683,8 +806,11 @@ export class MapDefs {
                 vertical: 23,
                 charsign: -1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                fonttype: 'Noto Serif',
-                idxvalid: (index: number) => index === 1
+                fonttype: 'noto_serif________regular',
+                idxvalid: (index: number) => index === 1,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Sankt Sebastianfriedhof',
@@ -693,8 +819,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -726,38 +855,50 @@ export class MapDefs {
                 vertical: 12,
                 charsign: 0,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'DEUTSCHLAND',
                 plotName: 'DEUTSCHLAND',
-                distance: 0.78,
-                vertical: -28,
-                charsign: -1.1,
+                distance: 0.74,
+                vertical: -20,
+                charsign: 1.2,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'ÖSTERREICH',
                 plotName: 'ÖSTERREICH',
-                distance: 0.78,
-                vertical: 50,
-                charsign: -1.1,
+                distance: 0.755,
+                vertical: 57,
+                charsign: 1.2,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif___thin_regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Hallein',
                 plotName: 'Hallein',
-                distance: 50,
+                distance: 0.50,
                 vertical: -12,
-                charsign: 1,
+                charsign: 1.1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 3,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif___bold__italic',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'buff'
+                }
             },
             {
                 tileName: 'Mitterau',
@@ -766,8 +907,11 @@ export class MapDefs {
                 vertical: 20,
                 charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Adneter Gries',
@@ -776,8 +920,26 @@ export class MapDefs {
                 vertical: 60,
                 charsign: 1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: 'Gries',
+                plotName: 'Gries',
+                distance: 0,
+                vertical: 0,
+                charsign: 1.2,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 4,
+                fonttype: 'noto_serif___bold_regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'hatch',
+                    angle: 30,
+                    space: 0.000075
+                }
             },
             {
                 tileName: 'Salzach',
@@ -786,8 +948,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 1.1,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.25,
-                fonttype: 'Noto Serif',
-                idxvalid: () => true
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Leprosenhauskapelle',
@@ -796,8 +961,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             }
         ]
     }
@@ -824,9 +992,12 @@ export class MapDefs {
                 distance: 130,
                 vertical: 0,
                 charsign: 1.02,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Langwies',
@@ -834,9 +1005,12 @@ export class MapDefs {
                 distance: 60,
                 vertical: -90,
                 charsign: 1.02,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Weinleiten',
@@ -844,9 +1018,12 @@ export class MapDefs {
                 distance: -40,
                 vertical: 30,
                 charsign: 1.02,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Brettstein',
@@ -854,9 +1031,12 @@ export class MapDefs {
                 distance: -50,
                 vertical: -30,
                 charsign: 1.02,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Vigaun',
@@ -865,8 +1045,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Wirtstaller',
@@ -875,8 +1058,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Samhofkapelle',
@@ -885,8 +1071,11 @@ export class MapDefs {
                 vertical: 0,
                 charsign: 0,
                 txtscale: 0,
-                fonttype: 'Noto Serif',
-                idxvalid: () => false
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
             },
             {
                 tileName: 'Salzach',
@@ -894,9 +1083,12 @@ export class MapDefs {
                 distance: 0.25,
                 vertical: 24,
                 charsign: 1.02,
-                fonttype: 'Noto Serif',
+                fonttype: 'noto_serif________regular',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                idxvalid: (index: number) => index === 1
+                idxvalid: (index: number) => index === 1,
+                fillprop: {
+                    type: 'none'
+                }
             },
         ]
     }

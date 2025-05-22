@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, GeoJsonProperties, Geometry, LineString, MultiPolygon } from "geojson";
+import { BBox, Feature, GeoJsonProperties, Geometry, LineString, MultiPolygon } from "geojson";
 import { IVectorTileFeature } from "../../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from "../../vectortile/IVectorTileKey";
@@ -11,15 +11,15 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
+import { PPGeometry, TFillProps, TUnionPolygon } from 'pp-geom';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 import { ISkipOptions } from '../ISkipOptions';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
-import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
-import { PPGeometry, TUnionPolygon } from 'pp-geom';
+import { IWorkerPlotInput } from '../plot/IWorkerPlotInput';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
-    polyText: MultiPolygon;
+    polyText: Feature<MultiPolygon, TFillProps>[];
     labelDefs: ILabelDef[];
     labelClasses: (string | number)[];
     geoJsonPath: string;
@@ -27,7 +27,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
     constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[], geoJsonPath: string = '', ...labelClasses: (string | number)[]) {
         super(name, filter);
         this.labelDefs = labelDefs;
-        this.polyText = PPGeometry.emptyMultiPolygon();
+        this.polyText = [];
         this.labelClasses = labelClasses;
         this.geoJsonPath = geoJsonPath;
 
@@ -135,21 +135,24 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
     }
 
-    async processLine(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processLine(): Promise<void> {
 
         console.log(`${this.name}, processing line ...`);
 
-        const workerInput: IWorkerLineInputLineLabel = {
+    }
+
+    async processPlot(): Promise<void> {
+
+        console.log(`${this.name}, processing plot ...`);
+
+        const workerInput: IWorkerPlotInput = {
             name: this.name,
-            tileData: this.tileData,
-            polyData: this.polyData,
             polyText: this.polyText,
-            bboxClp4326,
-            bboxMap4326
         };
 
         return new Promise((resolve, reject) => {
-            const workerInstance = new Worker(new URL('./worker_line_l_linelabel.ts', import.meta.url), { type: 'module' });
+
+            const workerInstance = new Worker(new URL('../plot/worker_plot_l__polytext.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
                 workerInstance.terminate();
@@ -161,24 +164,6 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
             };
             workerInstance.postMessage(workerInput);
         });
-
-    }
-
-    async processPlot(): Promise<void> {
-
-        // const polygonCount018 = 3;
-        // const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
-
-        // // TODO :: remove code duplication
-        // const distances018: number[] = [];
-        // for (let i = 0; i < polygonCount018; i++) {
-        //     distances018.push(polygonDelta018);
-        // }
-        // console.log(`${this.name}, buffer collect 018 ...`, distances018);
-        // const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
-
-        // const connected018 = VectorTileGeometryUtil.connectBufferFeatures(features018);
-        // this.multiPolyline018 = VectorTileGeometryUtil.restructureMultiPolyline(connected018);
 
     }
 
@@ -194,27 +179,34 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                     polyDataClip.coordinates.push(polygon);
                 }
             });
+
             if (polyDataClip.coordinates.length > 0) {
 
                 const bufferResult = turf.buffer(polyDataClip, distance, {
                     units: 'meters'
                 });
 
-                const polyDataText = PPGeometry.emptyMultiPolygon();
-                this.polyText.coordinates.forEach(polygon => {
-                    if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
-                        polyDataText.coordinates.push(polygon);
+                const clipFeature = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+
+                    const polyDataText = PPGeometry.emptyMultiPolygon();
+                    feature.geometry.coordinates.forEach(polygon => {
+                        if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                            polyDataText.coordinates.push(polygon);
+                        }
+                    });
+                    if (polyDataText.coordinates.length > 0) {
+                        const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
+                        const difference = turf.difference(featureC);
+                        if (difference) {
+                            const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                            const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
+                            return turf.feature(PPGeometry.restructurePolygons(polygonsD), feature.properties);
+                        }
                     }
-                });
-                if (polyDataText.coordinates.length > 0) {
-                    const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
-                    const difference = turf.difference(featureC);
-                    if (difference) {
-                        const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
-                        const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
-                        this.polyText = PPGeometry.restructurePolygons(polygonsD);
-                    }
+                    return feature;
+
                 }
+                this.polyText = this.polyText.map(p => clipFeature(p));
 
             }
 

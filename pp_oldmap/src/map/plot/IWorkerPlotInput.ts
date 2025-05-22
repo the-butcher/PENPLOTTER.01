@@ -1,7 +1,7 @@
 import { Feature, MultiPolygon } from "geojson";
-import { IWorkerPolyOutput } from "../common/IWorkerPolyoutput";
 import { TFillProps } from "pp-geom";
 
-export interface IWorkerPolyOutputLineLabel extends IWorkerPolyOutput {
+export interface IWorkerPlotInput {
+    name: string;
     polyText: Feature<MultiPolygon, TFillProps>[];
 }

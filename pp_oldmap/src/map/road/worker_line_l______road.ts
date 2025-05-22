@@ -1,9 +1,8 @@
 import * as turf from '@turf/turf';
 import { MultiLineString, Position } from "geojson";
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
+import { PPGeometry } from 'pp-geom';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerLineInputRoad } from "./IWorkerLineInputRoad";
-import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -35,19 +34,19 @@ self.onmessage = (e) => {
     };
 
     // clip smaller streets away from bigger streets
-    multiOutline34 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline34, turf.feature(multiPolygon56));
+    multiOutline34 = PPGeometry.clipMultiPolyline(multiOutline34, turf.feature(multiPolygon56));
 
     // clip bigger streets away from smaller streets
-    multiOutline56 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon34));
+    multiOutline56 = PPGeometry.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon34));
 
     // clip bigger and smaller streets away from smallest streets
     const union36 = PPGeometry.unionPolygons([...workerInput.polygons34, ...workerInput.polygons56]);
-    workerInput.multiPolyline78 = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline78, turf.feature(union36));
+    workerInput.multiPolyline78 = PPGeometry.clipMultiPolyline(workerInput.multiPolyline78, turf.feature(union36));
 
     // clip away highways from all streets
-    multiOutline34 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline34, turf.feature(multiPolygon02));
-    multiOutline56 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon02));
-    workerInput.multiPolyline78 = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline78, turf.feature(multiPolygon02));
+    multiOutline34 = PPGeometry.clipMultiPolyline(multiOutline34, turf.feature(multiPolygon02));
+    multiOutline56 = PPGeometry.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon02));
+    workerInput.multiPolyline78 = PPGeometry.clipMultiPolyline(workerInput.multiPolyline78, turf.feature(multiPolygon02));
 
     multiPolyline035.coordinates.push(...multiOutline34.coordinates);
     multiPolyline035.coordinates.push(...multiOutline56.coordinates);

@@ -1,21 +1,23 @@
 import * as turf from '@turf/turf';
-import { BBox, GeoJsonProperties, MultiPolygon, Point, Position } from "geojson";
+import { BBox, Feature, GeoJsonProperties, Geometry, MultiPolygon, Point } from "geojson";
+import { PPGeometry, TFillProps, TUnionPolygon } from 'pp-geom';
 import { IVectorTileFeature } from '../../protobuf/vectortile/IVectorTileFeature';
+import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFilter';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
 import { ILabelDef } from '../ILabelDef';
+import { ISkipOptions } from '../ISkipOptions';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
-import { GeoJsonLoader } from '../../util/GeoJsonLoader';
-import { PPGeometry } from 'pp-geom';
+import { IWorkerPlotInput } from '../plot/IWorkerPlotInput';
 
 export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     symbolFactory: string;
-    polyText: MultiPolygon;
+    polyText: Feature<MultiPolygon, TFillProps>[];
     labelDefs: ILabelDef[];
     private geoJsonPath: string;
 
@@ -24,7 +26,7 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
         this.symbolFactory = symbolFactory;
         this.labelDefs = labelDefs;
         this.geoJsonPath = geoJsonPath;
-        this.polyText = PPGeometry.emptyMultiPolygon();
+        this.polyText = [];
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {
@@ -117,11 +119,11 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
                 this.polyData = workerOutput.polyData;
                 this.polyText = workerOutput.polyText;
                 this.multiPolyline025 = workerOutput.multiPolyline025;
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);
@@ -136,11 +138,31 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
     async processPlot(): Promise<void> {
 
-        const coordinates018: Position[][] = this.polyText.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
-        this.multiPolyline018.coordinates.push(...coordinates018);
+        console.log(`${this.name}, processing plot ...`);
 
-        // const polygonCount018 = 3;
-        // const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.60;
+        const workerInput: IWorkerPlotInput = {
+            name: this.name,
+            polyText: this.polyText
+        };
+
+        return new Promise((resolve, reject) => {
+
+            const workerInstance = new Worker(new URL('../plot/worker_plot_l__polytext.ts', import.meta.url), { type: 'module' });
+            workerInstance.onmessage = (e) => {
+                this.applyWorkerOutputLine(e.data);
+                // workerInstance.terminate();
+                resolve();
+            };
+            workerInstance.onerror = (e) => {
+                // workerInstance.terminate();
+                reject(e);
+            };
+            workerInstance.postMessage(workerInput);
+        });
+
+
+        // const polygonCount018 = 20;
+        // const polygonDelta018 = Pen.getPenWidthMeters(0.10, Map.SCALE) * -0.75;
 
         // // TODO :: remove code duplication
         // const distances018: number[] = [];
@@ -148,11 +170,76 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
         //     distances018.push(polygonDelta018);
         // }
         // console.log(`${this.name}, buffer collect 018 ...`, distances018);
-        // const features018 = VectorTileGeometryUtil.bufferCollect2(this.polyText, true, ...distances018);
+        // const features018 = PPGeometry.bufferCollect2(this.polyText, true, ...distances018);
 
-        // const connected018A = VectorTileGeometryUtil.connectBufferFeatures(features018);
-        // const connected018B = VectorTileGeometryUtil.restructureMultiPolyline(connected018A);
+        // const connected018A = PPGeometry.connectBufferFeatures(features018);
+        // const connected018B = PPGeometry.restructurePolylines(connected018A);
         // this.multiPolyline018.coordinates.push(...connected018B.coordinates);
+
+    }
+
+    async clipToLayerMultipolygon(layer: AMapLayer<Geometry, GeoJsonProperties>, distance: number, options?: ISkipOptions): Promise<void> {
+
+        await super.clipToLayerMultipolygon(layer, distance, options);
+
+        if (!options?.skipMlt) {
+
+            const polyDataClip = PPGeometry.emptyMultiPolygon();
+            layer.polyData.coordinates.forEach(polygon => {
+                if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                    polyDataClip.coordinates.push(polygon);
+                }
+            });
+
+            if (polyDataClip.coordinates.length > 0) {
+
+                // TODO :: polytext will have to be clipped too
+
+                const bufferResult = turf.buffer(polyDataClip, distance, {
+                    units: 'meters'
+                });
+
+                const clipFeature = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+
+                    const polyDataText = PPGeometry.emptyMultiPolygon();
+                    feature.geometry.coordinates.forEach(polygon => {
+                        if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                            polyDataText.coordinates.push(polygon);
+                        }
+                    });
+                    if (polyDataText.coordinates.length > 0) {
+                        const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
+                        const difference = turf.difference(featureC);
+                        if (difference) {
+                            const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                            const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
+                            return turf.feature(PPGeometry.restructurePolygons(polygonsD), feature.properties);
+                        }
+                    }
+                    return feature;
+
+                }
+                this.polyText = this.polyText.map(p => clipFeature(p));
+
+                // const polyDataText = PPGeometry.emptyMultiPolygon();
+                // this.polyText.coordinates.forEach(polygon => {
+                //     if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                //         polyDataText.coordinates.push(polygon);
+                //     }
+                // });
+                // if (polyDataText.coordinates.length > 0) {
+                //     const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
+                //     const difference = turf.difference(featureC);
+                //     if (difference) {
+                //         const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                //         const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
+                //         this.polyText = PPGeometry.restructurePolygons(polygonsD);
+                //     }
+                // }
+
+            }
+
+        }
 
     }
 

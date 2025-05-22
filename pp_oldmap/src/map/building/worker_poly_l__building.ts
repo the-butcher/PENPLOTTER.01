@@ -1,12 +1,11 @@
 import * as turf from '@turf/turf';
 import { Feature, GeoJsonProperties, MultiPolygon, Polygon } from 'geojson';
+import { PPGeometry } from 'pp-geom';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { VectorTileKey } from '../../vectortile/VectorTileKey';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { MapLayerBuildings } from './MapLayerBuildings';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
-import { PPGeometry } from 'pp-geom';
+import { MapLayerBuildings } from './MapLayerBuildings';
 
 self.onmessage = (e) => {
 
@@ -87,12 +86,12 @@ self.onmessage = (e) => {
     // outer polygon inset (to account for pen width)
     const inoutO: number[] = [inout0, polygonInset - inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutO[0]}, ${inoutO[1]}] ...`);
-    polygons025 = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonO, ...inoutO);
+    polygons025 = PPGeometry.bufferOutAndIn(multiPolygonO, ...inoutO);
     multiPolygonO = PPGeometry.restructurePolygons(polygons025);
 
     const inoutI: number[] = [polygonInset - inout0, inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutI[0]}, ${inoutI[1]}] ...`);
-    polygonsI = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonI, ...inoutI).filter(i => turf.area(i) > MapLayerBuildings.minArea);
+    polygonsI = PPGeometry.bufferOutAndIn(multiPolygonI, ...inoutI).filter(i => turf.area(i) > MapLayerBuildings.minArea);
     multiPolygonI = PPGeometry.restructurePolygons(polygonsI);
 
     if (multiPolygonO.coordinates.length > 0 && multiPolygonI.coordinates.length) {
@@ -114,7 +113,7 @@ self.onmessage = (e) => {
     // another very small in-out removes artifacts at the bounding box edges
     const inoutA: number[] = [-0.11, 0.1];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
-    const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
+    const polygonsA1 = PPGeometry.bufferOutAndIn(polyData, ...inoutA);
     polyData = PPGeometry.restructurePolygons(polygonsA1);
 
     PPGeometry.cleanAndSimplify(polyData);

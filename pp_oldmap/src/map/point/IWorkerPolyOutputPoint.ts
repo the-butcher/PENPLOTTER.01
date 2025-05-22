@@ -1,7 +1,8 @@
-import { MultiLineString, MultiPolygon } from "geojson";
+import { Feature, MultiLineString, MultiPolygon } from "geojson";
 import { IWorkerPolyOutput } from "../common/IWorkerPolyoutput";
+import { TFillProps } from "pp-geom";
 
 export interface IWorkerPolyOutputPoint extends IWorkerPolyOutput {
-    polyText: MultiPolygon;
+    polyText: Feature<MultiPolygon, TFillProps>[];
     multiPolyline025: MultiLineString;
 }

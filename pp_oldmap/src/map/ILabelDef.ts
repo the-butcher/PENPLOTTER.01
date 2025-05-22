@@ -1,4 +1,5 @@
 import { TPredefinedFontName } from "pp-font";
+import { TFillProps } from "pp-geom";
 
 export interface ILabelDef {
     tileName: string;
@@ -9,4 +10,5 @@ export interface ILabelDef {
     txtscale: number;
     idxvalid: (index: number) => boolean;
     fonttype: TPredefinedFontName;
+    fillprop: TFillProps;
 }

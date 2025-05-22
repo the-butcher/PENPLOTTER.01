@@ -60,8 +60,6 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             }));
         });
 
-
-
     }
 
     async processPoly(): Promise<void> { // bboxMap4326: BBox

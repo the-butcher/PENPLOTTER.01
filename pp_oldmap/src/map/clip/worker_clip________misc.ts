@@ -1,8 +1,7 @@
 import * as turf from '@turf/turf';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { PPGeometry, TUnionPolygon } from 'pp-geom';
 import { IWorkerClipInput } from './IWorkerClipInput';
 import { IWorkerClipOutput } from './IWorkerClipOutput';
-import { PPGeometry, TUnionPolygon } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -24,16 +23,16 @@ self.onmessage = (e) => {
         bufferResult!.geometry = bufferResultGeometry;
 
         if (!workerInput.options?.skip018) {
-            workerInput.multiPolyline018Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline018Dest, bufferResult!);
+            workerInput.multiPolyline018Dest = PPGeometry.clipMultiPolyline(workerInput.multiPolyline018Dest, bufferResult!);
         }
         if (!workerInput.options?.skip025) {
-            workerInput.multiPolyline025Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline025Dest, bufferResult!);
+            workerInput.multiPolyline025Dest = PPGeometry.clipMultiPolyline(workerInput.multiPolyline025Dest, bufferResult!);
         }
         if (!workerInput.options?.skip035) {
-            workerInput.multiPolyline035Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline035Dest, bufferResult!);
+            workerInput.multiPolyline035Dest = PPGeometry.clipMultiPolyline(workerInput.multiPolyline035Dest, bufferResult!);
         }
         if (!workerInput.options?.skip050) {
-            workerInput.multiPolyline050Dest = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline050Dest, bufferResult!);
+            workerInput.multiPolyline050Dest = PPGeometry.clipMultiPolyline(workerInput.multiPolyline050Dest, bufferResult!);
         }
         if (!workerInput.options?.skipMlt) {
 

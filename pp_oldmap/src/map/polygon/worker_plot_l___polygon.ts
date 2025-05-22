@@ -1,11 +1,10 @@
-import { BBox, Feature, MultiPoint, MultiPolygon, Polygon, Position } from "geojson";
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
-import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
-import { ISymbolDefPointFill, IWorkerLineInputPolygon } from "./IWorkerLineInputPolygon";
 import * as turf from '@turf/turf';
+import { BBox, Feature, MultiPoint, MultiPolygon, Polygon, Position } from "geojson";
+import { PPGeometry, TUnionPolygon } from "pp-geom";
 import { SymbolUtil } from "../../util/SymbolUtil";
 import { ISymbolProperties } from "../common/ISymbolProperties";
-import { PPGeometry, TUnionPolygon } from "pp-geom";
+import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
+import { ISymbolDefPointFill, IWorkerLineInputPolygon } from "./IWorkerLineInputPolygon";
 
 self.onmessage = (e) => {
 
@@ -110,14 +109,14 @@ self.onmessage = (e) => {
 
                 const symbolDefinition: ISymbolDefPointFill = workerInput.symbolDefinitions[symbolKeys[symbolKeyIndex]];
 
-                const centerPolygons02 = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -15);
+                const centerPolygons02 = PPGeometry.bufferOutAndIn(symbolizablePolygons, 10, -15);
                 const centerMultipolygon02 = PPGeometry.restructurePolygons(centerPolygons02);
 
                 const hexCoordinatesB: Position[] = [];
                 const bbox = turf.bbox(symbolizablePolygons);
                 if (symbolDefinition.outerDim > 0) {
 
-                    const centerPolygonsOd = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -(symbolDefinition.outerDim + 10));
+                    const centerPolygonsOd = PPGeometry.bufferOutAndIn(symbolizablePolygons, 10, -(symbolDefinition.outerDim + 10));
                     const centerMultipolygonOd = PPGeometry.restructurePolygons(centerPolygonsOd);
 
                     if (centerMultipolygonOd.coordinates.length > 0) {
