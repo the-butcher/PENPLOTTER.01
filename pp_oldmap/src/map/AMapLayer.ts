@@ -1,14 +1,13 @@
 import { BBox, Feature, GeoJsonProperties, Geometry, MultiLineString, MultiPolygon, Position } from "geojson";
+import { PPGeometry } from "pp-geom";
 import { TGeomentryType } from '../components/MapComponent';
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { IVectorTileFeatureFilter } from "../vectortile/IVectorTileFeatureFilter";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
-import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
 import { ISkipOptions } from './ISkipOptions';
 import { IWorkerClipInput } from './clip/IWorkerClipInput';
 import { IWorkerClipOutput } from './clip/IWorkerClipOutput';
 import { IWorkerLineOutput } from './common/IWorkerLineOutput';
-import { PPGeometry } from "pp-geom";
 
 export interface ILayerProps {
     createLayerInstance: () => AMapLayer<Geometry, GeoJsonProperties>;
@@ -213,16 +212,16 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }): void {
         console.log(`${this.name}, connect-polylines ...`);
         if (!options.skip018) {
-            this.multiPolyline018 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline018, toleranceMeters);
+            this.multiPolyline018 = PPGeometry.connectMultiPolyline(this.multiPolyline018, toleranceMeters);
         }
         if (!options.skip025) {
-            this.multiPolyline025 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline025, toleranceMeters);
+            this.multiPolyline025 = PPGeometry.connectMultiPolyline(this.multiPolyline025, toleranceMeters);
         }
         if (!options.skip035) {
-            this.multiPolyline035 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline035, toleranceMeters);
+            this.multiPolyline035 = PPGeometry.connectMultiPolyline(this.multiPolyline035, toleranceMeters);
         }
         if (!options.skip050) {
-            this.multiPolyline050 = VectorTileGeometryUtil.connectMultiPolyline(this.multiPolyline050, toleranceMeters);
+            this.multiPolyline050 = PPGeometry.connectMultiPolyline(this.multiPolyline050, toleranceMeters);
         }
     }
 
@@ -235,26 +234,26 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }): void {
         console.log(`${this.name}, connect-polylines ...`);
         if (!options.skip018) {
-            this.multiPolyline018 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline018, minLength);
+            this.multiPolyline018 = PPGeometry.filterPolylinesShorterThan(this.multiPolyline018, minLength);
         }
         if (!options.skip025) {
-            this.multiPolyline025 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline025, minLength);
+            this.multiPolyline025 = PPGeometry.filterPolylinesShorterThan(this.multiPolyline025, minLength);
         }
         if (!options.skip035) {
-            this.multiPolyline035 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline035, minLength);
+            this.multiPolyline035 = PPGeometry.filterPolylinesShorterThan(this.multiPolyline035, minLength);
         }
         if (!options.skip050) {
-            this.multiPolyline050 = VectorTileGeometryUtil.filterPolylinesShorterThan(this.multiPolyline050, minLength);
+            this.multiPolyline050 = PPGeometry.filterPolylinesShorterThan(this.multiPolyline050, minLength);
         }
     }
 
     cleanCoords() {
         console.log(`${this.name}, cleaning coords ...`);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline018);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline025);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline035);
-        VectorTileGeometryUtil.cleanAndSimplify(this.multiPolyline050);
-        VectorTileGeometryUtil.cleanAndSimplify(this.polyData);
+        PPGeometry.cleanAndSimplify(this.multiPolyline018);
+        PPGeometry.cleanAndSimplify(this.multiPolyline025);
+        PPGeometry.cleanAndSimplify(this.multiPolyline035);
+        PPGeometry.cleanAndSimplify(this.multiPolyline050);
+        PPGeometry.cleanAndSimplify(this.polyData);
     }
 
 }

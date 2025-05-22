@@ -220,7 +220,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                 const bridgeBufferMultiPolygon = turf.feature(PPGeometry.restructurePolygons(bridgeBufferPolygons));
 
-                this.roadOutlines[roadCategoryIndex] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadCategoryIndex], bridgeBufferMultiPolygon);
+                this.roadOutlines[roadCategoryIndex] = PPGeometry.clipMultiPolyline(this.roadOutlines[roadCategoryIndex], bridgeBufferMultiPolygon);
 
                 const featureCollection = turf.featureCollection([turf.feature(this.roadPolygons[roadCategoryIndex]), bridgeBufferMultiPolygon]);
                 const difference = turf.difference(featureCollection);
@@ -252,7 +252,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
             const highwayBufferMultiPolygon = turf.feature(PPGeometry.restructurePolygons(highwayBufferPolygons));
 
-            this.roadOutlines[roadCategoryIndex] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadCategoryIndex], highwayBufferMultiPolygon);
+            this.roadOutlines[roadCategoryIndex] = PPGeometry.clipMultiPolyline(this.roadOutlines[roadCategoryIndex], highwayBufferMultiPolygon);
 
             const featureCollection = turf.featureCollection([turf.feature(this.roadPolygons[roadCategoryIndex]), highwayBufferMultiPolygon]);
             const difference = turf.difference(featureCollection);
@@ -273,8 +273,8 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         const polylineCoordinateA0 = this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA][0];
         const polylineCoordinateAL = this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA][this.roadPolylines[roadCategoryIndexA].coordinates[roadPolylineIndexA].length - 1];
 
-        let openEnd0 = VectorTileGeometryUtil.booleanWithin(bboxMap4326, polylineCoordinateA0);
-        let openEndL = VectorTileGeometryUtil.booleanWithin(bboxMap4326, polylineCoordinateAL);
+        let openEnd0 = PPGeometry.booleanWithin(bboxMap4326, polylineCoordinateA0);
+        let openEndL = PPGeometry.booleanWithin(bboxMap4326, polylineCoordinateAL);
 
         const maxDistance = 3.5;
 
@@ -391,7 +391,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                     const bboxB = turf.bbox(polylineB);
 
-                    if (openEnd0 && VectorTileGeometryUtil.booleanWithin(bboxB, polylineCoordinateA0)) {
+                    if (openEnd0 && PPGeometry.booleanWithin(bboxB, polylineCoordinateA0)) {
                         // console.log(polylineB)
                         const nearest0 = turf.nearestPointOnLine(polylineB, polylineCoordinateA0, {
                             units: 'meters'
@@ -400,7 +400,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                             openEnd0 = false;
                         }
                     }
-                    if (openEndL && VectorTileGeometryUtil.booleanWithin(bboxB, polylineCoordinateAL)) {
+                    if (openEndL && PPGeometry.booleanWithin(bboxB, polylineCoordinateAL)) {
                         // console.log(polylineB)
                         const nearestL = turf.nearestPointOnLine(polylineB, polylineCoordinateAL, {
                             units: 'meters'
@@ -496,9 +496,9 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         });
 
         // TODO :: could be faster if openPoly were split by category
-        this.roadOutlines[3] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[3], turf.feature(openPoly));
-        this.roadOutlines[4] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[4], turf.feature(openPoly));
-        this.roadOutlines[5] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[5], turf.feature(openPoly));
+        this.roadOutlines[3] = PPGeometry.clipMultiPolyline(this.roadOutlines[3], turf.feature(openPoly));
+        this.roadOutlines[4] = PPGeometry.clipMultiPolyline(this.roadOutlines[4], turf.feature(openPoly));
+        this.roadOutlines[5] = PPGeometry.clipMultiPolyline(this.roadOutlines[5], turf.feature(openPoly));
 
         for (let roadIndexA = MapLayerRoad2.bufferDistances.length - 1; roadIndexA >= 1; roadIndexA--) {
             if (MapLayerRoad2.bufferDistances[roadIndexA] <= MapLayerRoad2.bufferDistanceMin) {
@@ -507,9 +507,9 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             const roadAFeature = turf.feature(this.roadPolygons[roadIndexA]);
             for (let roadIndexB = roadIndexA - 1; roadIndexB >= 0; roadIndexB--) {
                 if (MapLayerRoad2.bufferDistances[roadIndexB] <= MapLayerRoad2.bufferDistanceMin) {
-                    this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
+                    this.roadPolylines[roadIndexB] = PPGeometry.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
                 } else {
-                    this.roadOutlines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
+                    this.roadOutlines[roadIndexB] = PPGeometry.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
                 }
             }
         }
@@ -518,9 +518,9 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
             const roadAFeature = turf.feature(this.roadPolygons[roadIndexA]);
             for (let roadIndexB = roadIndexA + 1; roadIndexB < MapLayerRoad2.bufferDistances.length; roadIndexB++) {
                 if (MapLayerRoad2.bufferDistances[roadIndexB] <= MapLayerRoad2.bufferDistanceMin) {
-                    this.roadPolylines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
+                    this.roadPolylines[roadIndexB] = PPGeometry.clipMultiPolyline(this.roadPolylines[roadIndexB], roadAFeature);
                 } else {
-                    this.roadOutlines[roadIndexB] = VectorTileGeometryUtil.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
+                    this.roadOutlines[roadIndexB] = PPGeometry.clipMultiPolyline(this.roadOutlines[roadIndexB], roadAFeature);
                 }
             }
         }
@@ -564,8 +564,8 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         this.multiPolyline025.coordinates.push(...this.roadOutlines[5].coordinates);
 
         this.multiPolyline025.coordinates.push(...this.roadPolylines[6].coordinates);
-        this.multiPolyline025.coordinates.push(...VectorTileGeometryUtil.dashMultiPolyline(this.roadPolylines[7], [8, 4]).coordinates);
-        this.multiPolyline025.coordinates.push(...VectorTileGeometryUtil.dashMultiPolyline(this.roadPolylines[8], [6, 6]).coordinates);
+        this.multiPolyline025.coordinates.push(...PPGeometry.dashMultiPolyline(this.roadPolylines[7], [8, 4]).coordinates);
+        this.multiPolyline025.coordinates.push(...PPGeometry.dashMultiPolyline(this.roadPolylines[8], [6, 6]).coordinates);
 
         this.multiPolyline050 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
         this.multiPolyline035 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);

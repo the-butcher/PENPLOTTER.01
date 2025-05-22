@@ -1,5 +1,4 @@
 import { PPGeometry } from 'pp-geom';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerPlotInput } from '../common/IWorkerPlotInput';
 import { Map } from '../Map';
@@ -20,23 +19,23 @@ self.onmessage = (e) => {
         distances025.push(polygonDelta025);
     }
     console.log(`${workerInput.name}, buffer collect 025 ...`, distances025);
-    const features025 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, true, ...distances025);
+    const features025 = PPGeometry.bufferCollect2(workerInput.polyData, true, ...distances025);
 
     const distances050: number[] = [polygonDelta050 * 2.00]; // let the first ring be well inside the finer rings
     for (let i = 0; i < polygonCount050; i++) {
         distances050.push(polygonDelta050);
     }
     console.log(`${workerInput.name}, buffer collect 050 ...`, distances050);
-    const features050 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, false, ...distances050);
+    const features050 = PPGeometry.bufferCollect2(workerInput.polyData, false, ...distances050);
 
-    const connected025 = VectorTileGeometryUtil.connectBufferFeatures(features025);
+    const connected025 = PPGeometry.connectBufferFeatures(features025);
     const multiPolyline025 = PPGeometry.restructurePolylines(connected025);
 
-    const connected050 = VectorTileGeometryUtil.connectBufferFeatures(features050);
+    const connected050 = PPGeometry.connectBufferFeatures(features050);
     const multiPolyline050 = PPGeometry.restructurePolylines(connected050);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline050);
+    PPGeometry.cleanAndSimplify(multiPolyline025);
+    PPGeometry.cleanAndSimplify(multiPolyline050);
 
     const workerOutput: IWorkerLineOutput = {
         multiPolyline025,

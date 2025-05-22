@@ -1,9 +1,8 @@
 import * as turf from '@turf/turf';
 import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon } from 'geojson';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
+import { PPGeometry } from 'pp-geom';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutputTunnel } from './IWorkerPolyOutputTunnel';
-import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -23,7 +22,7 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);
     multiPolyline04 = PPGeometry.bboxClipMultiPolyline(multiPolyline04, workerInput.bboxClp4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline04);
+    PPGeometry.cleanAndSimplify(multiPolyline04);
 
     const workerOutput: IWorkerPolyOutputTunnel = {
         polyData,

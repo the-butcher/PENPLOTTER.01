@@ -1,11 +1,10 @@
 import * as turf from '@turf/turf';
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
+import { Feature, LineString, MultiLineString } from 'geojson';
+import { PPGeometry } from 'pp-geom';
+import { SymbolUtil } from '../../util/SymbolUtil';
+import { ISymbolProperties } from '../common/ISymbolProperties';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { ISymbolDefPointDash, IWorkerLineInputLine } from "./IWorkerLineInputLine";
-import { Feature, LineString, MultiLineString } from 'geojson';
-import { ISymbolProperties } from '../common/ISymbolProperties';
-import { SymbolUtil } from '../../util/SymbolUtil';
-import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -20,7 +19,7 @@ self.onmessage = (e) => {
     multiPolylineDef.coordinates.push(...tileDataMult.coordinates);
 
     if (workerInput.dashArray[1] > 0) {
-        const dashedPolyline = VectorTileGeometryUtil.dashMultiPolyline(multiPolylineDef, workerInput.dashArray);
+        const dashedPolyline = PPGeometry.dashMultiPolyline(multiPolylineDef, workerInput.dashArray);
         multiPolylineDef.coordinates = dashedPolyline.coordinates;
     }
 

@@ -79,7 +79,7 @@ self.onmessage = (e) => {
     const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...workerInput.outin!);
     polyData = PPGeometry.restructurePolygons(polygonsA);
 
-    VectorTileGeometryUtil.cleanAndSimplify(polyData);
+    PPGeometry.cleanAndSimplify(polyData);
 
     const workerOutput: IWorkerPolyOutputRoad = {
         polyData,

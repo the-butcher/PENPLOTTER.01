@@ -1,5 +1,5 @@
-import { VectorTileGeometryUtil } from "../vectortile/VectorTileGeometryUtil";
-import { IMapDef } from "./IMapDef"
+import { PPGeometry } from "pp-geom";
+import { IMapDef } from "./IMapDef";
 
 export class MapDefs {
 
@@ -14,7 +14,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             2744919.086552,
             -1311337.863211
         ],
@@ -72,7 +72,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1427500,
             5961980
         ],
@@ -185,7 +185,7 @@ export class MapDefs {
     }
 
     // static MAP_DEF_________TEST: IMapDef = {
-    //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+    //     bbox3857: PPGeometry.bboxAtCenter([
     //         1726650,
     //         6173400
     //     ],
@@ -203,7 +203,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1726700,
             6173400
         ],
@@ -277,7 +277,7 @@ export class MapDefs {
     }
 
     // static MAP_DEF_________1010: IMapDef = {
-    //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+    //     bbox3857: PPGeometry.bboxAtCenter([
     //         1822430 + 4000 * 2,
     //         6141780 + 2828 * 1
     //     ],
@@ -295,7 +295,7 @@ export class MapDefs {
     // }
 
     // static MAP_DEF_________1200: IMapDef = {
-    //     bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+    //     bbox3857: PPGeometry.bboxAtCenter([
     //         1822970,
     //         6144431
     //     ],
@@ -313,7 +313,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: 'watertx_hallstatt.geojson',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1519500,
             6034100
         ],
@@ -432,7 +432,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1885950,
             6131500
         ],
@@ -471,7 +471,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1827800,
             6145270
         ],
@@ -510,7 +510,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1462158,
             5960704
         ],
@@ -530,7 +530,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1819800,
             6152510
         ],
@@ -550,7 +550,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1815600,
             6137200
         ],
@@ -579,7 +579,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: 'watertx_wolfgang.geojson',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1496000,
             6063500
         ],
@@ -667,7 +667,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1452600,
             6073600
         ],
@@ -706,7 +706,7 @@ export class MapDefs {
         bordertx: 'bordertx_hallein.geojson',
         locatons: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1457650,
             6054200
         ],
@@ -809,7 +809,7 @@ export class MapDefs {
         clippoly: '',
         bordertx: '',
         water_tx: '',
-        bbox3857: VectorTileGeometryUtil.bboxAtCenter([
+        bbox3857: PPGeometry.bboxAtCenter([
             1461800,
             6050920
         ],

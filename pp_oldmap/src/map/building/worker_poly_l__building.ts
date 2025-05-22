@@ -45,7 +45,7 @@ self.onmessage = (e) => {
     });
 
     let polyData: MultiPolygon = PPGeometry.restructurePolygons(preUnion);
-    VectorTileGeometryUtil.cleanAndSimplify(polyData);
+    PPGeometry.cleanAndSimplify(polyData);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);
     polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
@@ -117,7 +117,7 @@ self.onmessage = (e) => {
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
     polyData = PPGeometry.restructurePolygons(polygonsA1);
 
-    VectorTileGeometryUtil.cleanAndSimplify(polyData);
+    PPGeometry.cleanAndSimplify(polyData);
 
     const workerOutput: IWorkerPolyOutput = {
         polyData

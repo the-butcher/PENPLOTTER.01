@@ -1,9 +1,8 @@
 import * as turf from '@turf/turf';
 import { Feature, MultiPolygon, Point, Polygon, Position } from 'geojson';
 import { FacetypeFont, GlyphSetter } from 'pp-font';
-import { IProjectableProperties, Projection, PPGeometry, TProjectableFeature } from 'pp-geom';
+import { IProjectableProperties, PPGeometry, Projection, TProjectableFeature } from 'pp-geom';
 import { SymbolUtil } from '../../util/SymbolUtil';
-import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { MapDefs } from '../MapDefs';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
@@ -46,7 +45,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
 
         const point = workerInput.tileData[i];
 
-        if (VectorTileGeometryUtil.booleanWithin(workerInput.bboxMap4326, point.geometry.coordinates)) {
+        if (PPGeometry.booleanWithin(workerInput.bboxMap4326, point.geometry.coordinates)) {
 
             const symbolCoordinates = symbolFactory(point.geometry.coordinates);
             if (symbolCoordinates.length > 0) {

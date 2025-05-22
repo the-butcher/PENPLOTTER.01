@@ -20,7 +20,7 @@ self.onmessage = (e) => {
             units: 'meters'
         });
         const bufferResultGeometry = bufferResult!.geometry;
-        VectorTileGeometryUtil.cleanAndSimplify(bufferResultGeometry);
+        PPGeometry.cleanAndSimplify(bufferResultGeometry);
         bufferResult!.geometry = bufferResultGeometry;
 
         if (!workerInput.options?.skip018) {

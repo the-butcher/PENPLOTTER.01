@@ -1,8 +1,7 @@
 import { Position } from "geojson";
-import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
+import { PPGeometry } from "pp-geom";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerLineInputPolygon } from "./IWorkerLineInputPolygon";
-import { PPGeometry } from "pp-geom";
 
 self.onmessage = (e) => {
 
@@ -16,7 +15,7 @@ self.onmessage = (e) => {
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
     multiPolyline018 = PPGeometry.bboxClipMultiPolyline(multiPolyline018, workerInput.bboxMap4326);
 
-    VectorTileGeometryUtil.cleanAndSimplify(multiPolyline018);
+    PPGeometry.cleanAndSimplify(multiPolyline018);
 
     const workerOutput: IWorkerLineOutput = {
         multiPolyline018
