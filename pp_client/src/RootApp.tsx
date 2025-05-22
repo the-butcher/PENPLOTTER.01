@@ -362,7 +362,7 @@ function RootApp() {
       const linepathPenIds = isPenIdSet ? linepathScaleds.filter(p => p.penId === cnfBSvgProperties.penId) : linepathScaleds;
 
       // simplify and connect
-      const linepathSimples = linepathPenIds.map(linepath => GeometryUtil.simplifyLinepath(0.025, linepath));
+      const linepathSimples = linepathPenIds.map(linepath => GeometryUtil.simplifyLinepath(0.010, linepath));
 
       // remove short segments
       const linepathNoShorts: ILinePath[] = [];

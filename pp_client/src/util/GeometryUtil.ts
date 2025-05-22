@@ -1,6 +1,7 @@
 import { ELineDirection, ICoordinate2D, ICoordinate3D, ICubcPath, IExtent, ILine2D, ILine3D, ILinePath, IMatrix2D, LINE_DIRECTIONS } from "./Interfaces";
 import { ObjectUtil } from "./ObjectUtil";
 // import Loess from 'loess';
+import simplify from "simplify-js";
 
 export class GeometryUtil {
 
@@ -853,7 +854,9 @@ export class GeometryUtil {
         linegroupRaw.segments.forEach(line => {
             coordsRaw.push(line.coordB);
         });
-        const coordsSmp = GeometryUtil.simplifyCoordinates(coordsRaw, tolerance);
+        // const coordsSmp = GeometryUtil.simplifyCoordinates(coordsRaw, tolerance);
+
+        const coordsSmp = simplify(coordsRaw, tolerance, true);
         const segments: ILine2D[] = [];
         for (let i = 1; i < coordsSmp.length; i++) {
             segments.push({
@@ -872,85 +875,85 @@ export class GeometryUtil {
 
     }
 
-    static simplifyCoordinates(points: ICoordinate2D[], tolerance: number): ICoordinate2D[] {
+    // static simplifyCoordinates(points: ICoordinate2D[], tolerance: number): ICoordinate2D[] {
 
-        let dmax = 0;
-        let index = 0;
+    //     let dmax = 0;
+    //     let index = 0;
 
-        for (let i = 1; i <= points.length - 2; i++) {
-            const d = GeometryUtil.lineDist({
-                id: '',
-                coordA: points[0],
-                coordB: points[points.length - 1],
-            }, points[i]); // new Line(points[0], points[points.length - 1]).perpendicularDistance(points[i]);
-            if (d > dmax) {
-                index = i;
-                dmax = d;
-            }
-        }
+    //     for (let i = 1; i <= points.length - 2; i++) {
+    //         const d = GeometryUtil.lineDist({
+    //             id: '',
+    //             coordA: points[0],
+    //             coordB: points[points.length - 1],
+    //         }, points[i]); // new Line(points[0], points[points.length - 1]).perpendicularDistance(points[i]);
+    //         if (d > dmax) {
+    //             index = i;
+    //             dmax = d;
+    //         }
+    //     }
 
-        let results: ICoordinate2D[];
-        if (dmax > tolerance) {
-            const results_one = GeometryUtil.simplifyCoordinates(points.slice(0, index), tolerance);
-            const results_two = GeometryUtil.simplifyCoordinates(points.slice(index, points.length), tolerance);
-            results = results_one.concat(results_two);
-        } else if (points.length > 1) {
-            results = [points[0], points[points.length - 1]];
-        } else {
-            results = [points[0]];
-        }
+    //     let results: ICoordinate2D[];
+    //     if (dmax > tolerance) {
+    //         const results_one = GeometryUtil.simplifyCoordinates(points.slice(0, index), tolerance);
+    //         const results_two = GeometryUtil.simplifyCoordinates(points.slice(index, points.length), tolerance);
+    //         results = results_one.concat(results_two);
+    //     } else if (points.length > 1) {
+    //         results = [points[0], points[points.length - 1]];
+    //     } else {
+    //         results = [points[0]];
+    //     }
 
-        return results;
+    //     return results;
 
-    }
+    // }
 
-    private static lineDiffY(line: ILine2D): number {
-        return line.coordB.y - line.coordA.y;
-    }
+    // private static lineDiffY(line: ILine2D): number {
+    //     return line.coordB.y - line.coordA.y;
+    // }
 
-    private static lineDiffX(line: ILine2D): number {
-        return line.coordB.x - line.coordA.x;
-    }
+    // private static lineDiffX(line: ILine2D): number {
+    //     return line.coordB.x - line.coordA.x;
+    // }
 
-    private static lineSlope(line: ILine2D): number {
-        return GeometryUtil.lineDiffY(line) / GeometryUtil.lineDiffX(line);
-    }
+    // private static lineSlope(line: ILine2D): number {
+    //     return GeometryUtil.lineDiffY(line) / GeometryUtil.lineDiffX(line);
+    // }
 
-    private static lineYIntercept(line: ILine2D): number {
-        return line.coordA.y - (line.coordA.x * GeometryUtil.lineSlope(line));
-    }
+    // private static lineYIntercept(line: ILine2D): number {
+    //     return line.coordA.y - (line.coordA.x * GeometryUtil.lineSlope(line));
+    // }
 
-    private static lineIsVertical(line: ILine2D): boolean {
-        return !isFinite(GeometryUtil.lineSlope(line));
-    }
+    // private static lineIsVertical(line: ILine2D): boolean {
+    //     return !isFinite(GeometryUtil.lineSlope(line));
+    // }
 
-    private static lineIsHorizontal(line: ILine2D): boolean {
-        return line.coordA.y === line.coordB.y;
-    }
+    // private static lineIsHorizontal(line: ILine2D): boolean {
+    //     return line.coordA.y === line.coordB.y;
+    // }
 
-    private static lineDistY(line: ILine2D, point: ICoordinate2D): number {
-        return Math.abs(line.coordA.y - point.y);
-    }
+    // private static lineDistY(line: ILine2D, point: ICoordinate2D): number {
+    //     return Math.abs(line.coordA.y - point.y);
+    // }
 
-    private static lineDistX(line: ILine2D, point: ICoordinate2D): number {
-        return Math.abs(line.coordA.x - point.x);
-    }
+    // private static lineDistX(line: ILine2D, point: ICoordinate2D): number {
+    //     return Math.abs(line.coordA.x - point.x);
+    // }
 
-    private static lineDistSlope(line: ILine2D, point: ICoordinate2D): number {
-        const slope = GeometryUtil.lineSlope(line);
-        const y_intercept = GeometryUtil.lineYIntercept(line);;
-        return Math.abs((slope * point.x) - point.y + y_intercept) / Math.sqrt((Math.pow(slope, 2)) + 1);
-    }
+    // private static lineDistSlope(line: ILine2D, point: ICoordinate2D): number {
+    //     const slope = GeometryUtil.lineSlope(line);
+    //     const y_intercept = GeometryUtil.lineYIntercept(line);;
+    //     return Math.abs((slope * point.x) - point.y + y_intercept) / Math.sqrt((Math.pow(slope, 2)) + 1);
+    // }
 
-    private static lineDist(line: ILine2D, point: ICoordinate2D): number {
-        if (GeometryUtil.lineIsVertical(line)) {
-            return GeometryUtil.lineDistX(line, point);
-        } else if (GeometryUtil.lineIsHorizontal(line)) {
-            return GeometryUtil.lineDistY(line, point);
-        } else {
-            return GeometryUtil.lineDistSlope(line, point);
-        }
-    }
+    // private static lineDist(line: ILine2D, point: ICoordinate2D): number {
+    //     if (GeometryUtil.lineIsVertical(line)) {
+    //         return GeometryUtil.lineDistX(line, point);
+    //     } else if (GeometryUtil.lineIsHorizontal(line)) {
+    //         return GeometryUtil.lineDistY(line, point);
+    //     } else {
+    //         return GeometryUtil.lineDistSlope(line, point);
+    //     }
+    // }
 
     static mapValues(valI: number, minI: number, maxI: number, minO: number, maxO: number): number {
         return Math.max(minO, Math.min(maxO, minO + (valI - minI) * (maxO - minO) / (maxI - minI))); // Math.max(minO, Math.min(maxO, minO + (valI - minI) * (maxO - minO) / (maxI - minI)));
