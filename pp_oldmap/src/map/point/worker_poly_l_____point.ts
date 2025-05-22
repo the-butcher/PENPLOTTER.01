@@ -1,7 +1,7 @@
 import * as turf from '@turf/turf';
 import { Feature, MultiPolygon, Point, Polygon, Position } from 'geojson';
 import { FacetypeFont, GlyphSetter } from 'pp-font';
-import { IProjectableProperties, PPGeometry, Projection, TProjectableFeature } from 'pp-geom';
+import { IProjectableProperties, PPGeometry, PPProjection, TProjectableFeature } from 'pp-geom';
 import { SymbolUtil } from '../../util/SymbolUtil';
 import { MapDefs } from '../MapDefs';
 import { ILabelDefPointLabel } from './ILabelDefPointLabel';
@@ -76,12 +76,12 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
                 const font = await FacetypeFont.getInstance(labelDef.fonttype, labelDef.txtscale);
 
                 // add offset as of label-def
-                const labelPointProj = Projection.projectGeometry(point.geometry, turf.toMercator);
+                const labelPointProj = PPProjection.projectGeometry(point.geometry, turf.toMercator);
                 labelPointProj.coordinates[0] += labelDef.distance;
                 labelPointProj.coordinates[1] -= labelDef.vertical;
                 labelPointProj.coordinates[1] += font.getMidY();
 
-                const labelPoint4326 = Projection.projectGeometry(labelPointProj, turf.toWgs84);
+                const labelPoint4326 = PPProjection.projectGeometry(labelPointProj, turf.toWgs84);
                 const labelPointFeature4326: TProjectableFeature<Point, IProjectableProperties> = {
                     type: 'Feature',
                     geometry: labelPoint4326,
