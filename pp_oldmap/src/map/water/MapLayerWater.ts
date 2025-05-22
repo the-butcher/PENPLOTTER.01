@@ -8,6 +8,7 @@ import { AMapLayer } from '../AMapLayer';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { PPGeometry } from 'pp-geom';
 
 export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
@@ -57,14 +58,14 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
         console.log(`${this.name}, processing data ...`);
 
-        const multiPolyline = VectorTileGeometryUtil.restructurePolylines(this.tileDataLines.map(f => f.geometry));
+        const multiPolyline = PPGeometry.restructurePolylines(this.tileDataLines.map(f => f.geometry));
         // let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
 
         if (multiPolyline.coordinates.length > 0) {
             const linebuffer04 = turf.buffer(multiPolyline, 2, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
-            const polygons04 = VectorTileGeometryUtil.destructurePolygons(linebuffer04.geometry);
+            const polygons04 = PPGeometry.destructurePolygons(linebuffer04.geometry);
             polygons04.forEach(polygon => {
                 this.tileData.push(turf.feature(polygon, {
                     lod: -1,

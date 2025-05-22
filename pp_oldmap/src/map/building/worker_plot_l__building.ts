@@ -1,3 +1,4 @@
+import { PPGeometry } from 'pp-geom';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerPlotInput } from '../common/IWorkerPlotInput';
@@ -29,10 +30,10 @@ self.onmessage = (e) => {
     const features050 = VectorTileGeometryUtil.bufferCollect2(workerInput.polyData, false, ...distances050);
 
     const connected025 = VectorTileGeometryUtil.connectBufferFeatures(features025);
-    const multiPolyline025 = VectorTileGeometryUtil.restructurePolylines(connected025);
+    const multiPolyline025 = PPGeometry.restructurePolylines(connected025);
 
     const connected050 = VectorTileGeometryUtil.connectBufferFeatures(features050);
-    const multiPolyline050 = VectorTileGeometryUtil.restructurePolylines(connected050);
+    const multiPolyline050 = PPGeometry.restructurePolylines(connected050);
 
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline025);
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline050);

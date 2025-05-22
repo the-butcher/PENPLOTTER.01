@@ -6,6 +6,7 @@ import { VectorTileKey } from '../../vectortile/VectorTileKey';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { MapLayerBuildings } from './MapLayerBuildings';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -43,21 +44,21 @@ self.onmessage = (e) => {
         }
     });
 
-    let polyData: MultiPolygon = VectorTileGeometryUtil.restructurePolygons(preUnion);
+    let polyData: MultiPolygon = PPGeometry.restructurePolygons(preUnion);
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // get outer rings, all holes removed
-    let polygons025 = VectorTileGeometryUtil.destructurePolygons(polyData);
+    let polygons025 = PPGeometry.destructurePolygons(polyData);
     polygons025.forEach(polygonO => {
         polygonO.coordinates = polygonO.coordinates.slice(0, 1);
     });
-    let multiPolygonO = VectorTileGeometryUtil.restructurePolygons(polygons025);
+    let multiPolygonO = PPGeometry.restructurePolygons(polygons025);
 
     // get inner ring reversed, act like real polygons temporarily
-    let polygonsI: Polygon[] = VectorTileGeometryUtil.destructurePolygons(polyData);
+    let polygonsI: Polygon[] = PPGeometry.destructurePolygons(polyData);
     const polygonsIFlat: Polygon[] = [];
     polygonsI.forEach(polygonI => {
         polygonI.coordinates.slice(1).forEach(hole => {
@@ -72,12 +73,12 @@ self.onmessage = (e) => {
             mutate: true
         });
     });
-    let multiPolygonI = VectorTileGeometryUtil.restructurePolygons(polygonsIFlat);
+    let multiPolygonI = PPGeometry.restructurePolygons(polygonsIFlat);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (1) ...`);
-    multiPolygonO = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonO, workerInput.bboxClp4326);
+    multiPolygonO = PPGeometry.bboxClipMultiPolygon(multiPolygonO, workerInput.bboxClp4326);
     console.log(`${workerInput.name}, clipping to bboxClp4326 (2) ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // let the polygons be a litte smaller than original to account for pen width
     const inout0 = 0;
@@ -87,12 +88,12 @@ self.onmessage = (e) => {
     const inoutO: number[] = [inout0, polygonInset - inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutO[0]}, ${inoutO[1]}] ...`);
     polygons025 = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonO, ...inoutO);
-    multiPolygonO = VectorTileGeometryUtil.restructurePolygons(polygons025);
+    multiPolygonO = PPGeometry.restructurePolygons(polygons025);
 
     const inoutI: number[] = [polygonInset - inout0, inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutI[0]}, ${inoutI[1]}] ...`);
     polygonsI = VectorTileGeometryUtil.bufferOutAndIn(multiPolygonI, ...inoutI).filter(i => turf.area(i) > MapLayerBuildings.minArea);
-    multiPolygonI = VectorTileGeometryUtil.restructurePolygons(polygonsI);
+    multiPolygonI = PPGeometry.restructurePolygons(polygonsI);
 
     if (multiPolygonO.coordinates.length > 0 && multiPolygonI.coordinates.length) {
 
@@ -102,19 +103,19 @@ self.onmessage = (e) => {
 
         console.log(`${workerInput.name}, reapplying holes ...`);
         const difference = turf.difference(featureC)!.geometry; // subtract inner polygons from outer
-        const polygonsD = VectorTileGeometryUtil.destructurePolygons(difference);
-        polyData = VectorTileGeometryUtil.restructurePolygons(polygonsD);
+        const polygonsD = PPGeometry.destructurePolygons(difference);
+        polyData = PPGeometry.restructurePolygons(polygonsD);
 
     }
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxMap4326);
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxMap4326);
 
     // another very small in-out removes artifacts at the bounding box edges
     const inoutA: number[] = [-0.11, 0.1];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
-    polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA1);
+    polyData = PPGeometry.restructurePolygons(polygonsA1);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

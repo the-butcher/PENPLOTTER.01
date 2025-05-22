@@ -1,7 +1,7 @@
 import * as turf from '@turf/turf';
 import { Feature, MultiPolygon, Point, Polygon, Position } from 'geojson';
 import { FacetypeFont, GlyphSetter } from 'pp-font';
-import { IProjectableProperties, Projection, TProjectableFeature } from 'pp-geom';
+import { IProjectableProperties, Projection, PPGeometry, TProjectableFeature } from 'pp-geom';
 import { SymbolUtil } from '../../util/SymbolUtil';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { MapDefs } from '../MapDefs';
@@ -35,9 +35,9 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
     }
     workerInput.tileData = _tileData;
 
-    let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
-    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
-    let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
+    let polyText = PPGeometry.emptyMultiPolygon();
+    let multiPolyline025 = PPGeometry.emptyMultiPolyline();
+    let polyData = PPGeometry.emptyMultiPolygon();
 
     // @ts-expect-error text type
     const symbolFactory: (coordinate: Position) => Position[][] = SymbolUtil[workerInput.symbolFactory];
@@ -116,7 +116,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
         const linebuffer018 = turf.buffer(multiPolyline025, bufferDist, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        bufferPolygons.push(...VectorTileGeometryUtil.destructurePolygons(linebuffer018.geometry));
+        bufferPolygons.push(...PPGeometry.destructurePolygons(linebuffer018.geometry));
     }
 
     // buffer around text polygons
@@ -124,7 +124,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
         const polyTextBuffer = turf.buffer(polyText, bufferDist, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        bufferPolygons.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBuffer.geometry));
+        bufferPolygons.push(...PPGeometry.destructurePolygons(polyTextBuffer.geometry));
     }
 
     // minor inwards buffer to account for pen width
@@ -133,17 +133,17 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
         const polyTextBufferB = turf.buffer(polyText, -0.25, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polyTextBufferPolygonsB.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBufferB.geometry));
+        polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));
     }
-    polyText = VectorTileGeometryUtil.restructurePolygons(polyTextBufferPolygonsB);
+    polyText = PPGeometry.restructurePolygons(polyTextBufferPolygonsB);
 
     if (bufferPolygons.length > 0) {
-        const bufferUnion = VectorTileGeometryUtil.unionPolygons(bufferPolygons);
-        bufferPolygons = VectorTileGeometryUtil.destructurePolygons(bufferUnion);
-        polyData = VectorTileGeometryUtil.restructurePolygons(bufferPolygons);
+        const bufferUnion = PPGeometry.unionPolygons(bufferPolygons);
+        bufferPolygons = PPGeometry.destructurePolygons(bufferUnion);
+        polyData = PPGeometry.restructurePolygons(bufferPolygons);
     }
 
-    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+    multiPolyline025 = PPGeometry.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
     turf.cleanCoords(multiPolyline025, {
         mutate: true
     });

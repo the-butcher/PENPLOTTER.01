@@ -10,6 +10,7 @@ import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 import { ISymbolDefPointFill, IWorkerLineInputPolygon } from './IWorkerLineInputPolygon';
 import { ISymbolProperties } from '../common/ISymbolProperties';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
+import { PPGeometry } from 'pp-geom';
 
 export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
 
@@ -115,10 +116,10 @@ export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
         this.connectPolylines(2);
 
         // TODO :: use dedicated function VectorTileGeometryUtil
-        const polylines025 = VectorTileGeometryUtil.destructurePolylines(this.multiPolyline025).filter(p => turf.length(turf.feature(p), {
+        const polylines025 = PPGeometry.destructurePolylines(this.multiPolyline025).filter(p => turf.length(turf.feature(p), {
             units: 'meters'
         }) > 20);
-        this.multiPolyline025 = VectorTileGeometryUtil.restructurePolylines(polylines025);
+        this.multiPolyline025 = PPGeometry.restructurePolylines(polylines025);
 
         const workerInput: IWorkerLineInputPolygon = {
             name: this.name,

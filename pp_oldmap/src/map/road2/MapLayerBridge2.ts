@@ -7,6 +7,7 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { AMapLayer } from '../AMapLayer';
 import { ISymbolProperties } from '../common/ISymbolProperties';
 import { MapLayerRoad2 } from './MapLayerRoad2';
+import { PPGeometry } from 'pp-geom';
 
 
 export class MapLayerBridge2 extends AMapLayer<LineString, ISymbolProperties> {
@@ -51,7 +52,7 @@ export class MapLayerBridge2 extends AMapLayer<LineString, ISymbolProperties> {
         // 0 - highway
 
         const filterByLayerAndSymbol = (layers: string[], symbols: number[]): MultiLineString => {
-            const result = VectorTileGeometryUtil.emptyMultiPolyline();
+            const result = PPGeometry.emptyMultiPolyline();
             this.tileData.forEach(feature => {
                 const layer = feature.properties.layer;
                 if (layers.some(s => layer === s)) {
@@ -71,18 +72,18 @@ export class MapLayerBridge2 extends AMapLayer<LineString, ISymbolProperties> {
 
             let _bridgeMultiPolyline = filterByLayerAndSymbol(['GIP_BAUWERK_L_BRÜCKE'], [i]);
             // TODO :: use dedicated function VectorTileGeometryUtil
-            const _bridgeMultiPolylines = VectorTileGeometryUtil.destructurePolylines(_bridgeMultiPolyline).filter(p => turf.length(turf.feature(p), {
+            const _bridgeMultiPolylines = PPGeometry.destructurePolylines(_bridgeMultiPolyline).filter(p => turf.length(turf.feature(p), {
                 units: 'meters'
             }) > 20);
-            _bridgeMultiPolyline = VectorTileGeometryUtil.restructurePolylines(_bridgeMultiPolylines);
+            _bridgeMultiPolyline = PPGeometry.restructurePolylines(_bridgeMultiPolylines);
 
             if (_bridgeMultiPolyline.coordinates.length > 0) {
                 const bridgeBuffer = turf.buffer(_bridgeMultiPolyline, MapLayerRoad2.bufferDistances[i] + bridgeBufferExtraMeters, {
                     units: 'meters'
                 }) as Feature<Polygon | MultiPolygon>;
-                this.bridgePolygons.push(VectorTileGeometryUtil.restructurePolygons(VectorTileGeometryUtil.destructurePolygons(bridgeBuffer.geometry)));
+                this.bridgePolygons.push(PPGeometry.restructurePolygons(PPGeometry.destructurePolygons(bridgeBuffer.geometry)));
             } else {
-                this.bridgePolygons.push(VectorTileGeometryUtil.emptyMultiPolygon());
+                this.bridgePolygons.push(PPGeometry.emptyMultiPolygon());
             }
 
             this.bridgePolylines.push(_bridgeMultiPolyline); // the actual original bridge polylines
@@ -97,17 +98,17 @@ export class MapLayerBridge2 extends AMapLayer<LineString, ISymbolProperties> {
 
         // no lines, for clipping only
         const polgons: Polygon[] = [
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[0]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[1]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[2]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[3]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[4]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[5]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[6]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[7]),
-            ...VectorTileGeometryUtil.destructurePolygons(this.bridgePolygons[8]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[0]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[1]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[2]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[3]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[4]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[5]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[6]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[7]),
+            ...PPGeometry.destructurePolygons(this.bridgePolygons[8]),
         ];
-        this.polyData = VectorTileGeometryUtil.restructurePolygons(polgons);
+        this.polyData = PPGeometry.restructurePolygons(polgons);
 
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);

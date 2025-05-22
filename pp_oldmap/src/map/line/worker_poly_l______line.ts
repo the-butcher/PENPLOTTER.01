@@ -3,25 +3,26 @@ import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon } from "g
 import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
+import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerPolyInput<LineString, GeoJsonProperties> = e.data;
 
-    let polyData = VectorTileGeometryUtil.emptyMultiPolygon();
+    let polyData = PPGeometry.emptyMultiPolygon();
 
     const polylines = workerInput.tileData.map(f => f.geometry);
     if (polylines.length > 0) {
-        const tileDataMult = VectorTileGeometryUtil.restructurePolylines(polylines);
+        const tileDataMult = PPGeometry.restructurePolylines(polylines);
         const tileDataBuff = turf.buffer(tileDataMult, 5, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        const polygons = VectorTileGeometryUtil.destructurePolygons(tileDataBuff.geometry);
-        polyData = VectorTileGeometryUtil.restructurePolygons(polygons);
+        const polygons = PPGeometry.destructurePolygons(tileDataBuff.geometry);
+        polyData = PPGeometry.restructurePolygons(polygons);
     }
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

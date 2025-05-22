@@ -8,6 +8,7 @@ import { AMapLayer } from '../AMapLayer';
 import { IWorkerPlotInput } from '../common/IWorkerPlotInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { PPGeometry } from 'pp-geom';
 
 export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
 
@@ -69,7 +70,7 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
         const workerInput: IWorkerPlotInput = {
             name: this.name,
             polyData: this.polyData,
-            polyText: VectorTileGeometryUtil.emptyMultiPolygon()
+            polyText: PPGeometry.emptyMultiPolygon()
         };
 
         return new Promise((resolve, reject) => {

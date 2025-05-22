@@ -5,16 +5,17 @@ import { ISymbolDefPointDash, IWorkerLineInputLine } from "./IWorkerLineInputLin
 import { Feature, LineString, MultiLineString } from 'geojson';
 import { ISymbolProperties } from '../common/ISymbolProperties';
 import { SymbolUtil } from '../../util/SymbolUtil';
+import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputLine = e.data;
 
-    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
-    let multiPolylineDef = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline025 = PPGeometry.emptyMultiPolyline();
+    let multiPolylineDef = PPGeometry.emptyMultiPolyline();
 
     const polylines = workerInput.tileData.map(f => f.geometry);
-    const tileDataMult = VectorTileGeometryUtil.restructurePolylines(polylines);
+    const tileDataMult = PPGeometry.restructurePolylines(polylines);
 
     multiPolylineDef.coordinates.push(...tileDataMult.coordinates);
 
@@ -34,7 +35,7 @@ self.onmessage = (e) => {
     if (symbolKeys.length > 0) {
 
         const filterBySymbolValue = (features: Feature<LineString, ISymbolProperties>[], ...symbols: number[]): MultiLineString => {
-            const result = VectorTileGeometryUtil.emptyMultiPolyline();
+            const result = PPGeometry.emptyMultiPolyline();
             features.forEach(feature => {
                 const symbol = feature.properties.symbol;
                 if (symbols.some(s => symbol === s)) {
@@ -55,7 +56,7 @@ self.onmessage = (e) => {
                 // @ts-expect-error text type
                 const symbolFactory: (coordinate: Position) => Position[][] = SymbolUtil[symbolDefinition.symbolFactory];
 
-                const polylines = VectorTileGeometryUtil.destructurePolylines(symbolizablePolylines);
+                const polylines = PPGeometry.destructurePolylines(symbolizablePolylines);
 
                 polylines.forEach(polyline => {
 
@@ -85,12 +86,12 @@ self.onmessage = (e) => {
 
         }
 
-        multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+        multiPolyline025 = PPGeometry.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
 
     }
 
-    multiPolylineDef = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolylineDef, workerInput.bboxMap4326);
-    multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+    multiPolylineDef = PPGeometry.bboxClipMultiPolyline(multiPolylineDef, workerInput.bboxMap4326);
+    multiPolyline025 = PPGeometry.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
 
 
 

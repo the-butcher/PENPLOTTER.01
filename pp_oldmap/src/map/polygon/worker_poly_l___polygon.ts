@@ -3,6 +3,7 @@ import { GeoJsonProperties, Polygon } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { PPGeometry } from 'pp-geom';
 
 
 self.onmessage = (e) => {
@@ -30,21 +31,21 @@ self.onmessage = (e) => {
     polygonsT = polygonsT.map(t => removeHolesSmallerThan(t, 500));
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    polygonsT = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructurePolygons(polygonsT), ...workerInput.outin!);
+    polygonsT = VectorTileGeometryUtil.bufferOutAndIn(PPGeometry.restructurePolygons(polygonsT), ...workerInput.outin!);
 
     // there may be new holes after buffering
     polygonsT = polygonsT.map(t => removeHolesSmallerThan(t, 500));
 
-    let polyData = VectorTileGeometryUtil.restructurePolygons(polygonsT);
+    let polyData = PPGeometry.restructurePolygons(polygonsT);
 
     console.log(`${workerInput.name}, clipping ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // another very small in-out removes artifacts at the bounding box edges
     const inoutA: number[] = [-0.11, 0.11];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
-    polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA1);
+    polyData = PPGeometry.restructurePolygons(polygonsA1);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

@@ -15,7 +15,7 @@ import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 import { ISkipOptions } from '../ISkipOptions';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 import { IWorkerLineInputLineLabel } from './IWorkerLineInputLineLabel';
-import { TUnionPolygon } from 'pp-geom';
+import { PPGeometry, TUnionPolygon } from 'pp-geom';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -27,7 +27,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
     constructor(name: string, filter: IVectorTileFeatureFilter, labelDefs: ILabelDef[], geoJsonPath: string = '', ...labelClasses: (string | number)[]) {
         super(name, filter);
         this.labelDefs = labelDefs;
-        this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+        this.polyText = PPGeometry.emptyMultiPolygon();
         this.labelClasses = labelClasses;
         this.geoJsonPath = geoJsonPath;
 
@@ -188,7 +188,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
         if (!options?.skipMlt) {
 
-            const polyDataClip = VectorTileGeometryUtil.emptyMultiPolygon();
+            const polyDataClip = PPGeometry.emptyMultiPolygon();
             layer.polyData.coordinates.forEach(polygon => {
                 if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
                     polyDataClip.coordinates.push(polygon);
@@ -200,7 +200,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                     units: 'meters'
                 });
 
-                const polyDataText = VectorTileGeometryUtil.emptyMultiPolygon();
+                const polyDataText = PPGeometry.emptyMultiPolygon();
                 this.polyText.coordinates.forEach(polygon => {
                     if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
                         polyDataText.coordinates.push(polygon);
@@ -211,8 +211,8 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
                     const difference = turf.difference(featureC);
                     if (difference) {
                         const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
-                        const polygonsD = VectorTileGeometryUtil.destructurePolygons(differenceGeometry);
-                        this.polyText = VectorTileGeometryUtil.restructurePolygons(polygonsD);
+                        const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
+                        this.polyText = PPGeometry.restructurePolygons(polygonsD);
                     }
                 }
 

@@ -5,19 +5,19 @@ import { ISymbolDefPointFill, IWorkerLineInputPolygon } from "./IWorkerLineInput
 import * as turf from '@turf/turf';
 import { SymbolUtil } from "../../util/SymbolUtil";
 import { ISymbolProperties } from "../common/ISymbolProperties";
-import { TUnionPolygon } from "pp-geom";
+import { PPGeometry, TUnionPolygon } from "pp-geom";
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputPolygon = e.data;
 
-    let multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline025 = PPGeometry.emptyMultiPolyline();
 
     const symbolKeys = Object.keys(workerInput.symbolDefinitions);
     if (symbolKeys.length > 0) {
 
         const filterBySymbolValue = (features: Feature<Polygon, ISymbolProperties>[], ...symbols: number[]): MultiPolygon => {
-            const result = VectorTileGeometryUtil.emptyMultiPolygon();
+            const result = PPGeometry.emptyMultiPolygon();
             features.forEach(feature => {
                 const symbol = feature.properties.symbol;
                 if (symbols.some(s => symbol === s)) {
@@ -111,14 +111,14 @@ self.onmessage = (e) => {
                 const symbolDefinition: ISymbolDefPointFill = workerInput.symbolDefinitions[symbolKeys[symbolKeyIndex]];
 
                 const centerPolygons02 = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -15);
-                const centerMultipolygon02 = VectorTileGeometryUtil.restructurePolygons(centerPolygons02);
+                const centerMultipolygon02 = PPGeometry.restructurePolygons(centerPolygons02);
 
                 const hexCoordinatesB: Position[] = [];
                 const bbox = turf.bbox(symbolizablePolygons);
                 if (symbolDefinition.outerDim > 0) {
 
                     const centerPolygonsOd = VectorTileGeometryUtil.bufferOutAndIn(symbolizablePolygons, 10, -(symbolDefinition.outerDim + 10));
-                    const centerMultipolygonOd = VectorTileGeometryUtil.restructurePolygons(centerPolygonsOd);
+                    const centerMultipolygonOd = PPGeometry.restructurePolygons(centerPolygonsOd);
 
                     if (centerMultipolygonOd.coordinates.length > 0) {
 
@@ -160,7 +160,7 @@ self.onmessage = (e) => {
 
         }
 
-        multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
+        multiPolyline025 = PPGeometry.bboxClipMultiPolyline(multiPolyline025, workerInput.bboxMap4326);
 
     }
 

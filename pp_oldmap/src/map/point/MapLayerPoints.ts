@@ -10,6 +10,7 @@ import { ILabelDefPointLabel } from './ILabelDefPointLabel';
 import { IWorkerPolyInputPoint } from './IWorkerPolyInputPoint';
 import { IWorkerPolyOutputPoint } from './IWorkerPolyOutputPoint';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
+import { PPGeometry } from 'pp-geom';
 
 export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
 
@@ -23,7 +24,7 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
         this.symbolFactory = symbolFactory;
         this.labelDefs = labelDefs;
         this.geoJsonPath = geoJsonPath;
-        this.polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+        this.polyText = PPGeometry.emptyMultiPolygon();
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {

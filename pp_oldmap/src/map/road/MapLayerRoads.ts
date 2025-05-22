@@ -9,6 +9,7 @@ import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerLineInputRoad } from './IWorkerLineInputRoad';
 import { IWorkerPolyOutputRoad } from './IWorkerPolyOutputRoad';
 import { ISymbolProperties } from '../common/ISymbolProperties';
+import { PPGeometry } from 'pp-geom';
 
 
 export class MapLayerRoads extends AMapLayer<LineString, ISymbolProperties> {
@@ -25,10 +26,10 @@ export class MapLayerRoads extends AMapLayer<LineString, ISymbolProperties> {
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
-        this.multiPolyline02 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline34 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline56 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline78 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.multiPolyline02 = PPGeometry.emptyMultiPolyline();
+        this.multiPolyline34 = PPGeometry.emptyMultiPolyline();
+        this.multiPolyline56 = PPGeometry.emptyMultiPolyline();
+        this.multiPolyline78 = PPGeometry.emptyMultiPolyline();
         this.polygons02 = [];
         this.polygons34 = [];
         this.polygons56 = [];

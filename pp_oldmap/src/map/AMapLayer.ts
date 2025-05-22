@@ -8,6 +8,7 @@ import { ISkipOptions } from './ISkipOptions';
 import { IWorkerClipInput } from './clip/IWorkerClipInput';
 import { IWorkerClipOutput } from './clip/IWorkerClipOutput';
 import { IWorkerLineOutput } from './common/IWorkerLineOutput';
+import { PPGeometry } from "pp-geom";
 
 export interface ILayerProps {
     createLayerInstance: () => AMapLayer<Geometry, GeoJsonProperties>;
@@ -33,11 +34,11 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
         this.name = name;
         this.filter = filter;
         this.tileData = [];
-        this.polyData = VectorTileGeometryUtil.emptyMultiPolygon();
-        this.multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline025 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
-        this.multiPolyline050 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.polyData = PPGeometry.emptyMultiPolygon();
+        this.multiPolyline018 = PPGeometry.emptyMultiPolyline();
+        this.multiPolyline025 = PPGeometry.emptyMultiPolyline();
+        this.multiPolyline035 = PPGeometry.emptyMultiPolyline();
+        this.multiPolyline050 = PPGeometry.emptyMultiPolyline();
     }
 
     accepts(vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature): boolean {
@@ -187,9 +188,9 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
     }
 
     mergeMultiPolylines(multiPolylineA: MultiLineString, multiPolylineB: MultiLineString): MultiLineString {
-        const polylinesA = VectorTileGeometryUtil.destructurePolylines(multiPolylineA);
-        const polylinesB = VectorTileGeometryUtil.destructurePolylines(multiPolylineB);
-        return VectorTileGeometryUtil.restructurePolylines([
+        const polylinesA = PPGeometry.destructurePolylines(multiPolylineA);
+        const polylinesB = PPGeometry.destructurePolylines(multiPolylineB);
+        return PPGeometry.restructurePolylines([
             ...polylinesA,
             ...polylinesB
         ])
@@ -197,10 +198,10 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
 
     bboxClipLayer(bboxMap4326: BBox): void {
         // console.log(`${this.name}, bbox-clip ...`);
-        this.multiPolyline018 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline018, bboxMap4326);
-        this.multiPolyline025 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline025, bboxMap4326);
-        this.multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);
-        this.multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
+        this.multiPolyline018 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline018, bboxMap4326);
+        this.multiPolyline025 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline025, bboxMap4326);
+        this.multiPolyline035 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);
+        this.multiPolyline050 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
     }
 
     connectPolylines(toleranceMeters: number, options: ISkipOptions = {

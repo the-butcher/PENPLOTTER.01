@@ -2,13 +2,14 @@ import { GeoJsonProperties, Polygon, Position } from 'geojson';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerLineInput } from '../common/IWorkerLineInput';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
+import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInput<Polygon, GeoJsonProperties> = e.data;
 
-    let multiPolyline018 = VectorTileGeometryUtil.emptyMultiPolyline();
-    let multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline018 = PPGeometry.emptyMultiPolyline();
+    let multiPolyline035 = PPGeometry.emptyMultiPolyline();
 
     /**
      * create the buffered set of polygons that determine the appearance of the water layer
@@ -23,10 +24,10 @@ self.onmessage = (e) => {
     // console.log('distances', distances);
 
     const polygonsB: Polygon[] = VectorTileGeometryUtil.bufferCollect1(workerInput.polyData, false, ...distances);
-    let multiPolygonB = VectorTileGeometryUtil.restructurePolygons(polygonsB);
+    let multiPolygonB = PPGeometry.restructurePolygons(polygonsB);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (2) ...`);
-    multiPolygonB = VectorTileGeometryUtil.bboxClipMultiPolygon(multiPolygonB, workerInput.bboxClp4326); // with buffered rings
+    multiPolygonB = PPGeometry.bboxClipMultiPolygon(multiPolygonB, workerInput.bboxClp4326); // with buffered rings
 
     const coordinates018: Position[][] = multiPolygonB.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
     multiPolyline018.coordinates.push(...coordinates018);
@@ -36,8 +37,8 @@ self.onmessage = (e) => {
     multiPolyline035.coordinates.push(...coordinates035);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline018 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline018, workerInput.bboxMap4326);
-    multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
+    multiPolyline018 = PPGeometry.bboxClipMultiPolyline(multiPolyline018, workerInput.bboxMap4326);
+    multiPolyline035 = PPGeometry.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
 
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline018);
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline035);

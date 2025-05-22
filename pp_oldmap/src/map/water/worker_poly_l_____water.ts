@@ -3,6 +3,7 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
 import { danube___all } from '../Rivers';
+import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -11,20 +12,20 @@ self.onmessage = (e) => {
     const polygonsT: Polygon[] = workerInput.tileData.map(f => f.geometry);
 
     console.log(`${workerInput.name}, stat polygons, danube___old ...`);
-    polygonsT.push(...VectorTileGeometryUtil.destructurePolygons(danube___all));
+    polygonsT.push(...PPGeometry.destructurePolygons(danube___all));
 
     console.log(`${workerInput.name}, buffer in-out [${workerInput.outin![0]}, ${workerInput.outin![1]}] ...`);
-    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(VectorTileGeometryUtil.restructurePolygons(polygonsT), ...workerInput.outin!);
-    let polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA);
+    const polygonsA: Polygon[] = VectorTileGeometryUtil.bufferOutAndIn(PPGeometry.restructurePolygons(polygonsT), ...workerInput.outin!);
+    let polyData = PPGeometry.restructurePolygons(polygonsA);
 
     console.log(`${workerInput.name}, clipping to bboxClp4326 (1) ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326); // outer ring only, for potential future clipping operations
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326); // outer ring only, for potential future clipping operations
 
     // another very small in-out removes artifacts at the bounding box edges
     const inoutA: number[] = [-0.11, 0.11];
     console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
     const polygonsA1 = VectorTileGeometryUtil.bufferOutAndIn(polyData, ...inoutA);
-    polyData = VectorTileGeometryUtil.restructurePolygons(polygonsA1);
+    polyData = PPGeometry.restructurePolygons(polygonsA1);
 
     VectorTileGeometryUtil.cleanAndSimplify(polyData);
 

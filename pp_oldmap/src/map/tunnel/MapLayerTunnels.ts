@@ -8,6 +8,7 @@ import { AMapLayer } from '../AMapLayer';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
 import { Map } from '../Map';
 import { IWorkerPolyOutputTunnel } from './IWorkerPolyOutputTunnel';
+import { PPGeometry } from 'pp-geom';
 
 export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -15,7 +16,7 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
-        this.multiPolyline04 = VectorTileGeometryUtil.emptyMultiPolyline();
+        this.multiPolyline04 = PPGeometry.emptyMultiPolyline();
     }
 
     async accept(vectorTileKey: IVectorTileKey, feature: IVectorTileFeature): Promise<void> {

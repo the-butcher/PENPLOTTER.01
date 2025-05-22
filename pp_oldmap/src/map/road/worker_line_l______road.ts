@@ -3,17 +3,18 @@ import { MultiLineString, Position } from "geojson";
 import { VectorTileGeometryUtil } from "../../vectortile/VectorTileGeometryUtil";
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerLineInputRoad } from "./IWorkerLineInputRoad";
+import { PPGeometry } from 'pp-geom';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerLineInputRoad = e.data;
 
-    let multiPolyline035 = VectorTileGeometryUtil.emptyMultiPolyline();
-    let multiPolyline050 = VectorTileGeometryUtil.emptyMultiPolyline();
+    let multiPolyline035 = PPGeometry.emptyMultiPolyline();
+    let multiPolyline050 = PPGeometry.emptyMultiPolyline();
 
-    const multiPolygon02 = VectorTileGeometryUtil.restructurePolygons(workerInput.polygons02); // highways
-    const multiPolygon34 = VectorTileGeometryUtil.restructurePolygons(workerInput.polygons34); // bigger roads
-    const multiPolygon56 = VectorTileGeometryUtil.restructurePolygons(workerInput.polygons56); // smaller roads
+    const multiPolygon02 = PPGeometry.restructurePolygons(workerInput.polygons02); // highways
+    const multiPolygon34 = PPGeometry.restructurePolygons(workerInput.polygons34); // bigger roads
+    const multiPolygon56 = PPGeometry.restructurePolygons(workerInput.polygons56); // smaller roads
 
     const coordinates02: Position[][] = multiPolygon02.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
     const multiOutline02: MultiLineString = {
@@ -40,7 +41,7 @@ self.onmessage = (e) => {
     multiOutline56 = VectorTileGeometryUtil.clipMultiPolyline(multiOutline56, turf.feature(multiPolygon34));
 
     // clip bigger and smaller streets away from smallest streets
-    const union36 = VectorTileGeometryUtil.unionPolygons([...workerInput.polygons34, ...workerInput.polygons56]);
+    const union36 = PPGeometry.unionPolygons([...workerInput.polygons34, ...workerInput.polygons56]);
     workerInput.multiPolyline78 = VectorTileGeometryUtil.clipMultiPolyline(workerInput.multiPolyline78, turf.feature(union36));
 
     // clip away highways from all streets
@@ -54,8 +55,8 @@ self.onmessage = (e) => {
     multiPolyline050.coordinates.push(...multiOutline02.coordinates);
 
     console.log(`${workerInput.name}, clipping to bboxMap4326 ...`);
-    multiPolyline035 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
-    multiPolyline050 = VectorTileGeometryUtil.bboxClipMultiPolyline(multiPolyline050, workerInput.bboxMap4326);
+    multiPolyline035 = PPGeometry.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
+    multiPolyline050 = PPGeometry.bboxClipMultiPolyline(multiPolyline050, workerInput.bboxMap4326);
 
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline035);
     VectorTileGeometryUtil.cleanAndSimplify(multiPolyline050);

@@ -2,6 +2,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Button, Checkbox, FormControl, FormControlLabel, List, ListItem, ListItemText, Radio, RadioGroup, Stack } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Position } from "geojson";
+import { PPGeometry } from "pp-geom";
 import { createRef, useEffect, useRef, useState } from "react";
 import { ClipDefs } from "../map/clip/ClipDefs";
 import { IClipDef } from "../map/clip/IClipDef";
@@ -288,7 +289,6 @@ function MapComponent() {
       _geometryTypes.delete(geometryType);
     }
     setGeometryTypes(_geometryTypes);
-
   }
 
   const handleContainerChange = (_mapContainer: TMapContainer) => {
@@ -302,7 +302,7 @@ function MapComponent() {
 
     const layer = map!.findLayerByName(id);
 
-    const polylines050 = VectorTileGeometryUtil.destructurePolylines(layer!.multiPolyline035);
+    const polylines050 = PPGeometry.destructurePolylines(layer!.multiPolyline035);
     const features = polylines050.map(p => turf.feature(p));
     const featureCollection = turf.featureCollection(features);
 
@@ -809,10 +809,10 @@ function MapComponent() {
     });
     if (mapContainer === 'canvas') {
       _mapLayerProps.forEach(p => {
-        p.polylines018 = VectorTileGeometryUtil.emptyMultiPolyline();
-        p.polylines025 = VectorTileGeometryUtil.emptyMultiPolyline();
-        p.polylines035 = VectorTileGeometryUtil.emptyMultiPolyline();
-        p.polylines050 = VectorTileGeometryUtil.emptyMultiPolyline();
+        p.polylines018 = PPGeometry.emptyMultiPolyline();
+        p.polylines025 = PPGeometry.emptyMultiPolyline();
+        p.polylines035 = PPGeometry.emptyMultiPolyline();
+        p.polylines050 = PPGeometry.emptyMultiPolyline();
       });
     } else {
       _mapLayerProps.forEach(p => {

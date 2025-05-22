@@ -11,7 +11,7 @@ import { MapDefs } from '../MapDefs';
 import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 
 import { FacetypeFont, GlyphSetter } from 'pp-font';
-import { IProjectableProperties, TProjectableFeature } from 'pp-geom';
+import { IProjectableProperties, PPGeometry, TProjectableFeature } from 'pp-geom';
 
 self.onmessage = (e) => {
 
@@ -29,7 +29,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
     workerInput.tileData.forEach(t => {
         const clipped = turf.bboxClip(t.geometry, workerInput.bboxMap4326);
         if (clipped.geometry.type === 'MultiLineString') {
-            const clippedPolylines = VectorTileGeometryUtil.destructurePolylines(clipped.geometry);
+            const clippedPolylines = PPGeometry.destructurePolylines(clipped.geometry);
             clippedPolylines.forEach(clippedPolyline => {
                 tileData.push(turf.feature(clippedPolyline, t.properties));
             })
@@ -41,7 +41,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
     const lineNames = new Set(tileData.map(f => f.properties!.name));
     console.log('lineNames', lineNames);
 
-    let polyText = VectorTileGeometryUtil.emptyMultiPolygon();
+    let polyText = PPGeometry.emptyMultiPolygon();
 
     const labelDefs: ILabelDef[] = workerInput.labelDefs.map(d => {
         const labelDefOmit: Omit<ILabelDefLineLabel, 'idxvalid'> = {
@@ -59,9 +59,9 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
         const lineName = lineNameArray[i];
 
         const namedLines = tileData.filter(f => f.properties!.name === lineName).map(f => f.geometry);
-        const connectedLinesA = VectorTileGeometryUtil.restructurePolylines(namedLines);
+        const connectedLinesA = PPGeometry.restructurePolylines(namedLines);
         const connectedLinesB = VectorTileGeometryUtil.connectMultiPolyline(connectedLinesA, 5);
-        const connectedLinesC = VectorTileGeometryUtil.destructurePolylines(connectedLinesB);
+        const connectedLinesC = PPGeometry.destructurePolylines(connectedLinesB);
 
         // console.log(namedLines, connectedLinesC);
 
@@ -146,9 +146,9 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
         const polyTextBufferA = turf.buffer(polyText, 8, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polyTextBufferPolygonsA.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBufferA.geometry));
+        polyTextBufferPolygonsA.push(...PPGeometry.destructurePolygons(polyTextBufferA.geometry));
     }
-    let polyData = VectorTileGeometryUtil.restructurePolygons(polyTextBufferPolygonsA);
+    let polyData = PPGeometry.restructurePolygons(polyTextBufferPolygonsA);
 
     // minor inwards buffer to account for pen width
     const polyTextBufferPolygonsB: Polygon[] = [];
@@ -156,13 +156,13 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
         const polyTextBufferB = turf.buffer(polyText, -0.5, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
-        polyTextBufferPolygonsB.push(...VectorTileGeometryUtil.destructurePolygons(polyTextBufferB.geometry));
+        polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));
     }
-    polyText = VectorTileGeometryUtil.restructurePolygons(polyTextBufferPolygonsB);
+    polyText = PPGeometry.restructurePolygons(polyTextBufferPolygonsB);
 
     console.log(`${workerInput.name}, clipping ...`);
-    polyData = VectorTileGeometryUtil.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
-    polyText = VectorTileGeometryUtil.bboxClipMultiPolygon(polyText, workerInput.bboxMap4326);
+    polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
+    polyText = PPGeometry.bboxClipMultiPolygon(polyText, workerInput.bboxMap4326);
 
     return {
         polyData,

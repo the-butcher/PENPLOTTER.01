@@ -2,13 +2,13 @@ import * as turf from '@turf/turf';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { IWorkerClipInput } from './IWorkerClipInput';
 import { IWorkerClipOutput } from './IWorkerClipOutput';
-import { TUnionPolygon } from 'pp-geom';
+import { PPGeometry, TUnionPolygon } from 'pp-geom';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerClipInput = e.data;
 
-    const polyDataClip = VectorTileGeometryUtil.emptyMultiPolygon();
+    const polyDataClip = PPGeometry.emptyMultiPolygon();
     workerInput.polyDataClip.coordinates.forEach(polygon => {
         if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
             polyDataClip.coordinates.push(polygon);
@@ -37,7 +37,7 @@ self.onmessage = (e) => {
         }
         if (!workerInput.options?.skipMlt) {
 
-            const polyDataDest = VectorTileGeometryUtil.emptyMultiPolygon();
+            const polyDataDest = PPGeometry.emptyMultiPolygon();
             workerInput.polyDataDest.coordinates.forEach(polygon => {
                 if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
                     polyDataDest.coordinates.push(polygon);
@@ -48,8 +48,8 @@ self.onmessage = (e) => {
                 const difference = turf.difference(featureC);
                 if (difference) {
                     const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
-                    const polygonsD = VectorTileGeometryUtil.destructurePolygons(differenceGeometry);
-                    workerInput.polyDataDest = VectorTileGeometryUtil.restructurePolygons(polygonsD);
+                    const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
+                    workerInput.polyDataDest = PPGeometry.restructurePolygons(polygonsD);
                 }
             }
 
