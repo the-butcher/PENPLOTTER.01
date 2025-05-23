@@ -631,9 +631,6 @@ function ImageLoaderComponent() {
             context.fillRect(0, 0, canvas.width, canvas.height);
             context.drawImage(image, pngPadding, pngPadding, width, height);
 
-            context.font = '14px smb';
-            context.fillStyle = 'black';
-
             const pngDataUrl = canvas.toDataURL();
             const pngDownloadLink = document.createElement('a');
             pngDownloadLink.setAttribute('href', pngDataUrl);

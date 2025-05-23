@@ -6,6 +6,7 @@ import { TUnitAbbr, TUnitName } from "./TUnit";
  *
  * @author h.fleischer
  * @since 21.04.2025
+ * @deprecated :: moved to pp-geom
  */
 export interface ICoordinateConverter {
     /**

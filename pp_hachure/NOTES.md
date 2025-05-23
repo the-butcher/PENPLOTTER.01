@@ -1,7 +1,7 @@
 https://craterregistry.com/lunar-nomenclature-database
 https://ode.rsl.wustl.edu/moon/pagehelp/Content/Missions_Instruments/LRO/LOLA/SLDEM.htm
 
-One more iteration on the hachure app. I added and straightened a few things, i.e.:
+One more iteration on the hachure app ... I added and straightened a few things, i.e.:
 
 - Allow spatial references other than web-mercator.
 - Add better handling of varying scales and cellsizes.

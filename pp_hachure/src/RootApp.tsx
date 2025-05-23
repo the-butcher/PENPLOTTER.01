@@ -13,6 +13,7 @@ function RootApp() {
       <ImageLoaderComponent />
     </ThemeProvider>
   );
+
 }
 
 export default RootApp;
