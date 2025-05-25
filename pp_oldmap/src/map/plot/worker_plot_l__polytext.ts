@@ -19,7 +19,7 @@ self.onmessage = (e) => {
     const polyText = workerInput.polyText;
     polyText.forEach(p => {
 
-        console.log('p', p.properties.type)
+        // console.log('p', p.properties.type)
         if (p.properties.type === 'none') {
 
             const coordinates018: Position[][] = p.geometry.coordinates.reduce((prev, curr) => [...prev, ...curr], []);
@@ -36,7 +36,7 @@ self.onmessage = (e) => {
                 distances018.push(polygonDelta018);
             }
 
-            console.log(`${workerInput.name}, buffer collect 018 ...`, distances018);
+            // console.log(`${workerInput.name}, buffer collect 018 ...`, distances018);
             const features018 = PPGeometry.bufferCollect2(p.geometry, true, ...distances018);
 
             const connected018A = PPGeometry.connectBufferFeatures(features018);

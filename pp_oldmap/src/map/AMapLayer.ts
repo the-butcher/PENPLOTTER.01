@@ -84,7 +84,7 @@ export abstract class AMapLayer<F extends Geometry, P extends GeoJsonProperties>
             workerInstance.postMessage(workerInput);
         });
 
-    }
+    };
 
     /**
      * meant to run after all data has been acquired,

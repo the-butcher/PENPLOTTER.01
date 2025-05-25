@@ -34,7 +34,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         MapLayerRoad2.bufferDistanceMin, // minor roads,
         MapLayerRoad2.bufferDistanceMin, // pedestrian a
         MapLayerRoad2.bufferDistanceMin, // pedestrian b
-    ];
+    ].map(w => w * 1.5);
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);

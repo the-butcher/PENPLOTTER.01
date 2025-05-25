@@ -11,11 +11,13 @@ import { IWorkerPolyOutputLineLabel } from './IWorkerPolyOutputLineLabel';
 
 // @ts-expect-error no index file
 import * as JSONfn from 'json-fn';
-import { PPGeometry, TFillProps, TUnionPolygon } from 'pp-geom';
+import { PPGeometry, TFillProps } from 'pp-geom';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
+import { IWorkerClipInput } from '../clip/IWorkerClipInput';
+import { IWorkerClipOutput } from '../clip/IWorkerClipOutput';
 import { ISkipOptions } from '../ISkipOptions';
-import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 import { IWorkerPlotInput } from '../plot/IWorkerPlotInput';
+import { ILabelDefLineLabel } from './ILabelDefLineLabel';
 
 export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -85,16 +87,21 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
         if (this.geoJsonPath !== '') {
             const featureCollection = await new GeoJsonLoader().load<LineString, GeoJsonProperties>(this.geoJsonPath);
             featureCollection.features.forEach(f => {
-                if (f.properties?.label) {
+                if (turf.length(f, {
+                    units: 'meters'
+                }) > 250) {
+                    if (f.properties?.label) {
 
-                    this.tileData.push(turf.feature(f.geometry, {
-                        lod: -1,
-                        col: -1,
-                        row: -1,
-                        name: f.properties?.label
-                    }));
+                        this.tileData.push(turf.feature(f.geometry, {
+                            lod: -1,
+                            col: -1,
+                            row: -1,
+                            name: f.properties?.label
+                        }));
 
+                    }
                 }
+
             });
         }
 
@@ -139,12 +146,6 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
         console.log(`${this.name}, processing line ...`);
 
-    }
-
-    async processPlot(): Promise<void> {
-
-        console.log(`${this.name}, processing plot ...`);
-
         const workerInput: IWorkerPlotInput = {
             name: this.name,
             polyText: this.polyText,
@@ -167,6 +168,14 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
     }
 
+    async processPlot(): Promise<void> {
+
+        console.log(`${this.name}, processing plot ...`);
+
+
+
+    }
+
     async clipToLayerMultipolygon(layer: AMapLayer<Geometry, GeoJsonProperties>, distance: number, options?: ISkipOptions): Promise<void> {
 
         await super.clipToLayerMultipolygon(layer, distance, options);
@@ -182,32 +191,78 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
             if (polyDataClip.coordinates.length > 0) {
 
-                const bufferResult = turf.buffer(polyDataClip, distance, {
-                    units: 'meters'
-                });
+                const clipFeature = async (feature: Feature<MultiPolygon, TFillProps>): Promise<Feature<MultiPolygon, TFillProps>> => {
 
-                const clipFeature = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+                    const workerInput: IWorkerClipInput = {
+                        multiPolyline018Dest: PPGeometry.emptyMultiPolyline(),
+                        multiPolyline025Dest: PPGeometry.emptyMultiPolyline(),
+                        multiPolyline035Dest: PPGeometry.emptyMultiPolyline(),
+                        multiPolyline050Dest: PPGeometry.emptyMultiPolyline(),
+                        polyDataDest: feature.geometry,
+                        polyDataClip: layer.polyData,
+                        distance: distance,
+                        options
+                    };
 
-                    const polyDataText = PPGeometry.emptyMultiPolygon();
-                    feature.geometry.coordinates.forEach(polygon => {
-                        if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
-                            polyDataText.coordinates.push(polygon);
-                        }
+                    const workerProm = new Promise<Feature<MultiPolygon, TFillProps>>((resolve, reject) => {
+                        const workerInstance = new Worker(new URL('../clip/worker_clip________misc.ts', import.meta.url), { type: 'module' });
+                        workerInstance.onmessage = (e) => {
+                            const workerOutput: IWorkerClipOutput = e.data;
+                            // this.polyData = workerOutput.polyDataDest;
+                            workerInstance.terminate();
+                            resolve(turf.feature(workerOutput.polyDataDest, feature.properties));
+                        };
+                        workerInstance.onerror = (e) => {
+                            workerInstance.terminate();
+                            reject(e);
+                        };
+                        workerInstance.postMessage(workerInput);
                     });
-                    if (polyDataText.coordinates.length > 0) {
-                        const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
-                        const difference = turf.difference(featureC);
-                        if (difference) {
-                            const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
-                            const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
-                            return turf.feature(PPGeometry.restructurePolygons(polygonsD), feature.properties);
-                        }
-                    }
-                    return feature;
+
+                    return await workerProm;
+
+                    // const bufferResult = turf.buffer(polyDataClip, distance, {
+                    //     units: 'meters'
+                    // });
+
+                    // console.log('clippin poly text ...');
+
+                    // const clipFeature = (feature: Feature<MultiPolygon, TFillProps>): Feature<MultiPolygon, TFillProps> => {
+
+                    //     const polyDataText = PPGeometry.emptyMultiPolygon();
+                    //     feature.geometry.coordinates.forEach(polygon => {
+                    //         if (polygon.length > 0 && polygon[0].length > 0) { // is there an outer ring having coordinates?
+                    //             polyDataText.coordinates.push(polygon);
+                    //         }
+                    //     });
+
+                    //     console.log('checking poly text clip ...');
+                    //     if (polyDataText.coordinates.length > 0) {
+                    //         const featureC = turf.featureCollection([turf.feature(polyDataText), bufferResult!]);
+                    //         const difference = turf.difference(featureC);
+                    //         if (difference) {
+                    //             console.log('found difference ...', feature)
+                    //             const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                    //             const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
+                    //             return turf.feature(PPGeometry.restructurePolygons(polygonsD), feature.properties);
+                    //         }
+                    //     }
+                    //     return feature;
+
+                    // }
+                    // this.polyText = this.polyText.map(p => clipFeature(p));
 
                 }
-                this.polyText = this.polyText.map(p => clipFeature(p));
-
+                const _polyText: Feature<MultiPolygon, TFillProps>[] = [];
+                for (let i = 0; i < this.polyText.length; i++) {
+                    const _feature = await (clipFeature(this.polyText[i]));
+                    _polyText.push(_feature);
+                }
+                this.polyText = _polyText;
+                // this.polyData = PPGeometry.emptyMultiPolygon();
+                // this.polyText.forEach(p => {
+                //     this.polyData.coordinates.push(...p.geometry.coordinates);
+                // })
             }
 
         }

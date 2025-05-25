@@ -4,13 +4,16 @@ import * as turf from "@turf/turf";
 import { Position } from "geojson";
 import { PPGeometry } from "pp-geom";
 import { createRef, useEffect, useRef, useState } from "react";
+import { MapLayerBuildings } from "../map/building/MapLayerBuildings";
 import { ClipDefs } from "../map/clip/ClipDefs";
 import { IClipDef } from "../map/clip/IClipDef";
+import { MapLayerFrame } from "../map/frame/MapLayerFrame";
 import { MapLayerLines } from "../map/line/MapLayerLines";
 import { MapLayerLineLabel } from "../map/linelabel/MapLayerLineLabel";
 import { Map } from "../map/Map";
 import { MapDefs } from "../map/MapDefs";
-import { MapLayerPoints } from "../map/point/MapLayerPoints";
+import { MapLayerRoad2 } from "../map/road2/MapLayerRoad2";
+import { MapLayerWater } from "../map/water/MapLayerWater";
 import { IVectorTileFeature } from "../protobuf/vectortile/IVectorTileFeature";
 import { Uid } from "../util/Uid";
 import { IVectorTileKey } from "../vectortile/IVectorTileKey";
@@ -23,7 +26,10 @@ import { TMapProcessing } from "./IMapProcessing";
 import ListMapLayerComponent from "./ListMapLayerComponent";
 import SvgMapLayerComponent from "./SvgMapLayerComponent";
 import SvgRectangleComponent, { ISvgRectangleComponentProps } from "./SvgRectangleComponent";
-import { MapLayerRoad2 } from "../map/road2/MapLayerRoad2";
+import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
+import { MapLayerBridge2 } from "../map/road2/MapLayerBridge2";
+import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
+import { MapLayerPoints } from "../map/point/MapLayerPoints";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -57,7 +63,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
+    const _mapDef = MapDefs.MAP_DEF________GREIN;
 
     const _map = new Map({
 
@@ -212,25 +218,25 @@ function MapComponent() {
         //     }
         //   }, 'createChurchSymbol', _mapDef.labelDefs, '')
         // },
-        {
-          createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
-                console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
-                return true;
-              } else {
-                return false;
-              }
-            }
-          }, l => l.multiPolyline050, [0, 0], -10)
-        },
-        {
-          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
-            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
-            }
-          }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
-        },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
+        //         console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
+        //         return true;
+        //       } else {
+        //         return false;
+        //       }
+        //     }
+        //   }, l => l.multiPolyline050, [0, 0], -10)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+        //     }
+        //   }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
+        // },
         // {
         //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____HACHURE, {
         //     accepts: () => {
@@ -252,27 +258,23 @@ function MapComponent() {
         //     }
         //   }, _mapDef.labelDefs, _mapDef.contours)
         // },
+        // // {
+        // //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
+        // //     accepts: () => {
+        // //       return false;
+        // //     }
+        // //   }, _mapDef.labelDefs, _mapDef.bordertx)
+        // // },
+        // // {
+        // //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
+        // //     accepts: () => {
+        // //       return false;
+        // //     }
+        // //   }, [2, -2], 500, {}, _mapDef.clippoly)
+        // // },
         {
-          createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
-            accepts: () => {
-              return false;
-            }
-          }, _mapDef.labelDefs, _mapDef.bordertx)
+          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, _mapDef.surface)
         },
-        // {
-        //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
-        //     accepts: () => {
-        //       return false;
-        //     }
-        //   }, [2, -2], 500, {}, _mapDef.clippoly)
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, {
-        //     accepts: () => {
-        //       return false;
-        //     }
-        //   })
-        // },
 
 
       ],
@@ -429,19 +431,20 @@ function MapComponent() {
       const vectorTileUrlBmapv: IVectorTileUrl = {
         toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmapv/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
       };
-      const vectorTileUrlBmaph: IVectorTileUrl = {
-        toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmaph/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
-      };
+
 
       collectTiles(Map.LOD_16, vectorTileUrlBmapv);
       collectTiles(Map.LOD_15, vectorTileUrlBmapv);
       collectTiles(Map.LOD_14, vectorTileUrlBmapv);
 
-      if (map.findLayerByName(Map.LAYER__NAME____CONTOUR) || map.findLayerByName(Map.LAYER__NAME_CONTOUR_TX)) {
-        collectTiles(Map.LOD_16, vectorTileUrlBmaph);
-        collectTiles(Map.LOD_15, vectorTileUrlBmaph);
-        collectTiles(Map.LOD_14, vectorTileUrlBmaph);
-      }
+      // if (map.findLayerByName(Map.LAYER__NAME____CONTOUR) || map.findLayerByName(Map.LAYER__NAME_CONTOUR_TX)) {
+      //   const vectorTileUrlBmaph: IVectorTileUrl = {
+      //     toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmaph/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
+      //   };
+      //   collectTiles(Map.LOD_16, vectorTileUrlBmaph);
+      //   collectTiles(Map.LOD_15, vectorTileUrlBmaph);
+      //   collectTiles(Map.LOD_14, vectorTileUrlBmaph);
+      // }
 
 
       // build rectangle props for each loadable tile

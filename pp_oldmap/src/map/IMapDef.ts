@@ -6,6 +6,7 @@ export interface IMapDef {
     bbox3857: BBox;
     hachures: string;
     contours: string;
+    surface: string;
     clippoly: string;
     locatons: string;
     /**

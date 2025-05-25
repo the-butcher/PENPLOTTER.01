@@ -179,9 +179,6 @@ export class ClipDefs {
             //     skip050: true,
             // }
         },
-        /////////////////////////////////////////////
-        // FRAME (as clipping layer)
-        /////////////////////////////////////////////
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME_____BORDER,
@@ -227,6 +224,9 @@ export class ClipDefs {
                 skipMlt: false
             }
         },
+        /////////////////////////////////////////////
+        // FRAME (as clipping layer)
+        /////////////////////////////////////////////
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME______FRAME,
@@ -252,7 +252,10 @@ export class ClipDefs {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
-            status: 'pending'
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
         },
         {
             layerNameDest: Map.LAYER__NAME__BUILDINGS,
@@ -291,6 +294,12 @@ export class ClipDefs {
             layerNameDest: Map.LAYER__NAME____CONTOUR,
             layerNameClip: Map.LAYER__NAME______FRAME,
             distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
+            layerNameClip: Map.LAYER__NAME______FRAME,
+            distance: 6,
             status: 'pending'
         },
         /////////////////////////////////////////////
@@ -461,15 +470,15 @@ export class ClipDefs {
         /////////////////////////////////////////////
         // MISC
         /////////////////////////////////////////////
-        {
-            layerNameDest: Map.LAYER__NAME__BUILDINGS,
-            layerNameClip: Map.LAYER__NAME______FRAME,
-            distance: 0,
-            status: 'pending',
-            options: {
-                skipMlt: false
-            }
-        },
+        // { // duplicate
+        //     layerNameDest: Map.LAYER__NAME__BUILDINGS,
+        //     layerNameClip: Map.LAYER__NAME______FRAME,
+        //     distance: 0,
+        //     status: 'pending',
+        //     options: {
+        //         skipMlt: false
+        //     }
+        // },
         {
             layerNameDest: Map.LAYER__NAME__SHIP_LINE,
             layerNameClip: Map.LAYER__NAME___RIVER_TX,
@@ -517,8 +526,7 @@ export class ClipDefs {
             layerNameClip: Map.LAYER__NAME___CLIPPOLY,
             distance: 0,
             status: 'pending'
-        }
-        ,
+        },
         {
             layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
             layerNameClip: Map.LAYER__NAME___CLIPPOLY,

@@ -3,13 +3,48 @@ import { IMapDef } from "./IMapDef";
 
 export class MapDefs {
 
-    static DEFAULT_TEXT_SCALE_LINELABEL = 0.022;
+    static DEFAULT_TEXT_SCALE_LINELABEL = 0.040;
     static DEFAULT_TEXT_SCALE__LOCATION = 0.032;
-    static DEFAULT_TEXT_SCALE_____WATER = 0.036;
+    static DEFAULT_TEXT_SCALE_____WATER = 0.100;
+
+    static MAP_DEF________GREIN: IMapDef = {
+        hachures: 'hachures_grein.geojson',
+        contours: 'contours_grein.geojson',
+        surface: 'surface_grein.json',
+        locatons: '',
+        clippoly: '',
+        bordertx: '',
+        water_tx: '',
+        bbox3857: PPGeometry.bboxAtCenter([
+            1654944,
+            6145099
+        ],
+            4000 * 2,
+            2828 * 2
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: 'Donau',
+                plotName: 'Donau',
+                distance: 0.31,
+                vertical: 10,
+                charsign: 1.2,
+                fonttype: 'noto_serif_________italic',
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
+                idxvalid: (index: number) => index === 6,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+
+        ]
+    }
 
     static MAP_DEF_________MOON: IMapDef = {
         hachures: 'hachures_moon.geojson',
         contours: 'contours_moon.geojson',
+        surface: '',
         locatons: 'craters.geojson',
         clippoly: '',
         bordertx: '',
@@ -80,6 +115,7 @@ export class MapDefs {
     static MAP_DEF_FUSCHERTOERL: IMapDef = {
         hachures: 'hachures_fuschertoerl.geojson',
         contours: 'contours_fuschertoerl.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -241,6 +277,7 @@ export class MapDefs {
     static MAP_DEF___DUERNSTEIN: IMapDef = {
         hachures: 'hachures_duernstein.geojson',
         contours: 'contours_duernstein.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -369,6 +406,7 @@ export class MapDefs {
     static MAP_DEF____HALLSTATT: IMapDef = {
         hachures: 'hachures_hallstatt.geojson',
         contours: 'contours_hallstatt.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -518,6 +556,7 @@ export class MapDefs {
     static MAP_DEF_____HAINBURG: IMapDef = {
         hachures: 'hachures_hainburg.geojson',
         contours: 'contours_hainburg.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -563,6 +602,7 @@ export class MapDefs {
     static MAP_DEF____OLDDANUBE: IMapDef = {
         contours: 'contours_altedonau.geojson',
         hachures: 'hachures_altedonau.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -608,6 +648,7 @@ export class MapDefs {
     static MAP_DEF___BADGASTEIN: IMapDef = {
         contours: 'contours_badgastein.geojson',
         hachures: 'hachures_badgastein.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -628,6 +669,7 @@ export class MapDefs {
     static MAP_DEF___KAHLENBERG: IMapDef = {
         contours: 'contours_kahlenberg.geojson',
         hachures: 'hachures_kahlenberg.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -648,6 +690,7 @@ export class MapDefs {
     static MAP_DEF__SCHOENBRUNN: IMapDef = {
         contours: 'contours_schoenbrunn.geojson',
         hachures: 'hachures_schoenbrunn.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -680,6 +723,7 @@ export class MapDefs {
     static MAP_DEF_____WOLFGANG: IMapDef = {
         contours: 'contours_wolfgang.geojson',
         hachures: 'hachures_wolfgang.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -786,6 +830,7 @@ export class MapDefs {
     static MAP_DEF_____SALZBURG: IMapDef = {
         contours: 'contours_salzburg.geojson',
         hachures: 'hachures_salzburg.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',
@@ -831,6 +876,7 @@ export class MapDefs {
     static MAP_DEF______HALLEIN: IMapDef = {
         contours: 'contours_hallein.geojson',
         hachures: 'hachures_hallein.geojson',
+        surface: '',
         clippoly: 'clippoly_hallein.geojson',
         bordertx: 'bordertx_hallein.geojson',
         locatons: '',
@@ -973,6 +1019,7 @@ export class MapDefs {
     static MAP_DEF_______VIGAUN: IMapDef = {
         contours: 'contours_vigaun.geojson',
         hachures: 'hachures_vigaun.geojson',
+        surface: '',
         locatons: '',
         clippoly: '',
         bordertx: '',

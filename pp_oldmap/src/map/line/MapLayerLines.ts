@@ -117,7 +117,7 @@ export class MapLayerLines extends AMapLayer<LineString, ISymbolProperties> {
     async processPlot(): Promise<void> {
 
         console.log(`${this.name}, connecting polylines ...`);
-        this.connectPolylines(2);
+        // this.connectPolylines(2);
 
     }
 
