@@ -16,8 +16,8 @@ export class MapDefs {
         bordertx: '',
         water_tx: '',
         bbox3857: PPGeometry.bboxAtCenter([
-            1654944,
-            6143300
+            1655200,
+            6143600
         ],
             4000 * 2.25,
             2600 * 2.25

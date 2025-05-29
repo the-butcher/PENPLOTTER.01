@@ -167,7 +167,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
         // minor inwards buffer to account for pen width
         const polyTextBufferPolygonsB: Polygon[] = [];
         if (feature.geometry.coordinates.length > 0) {
-            const polyTextBufferB = turf.buffer(feature.geometry, -0.30, {
+            const polyTextBufferB = turf.buffer(feature.geometry, -1.15, {
                 units: 'meters'
             }) as Feature<Polygon | MultiPolygon>;
             polyTextBufferPolygonsB.push(...PPGeometry.destructurePolygons(polyTextBufferB.geometry));

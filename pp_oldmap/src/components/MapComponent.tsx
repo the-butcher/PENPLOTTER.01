@@ -139,13 +139,13 @@ function MapComponent() {
         //     }
         //   })
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
-        //     }
-        //   })
-        // },
+        {
+          createLayerInstance: () => new MapLayerBuildings(Map.LAYER__NAME__BUILDINGS, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileKey.lod >= 15 && vectorTileFeature.layerName === 'GEBAEUDE_F_GEBAEUDE';
+            }
+          })
+        },
         // {
         //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____RAILWAY, {
         //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -180,38 +180,38 @@ function MapComponent() {
         //     }
         //   }, l => l.multiPolyline025, [16, 4])
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
-        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-        //     }
-        //   })
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerBridge2(Map.LAYER__NAME_____BRIDGE, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
-        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-        //     }
-        //   })
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
-        //     }
-        //   })
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'GIPFEL_L09-20'
-        //     }
-        //   }, 'createSummitSymbol', _mapDef.labelDefs, '')
-        // },
+        {
+          createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
+              return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerBridge2(Map.LAYER__NAME_____BRIDGE, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8);
+              return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
+            }
+          })
+        },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'GIPFEL_L09-20'
+            }
+          }, 'createSummitSymbol', _mapDef.labelDefs, '')
+        },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____CHURCH, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -231,13 +231,13 @@ function MapComponent() {
         //     }
         //   }, l => l.multiPolyline050, [0, 0], -10)
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
-        //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
-        //     }
-        //   }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
-        // },
+        {
+          createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
+            accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileFeature.layerName === 'SIEDLUNG_P_SIEDLUNG' || vectorTileFeature.layerName === 'SIEDLUNG_P_BEZHPTSTADT' || vectorTileFeature.layerName === 'LANDESHAUPTSTADT_P'; //  SIEDLUNG_P_BEZHPTSTADT
+            }
+          }, 'createTownSymbol', _mapDef.labelDefs, _mapDef.locatons)
+        },
         // {
         //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME____HACHURE, {
         //     accepts: () => {
