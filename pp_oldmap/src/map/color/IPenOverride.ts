@@ -18,7 +18,7 @@ export interface IPenOverride {
 
 const alpha = 1;
 export const PEN_COLORS: { [k in ORIG_PEN | DEST_PEN]: string } = {
-    c018: `rgba(0, 0, 0, ${alpha})`,
+    c018: `rgba(150, 75, 0, ${alpha})`,
     p018: `rgba(0, 0, 0, ${alpha})`,
     p025: `rgba(0, 0, 0, ${alpha})`,
     p035: `rgba(0, 0, 0, ${alpha})`,

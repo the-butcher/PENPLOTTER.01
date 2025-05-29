@@ -161,7 +161,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
                 const position3857 = turf.toMercator(position4326);
                 const surfaceValue = (Surface.getSurfaceValue(surface, position3857) - 200) * (i % 2 == 0 ? 0.60 : 0.60);
                 if (surfaceValue > 0) {
-                    coordinates018.push([
+                    coordinates025.push([
                         turf.toWgs84([
                             position3857[0] + 20,
                             position3857[1] - 20,
@@ -176,7 +176,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
 
         }
 
-        coordinates025.push([ // upper crop mark
+        coordinates018.push([ // upper crop mark
             turf.toWgs84([
                 this.coordinateUL3857Crop[0] + MapLayerFrame.FRAME_BASE_UNIT,
                 this.coordinateUL3857Crop[1]

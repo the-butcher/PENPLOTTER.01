@@ -61,11 +61,11 @@ export class ColorOverrides {
             dest: "h018"
         }, {
             name: Map.LAYER__NAME_______CROP,
-            orig: "p018",
-            dest: "h018"
+            orig: "p025",
+            dest: "h025"
         }, {
             name: Map.LAYER__NAME_______CROP,
-            orig: "p025",
+            orig: "p018",
             dest: "c018"
         }
 
