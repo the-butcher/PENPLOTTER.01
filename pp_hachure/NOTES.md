@@ -7,6 +7,10 @@ One more iteration on the hachure app ... I added and straightened a few things,
 - Add better handling of varying scales and cellsizes.
 - Add option to generate plain lines rather than arrows.
 
+Contour
+Hachure
+Outline - rectangle that can be used for border shadow calculation
+
 https://www.the-butchers.at/DEM-Hachure/
 
 OK build and upload

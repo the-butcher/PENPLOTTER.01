@@ -18,7 +18,7 @@ import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageL
  */
 function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProps) {
 
-    const { value, valueRange, handleHachureExport, handleContourExport, activeStep, handleCommonConfig } = { ...props };
+    const { value, valueRange, handleHachureExport, handleContourExport, handleSurfaceExport, activeStep, handleCommonConfig } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building HachureConfigComponent');
@@ -97,6 +97,31 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                             startIcon={<DownloadIcon />}
                             onClick={handleContourExport}
                         >download contours</Button>
+                    </Grid>
+                    <Grid item xs={12}
+                        sx={{
+                            paddingTop: '8px !important'
+                        }}
+                    >
+                        <Button
+                            sx={{
+                                width: '100%'
+                            }}
+                            component={'label'}
+                            role={undefined}
+                            variant={'contained'}
+                            size={'small'}
+                            tabIndex={-1}
+                            startIcon={<DownloadIcon />}
+                            onClick={handleSurfaceExport}
+                        >download surface</Button>
+                    </Grid>
+                    <Grid item xs={12}
+                        sx={{
+                            paddingTop: '8px !important'
+                        }}
+                    >
+                        <Divider></Divider>
                     </Grid>
                     <Grid item xs={12}
                         sx={{

@@ -7,6 +7,7 @@ import { createRef, useEffect, useRef, useState } from "react";
 import { Contour } from '../content/Contour';
 import { IContour } from '../content/IContour';
 import { IHachure } from '../content/IHachure';
+import { ISurface } from '../content/ISurface';
 import { Raster } from '../raster/Raster';
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from '../util/ObjectUtil';
@@ -74,6 +75,8 @@ function ImageLoaderComponent() {
     const [contours, setContours] = useState<IContour[]>([]);
     const contoursRef = useRef<IContour[]>([]);
 
+    const surfaceRef = useRef<ISurface>();
+
     const [active, setActive] = useState<boolean>(false);
     const [showRaster, setShowRaster] = useState<boolean>(true);
 
@@ -140,6 +143,16 @@ function ImageLoaderComponent() {
         handleGeoJsonExport(contoursRef.current.filter(c => c.getHeight() % hachureConfig.contourDsp === 0).map(c => turf.feature(c.toLineString(), {
             height: c.getHeight().toFixed(0)
         })), 'contours');
+    };
+
+    const handleSurfaceExport = () => {
+        const a = document.createElement("a");
+        const e = new MouseEvent("click");
+        a.download = `surface_${ObjectUtil.createId()}.json`;
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(surfaceRef.current, (_key, val) => {
+            return val.toFixed ? Number(val.toFixed(2)) : val;
+        }));
+        a.dispatchEvent(e);
     };
 
     const handleGeoJsonExport = (features: Feature<LineString, GeoJsonProperties>[], prefix: string) => {
@@ -243,7 +256,8 @@ function ImageLoaderComponent() {
             max: -1
         },
         handleHachureExport,
-        handleContourExport
+        handleContourExport,
+        handleSurfaceExport
     });
     const [alertProps, setAlertProps] = useState<IAlertProps>({
         severity: 'success',
@@ -341,6 +355,38 @@ function ImageLoaderComponent() {
             svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
 
             renderRasterData(rasterData);
+
+            const _surface: ISurface = {
+                originProj: rasterConfig.originProj,
+                width: rasterData.width,
+                height: rasterData.height,
+                cellsize: rasterConfig.cellsize,
+                data: []
+            };
+
+            // const surfacePositions: IPositionProperties[] = [];
+            for (let y = 0; y < rasterData.height; y++) {
+                for (let x = 0; x < rasterData.width; x++) {
+
+                    _surface.data.push(Raster.getRasterValue(rasterData, x, y));
+
+                    // const positionPixl: Position = [
+                    //     x,
+                    //     y,
+                    //     r
+                    // ];
+                    // const position4326: Position = [
+                    //     ...GeometryUtil.pixelToPosition4326(positionPixl, rasterConfig),
+                    //     r
+                    // ];
+                    // surfacePositions.push({
+                    //     positionPixl,
+                    //     position4326
+                    // });
+
+                }
+            }
+            surfaceRef.current = _surface;
 
         } else { // raster data is invalid
 

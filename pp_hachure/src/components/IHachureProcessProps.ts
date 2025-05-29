@@ -11,4 +11,5 @@ export interface IHachureProcessProps {
     valueRange: IRange;
     handleHachureExport: () => void;
     handleContourExport: () => void;
+    handleSurfaceExport: () => void;
 }
