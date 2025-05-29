@@ -4,7 +4,7 @@ import { IMapDef } from "./IMapDef";
 export class MapDefs {
 
     static DEFAULT_TEXT_SCALE_LINELABEL = 0.040;
-    static DEFAULT_TEXT_SCALE__LOCATION = 0.032;
+    static DEFAULT_TEXT_SCALE__LOCATION = 0.050;
     static DEFAULT_TEXT_SCALE_____WATER = 0.100;
 
     static MAP_DEF________GREIN: IMapDef = {
@@ -17,27 +17,52 @@ export class MapDefs {
         water_tx: '',
         bbox3857: PPGeometry.bboxAtCenter([
             1654944,
-            6145099
+            6143300
         ],
-            4000 * 2,
-            2828 * 2
+            4000 * 2.25,
+            2600 * 2.25
         ),
         padding: 200,
         labelDefs: [
             {
                 tileName: 'Donau',
                 plotName: 'Donau',
-                distance: 0.31,
-                vertical: 10,
+                distance: 0.90,
+                vertical: 50,
                 charsign: 1.2,
                 fonttype: 'noto_serif_________italic',
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                idxvalid: (index: number) => index === 6,
+                idxvalid: (index: number) => index === 10,
                 fillprop: {
                     type: 'none'
                 }
             },
-
+            {
+                tileName: 'Grein',
+                plotName: 'Grein',
+                distance: 50,
+                vertical: 50,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 1.2,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: 'Greinburg',
+                plotName: 'Greinburg',
+                distance: 200,
+                vertical: 200,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 1.2,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
         ]
     }
 

@@ -1,3 +1,10 @@
+OK pen widths / pen previews need to be fixed
+OK buildings may need further inset
+OK building -> 0.18
+-- frame texts thinner 0.25 => 0.18
+OK spacing of dashes
+-- dedicated crop pen (so every other pen gets calibrated with the same process)
+
 OK slope hatching
 NO have 2 rgb caches, slope and aspect and come up with pixel format convention for each
 OK use stretch in ArcGIS Pro and use the valuesprovided by that

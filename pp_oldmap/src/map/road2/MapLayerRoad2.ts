@@ -23,18 +23,18 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
     roadPolylines: MultiLineString[];
     bridgePolylines: MultiLineString[];
 
-    static bufferDistanceMin = 0.1;
+    static bufferDistanceMin = 0.5;
     static bufferDistances: number[] = [
-        6, // heighway
-        6, // ramp
-        6, // speedway
-        5, // major roads
-        4, // community
-        3, // other roads
+        10, // highway
+        9, // ramp
+        9, // speedway
+        8.5, // major roads
+        6.5, // community
+        6, // other roads -- the could have one dashed side
         MapLayerRoad2.bufferDistanceMin, // minor roads,
         MapLayerRoad2.bufferDistanceMin, // pedestrian a
         MapLayerRoad2.bufferDistanceMin, // pedestrian b
-    ].map(w => w * 1.5);
+    ];
 
     constructor(name: string, filter: IVectorTileFeatureFilter) {
         super(name, filter);
@@ -95,7 +95,6 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         for (let i = 0; i < MapLayerRoad2.bufferDistances.length; i++) {
 
             let _bridgeMultiPolyline = filterByLayerAndSymbol(['GIP_BAUWERK_L_BRÜCKE'], [i]);
-            // TODO :: use dedicated function VectorTileGeometryUtil
             const _bridgeMultiPolylines = PPGeometry.destructurePolylines(_bridgeMultiPolyline).filter(p => turf.length(turf.feature(p), {
                 units: 'meters'
             }) > 20);
@@ -116,11 +115,11 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
             if (_roadMultiPolyline.coordinates.length > 0) {
 
-                // if (this.bufferDistances[i] > 0) {
                 const roadBuffer = turf.buffer(_roadMultiPolyline, MapLayerRoad2.bufferDistances[i], {
                     units: 'meters'
                 }) as Feature<Polygon | MultiPolygon>;
                 this.roadPolygons.push(PPGeometry.restructurePolygons(PPGeometry.destructurePolygons(roadBuffer.geometry)));
+
                 this.roadOutlines.push({
                     type: 'MultiLineString',
                     coordinates: this.roadPolygons[i].coordinates.reduce((prev, curr) => [...prev, ...curr], [])
@@ -536,6 +535,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         ];
         this.polyData = PPGeometry.restructurePolygons(polgons);
 
+        // debug
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[2].coordinates);
@@ -543,6 +543,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[4].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[5].coordinates);
 
+        // debug
         // this.multiPolyline035.coordinates.push(...this.roadPolylines[0].coordinates);
         // this.multiPolyline035.coordinates.push(...this.roadPolylines[1].coordinates);
         // this.multiPolyline035.coordinates.push(...this.roadPolylines[2].coordinates);
@@ -553,28 +554,83 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         // this.multiPolyline035.coordinates.push(...this.roadPolylines[7].coordinates);
         // this.multiPolyline035.coordinates.push(...this.roadPolylines[8].coordinates);
 
-        this.multiPolyline050.coordinates.push(...this.roadOutlines[0].coordinates);
-        this.multiPolyline050.coordinates.push(...this.roadOutlines[1].coordinates);
+
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[0].coordinates);
+        this.multiPolyline035.coordinates.push(...this.roadOutlines[1].coordinates);
         this.multiPolyline035.coordinates.push(...this.roadOutlines[2].coordinates);
-
         this.multiPolyline035.coordinates.push(...this.roadOutlines[3].coordinates);
-        this.multiPolyline035.coordinates.push(...this.roadOutlines[4].coordinates);
-        this.multiPolyline025.coordinates.push(...this.roadOutlines[5].coordinates);
+        this.multiPolyline025.coordinates.push(...this.roadOutlines[4].coordinates);
 
-        this.multiPolyline025.coordinates.push(...this.roadPolylines[6].coordinates);
-        this.multiPolyline025.coordinates.push(...PPGeometry.dashMultiPolyline(this.roadPolylines[7], [8, 4]).coordinates);
-        this.multiPolyline025.coordinates.push(...PPGeometry.dashMultiPolyline(this.roadPolylines[8], [6, 6]).coordinates);
 
-        this.multiPolyline050 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
+        const multiPoly5P = PPGeometry.emptyMultiPolyline();
+        const multiPoly5N = PPGeometry.emptyMultiPolyline();
+        // this.roadOutlines[5] = PPGeometry.connectMultiPolyline(this.roadOutlines[5], 5);
+        this.roadOutlines[5].coordinates.forEach(polyline => {
+            let positionA = polyline[0];
+            let positionB: Position;
+            let positionsP: Position[] = [];
+            let positionsN: Position[] = [];
+            for (let i = 1; i < polyline.length; i++) {
+                positionB = polyline[i];
+                if (positionB[1] > positionA[1]) {
+                    if (positionsP.length === 0) {
+                        positionsP.push(positionA);
+                    }
+                    positionsP.push(positionB);
+                    if (positionsN.length > 0) {
+                        multiPoly5N.coordinates.push(positionsN);
+                        positionsN = [];
+                    }
+                } else {
+                    if (positionsN.length === 0) {
+                        positionsN.push(positionA);
+                    }
+                    positionsN.push(positionB);
+                    if (positionsP.length > 0) {
+                        multiPoly5P.coordinates.push(positionsP);
+                        positionsP = [];
+                    }
+                }
+                positionA = positionB;
+            }
+            if (positionsP.length > 0) {
+                multiPoly5P.coordinates.push(positionsP);
+                positionsP = [];
+            }
+            if (positionsN.length > 0) {
+                multiPoly5N.coordinates.push(positionsN);
+                positionsN = [];
+            }
+        });
+        this.multiPolyline025.coordinates.push(...multiPoly5P.coordinates);
+        this.multiPolyline018.coordinates.push(...PPGeometry.dashMultiPolyline(multiPoly5N, [16, 24]).coordinates);
+        // this.multiPolyline025.coordinates.push(...this.roadOutlines[5].coordinates); // possible single side dash cancdidate
+
+        this.multiPolyline025.coordinates.push(...this.roadPolylines[6].coordinates); // single line
+
+        // single dashed lines temporarily stored in 018, so they can be excluded from post processing later on
+        this.multiPolyline018.coordinates.push(...PPGeometry.dashMultiPolyline(this.roadPolylines[7], [16, 20]).coordinates);
+        this.multiPolyline018.coordinates.push(...PPGeometry.dashMultiPolyline(this.roadPolylines[8], [16, 12]).coordinates);
+
+        // this.multiPolyline050 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline050, bboxMap4326);
         this.multiPolyline035 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline035, bboxMap4326);
         this.multiPolyline025 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline025, bboxMap4326);
+        this.multiPolyline018 = PPGeometry.bboxClipMultiPolyline(this.multiPolyline018, bboxMap4326);
 
     }
 
-    async processPlot(): Promise<void> {
+    async processPlot(): Promise<void> { // _bboxClp4326: BBox, bboxMap4326: BBox
 
-        console.log(`${this.name}, connecting polylines ...`);
-        this.connectPolylines(5);
+        console.log(`${this.name}, processing plot ...`);
+
+        this.connectPolylines(5, {
+            skip018: true
+        });
+        this.filterPolylinesShorterThan(5, {
+            skip018: true
+        });
+        this.multiPolyline025.coordinates.push(...this.multiPolyline018.coordinates); // dashed lines
+        this.multiPolyline018 = PPGeometry.emptyMultiPolyline();
 
     }
 

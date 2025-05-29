@@ -5,10 +5,9 @@ import { IVectorTileFeatureFilter } from '../../vectortile/IVectorTileFeatureFil
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
-import { IWorkerPlotInput } from '../common/IWorkerPlotInput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
-import { PPGeometry } from 'pp-geom';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
+import { IWorkerPlotInput } from '../plot/IWorkerPlotInput';
 
 export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
 
@@ -70,7 +69,7 @@ export class MapLayerBuildings extends AMapLayer<Polygon, GeoJsonProperties> {
         const workerInput: IWorkerPlotInput = {
             name: this.name,
             polyData: this.polyData,
-            polyText: PPGeometry.emptyMultiPolygon()
+            polyText: []
         };
 
         return new Promise((resolve, reject) => {

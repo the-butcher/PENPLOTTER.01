@@ -25,6 +25,7 @@ export class Map {
     static readonly LAYER__NAME_____SUMMIT = "l_____summit";
     static readonly LAYER__NAME___LOCATION = "l___location";
     static readonly LAYER__NAME______FRAME = "l______frame";
+    static readonly LAYER__NAME_______CROP = "l_______crop";
     static readonly LAYER__NAME____RAILWAY = "l____railway";
     static readonly LAYER__NAME_______TRAM = "l_______tram";
     static readonly LAYER__NAME__SHIP_LINE = "l__ship_line";
@@ -53,7 +54,7 @@ export class Map {
     static readonly SYMBOL_INDEX__PEDEST_A = 7; // on GIP_L_GIP_144 and GIP_BAUWERK_L_BRÜCKE
     static readonly SYMBOL_INDEX__PEDEST_B = 8; // on GIP_L_GIP_144 and GIP_BAUWERK_L_BRÜCKE
 
-    static readonly SCALE = 20000;
+    static readonly SCALE = 25000;
 
     private readonly bboxMap3857: BBox;
     private readonly bboxClp3857: BBox;
@@ -82,8 +83,8 @@ export class Map {
 
 
         console.log("map width", mapWidth, "m", (mapWidth * 100) / Map.SCALE, `cm @ 1:${Map.SCALE.toLocaleString()}`);
-        const lod = 14;
-        [0.05, 0.1, 0.3, 0.5].forEach((penDiameterMM) => {
+        const lod = Map.LOD_VS;
+        [0.18, 0.25, 0.35, 0.5].forEach((penDiameterMM) => {
             console.log("pen width", penDiameterMM, "mm", Pen.getPenWidthMeters(penDiameterMM, Map.SCALE).toFixed(2).padStart(6, " "), "m", Pen.getPenWidthPixels(penDiameterMM, Map.SCALE, lod).toFixed(2).padStart(6, " "), `px @ 1:${Map.SCALE.toLocaleString()} @ lod[${lod}]`);
         });
 
@@ -92,7 +93,7 @@ export class Map {
         this.min3857Pos = VectorTileGeometryUtil.toMercator(minTileKeyVs);
         this.tileDimVs = [
             maxTileKeyVs.col - minTileKeyVs.col + 1,
-            maxTileKeyVs.row - minTileKeyVs.row + 1,
+            maxTileKeyVs.row - minTileKeyVs.row + 2,
         ];
         this.layers = [];
         props.layers.forEach((layerProps) => {

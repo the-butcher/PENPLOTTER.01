@@ -60,11 +60,11 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
                 let labelDef: ILabelDefPointLabel = {
                     tileName: name,
                     plotName: name,
-                    distance: 12.00,
-                    vertical: -12.00,
-                    charsign: 1.10,
+                    distance: 20.00,
+                    vertical: -20.00,
+                    charsign: 1.20,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                    fonttype: 'noto_serif________regular',
+                    fonttype: 'noto_serif___bold_regular',
                     fillprop: {
                         type: 'none'
                     }
@@ -110,7 +110,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
 
     };
 
-    const bufferDist = 6;
+    const bufferDist = 12;
 
     // buffer around symbols
     let bufferPolygons: Polygon[] = [];

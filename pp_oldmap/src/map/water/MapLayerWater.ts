@@ -133,7 +133,12 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
 
         console.log(`${this.name}, connecting polylines ...`);
         this.connectPolylines(4);
-        this.filterPolylinesShorterThan(20);
+        this.filterPolylinesShorterThan(20, {
+            skip035: true
+        });
+        this.filterPolylinesShorterThan(200, {
+            skip018: true
+        });
 
     }
 

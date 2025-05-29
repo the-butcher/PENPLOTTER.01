@@ -10,7 +10,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME__GREENAREA,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -19,25 +19,25 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
-            distance: 6,
+            distance: 9,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME______WATER,
-            distance: 6,
+            distance: 9,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 4,
+            distance: 6,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 4,
+            distance: 6,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -67,7 +67,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -76,7 +76,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME______WATER,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -85,7 +85,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME____CONTOUR,
             layerNameClip: Map.LAYER__NAME______WATER,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -94,7 +94,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
             layerNameClip: Map.LAYER__NAME______WATER,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -103,7 +103,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 4,
+            distance: 6,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -139,25 +139,25 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME______ROADS,
-            distance: 2,
+            distance: 3,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME____RAILWAY,
-            distance: 4,
+            distance: 6,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
             layerNameClip: Map.LAYER__NAME_______TRAM,
-            distance: 4,
+            distance: 6,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME____RAILWAY,
             layerNameClip: Map.LAYER__NAME_____BRIDGE,
-            distance: 4,
+            distance: 6,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -166,13 +166,13 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME____RAILWAY,
-            distance: 2,
+            distance: 3,
             status: 'pending'
         }, // remove roads underneath tracks (this may be a problem in urban areas)
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME__BUILDINGS,
-            distance: 4,
+            distance: 6,
             status: 'pending',
             // options: {
             //     skip025: true,
@@ -182,7 +182,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME_____BORDER,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -191,7 +191,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -200,7 +200,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME____CONTOUR,
             layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -209,7 +209,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
             layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -218,7 +218,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
             layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 6,
+            distance: 9,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -228,8 +228,44 @@ export class ClipDefs {
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
         {
+            layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_____SUMMIT,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_____CHURCH,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___LOCATION,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
             layerNameDest: Map.LAYER__NAME____HACHURE,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending',
             options: {
@@ -238,19 +274,19 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME______WATER,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending',
             options: {
@@ -259,7 +295,7 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME__BUILDINGS,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending',
             options: {
@@ -268,38 +304,38 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME______ROADS,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME____RAILWAY,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME_______TRAM,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME_____TUNNEL,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME____CONTOUR,
-            layerNameClip: Map.LAYER__NAME______FRAME,
+            layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending'
         },
         {
             layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
-            layerNameClip: Map.LAYER__NAME______FRAME,
-            distance: 6,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 9,
             status: 'pending'
         },
         /////////////////////////////////////////////
@@ -425,7 +461,7 @@ export class ClipDefs {
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
             layerNameClip: Map.LAYER__NAME______WATER,
-            distance: 1,
+            distance: 2,
             status: 'pending',
             options: {
                 skipMlt: false

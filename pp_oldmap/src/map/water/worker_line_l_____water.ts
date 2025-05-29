@@ -14,11 +14,11 @@ self.onmessage = (e) => {
      * create the buffered set of polygons that determine the appearance of the water layer
      * the result of this operation is the basis for the layer's polylines
      */
-    let distance = -8;
+    let distance = -12;
     const distances: number[] = [];
     for (let i = 0; i < 20; i++) {
         distances.push(distance);
-        distance *= 1.15;
+        distance *= 1.05;
     }
     // console.log('distances', distances);
 

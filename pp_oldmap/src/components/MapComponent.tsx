@@ -30,6 +30,7 @@ import { MapLayerPolygon } from "../map/polygon/MapLayerPolygon";
 import { MapLayerBridge2 } from "../map/road2/MapLayerBridge2";
 import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
 import { MapLayerPoints } from "../map/point/MapLayerPoints";
+import { MapLayerCrop } from "../map/frame/MapLayerCrop";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -75,7 +76,7 @@ function MapComponent() {
         //   createLayerInstance: () =>
         //     new MapLayerWater(Map.LAYER__NAME______WATER, {
         //       accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //         return vectorTileKey.lod === 15 && (vectorTileFeature.layerName === "GEWAESSER_F_GEWF" || vectorTileFeature.layerName === "GEWAESSER_L_GEWL ");
+        //         return vectorTileKey.lod === 14 && (vectorTileFeature.layerName === "GEWAESSER_F_GEWF" || vectorTileFeature.layerName === "GEWAESSER_L_GEWL ");
         //       },
         //     }),
         // },
@@ -177,13 +178,13 @@ function MapComponent() {
         //       // 15 Fähre
         //       return (vectorTileFeature.layerName === 'GIP_OUTSIDE_L_GIP' && vectorTileFeature.hasValue('_symbol', 15));
         //     }
-        //   }, l => l.multiPolyline025, [12, 4])
+        //   }, l => l.multiPolyline025, [16, 4])
         // },
         // {
         //   createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
         //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); //
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
         //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
         //     }
         //   })
@@ -258,22 +259,25 @@ function MapComponent() {
         //     }
         //   }, _mapDef.labelDefs, _mapDef.contours)
         // },
-        // // {
-        // //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
-        // //     accepts: () => {
-        // //       return false;
-        // //     }
-        // //   }, _mapDef.labelDefs, _mapDef.bordertx)
-        // // },
-        // // {
-        // //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
-        // //     accepts: () => {
-        // //       return false;
-        // //     }
-        // //   }, [2, -2], 500, {}, _mapDef.clippoly)
-        // // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, _mapDef.labelDefs, _mapDef.bordertx)
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerPolygon(Map.LAYER__NAME___CLIPPOLY, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, [2, -2], 500, {}, _mapDef.clippoly)
+        // },
         {
-          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, _mapDef.surface)
+          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME)
+        },
+        {
+          createLayerInstance: () => new MapLayerCrop(Map.LAYER__NAME_______CROP, _mapDef.surface)
         },
 
 
@@ -431,8 +435,6 @@ function MapComponent() {
       const vectorTileUrlBmapv: IVectorTileUrl = {
         toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmapv/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
       };
-
-
       collectTiles(Map.LOD_16, vectorTileUrlBmapv);
       collectTiles(Map.LOD_15, vectorTileUrlBmapv);
       collectTiles(Map.LOD_14, vectorTileUrlBmapv);
@@ -445,7 +447,6 @@ function MapComponent() {
       //   collectTiles(Map.LOD_15, vectorTileUrlBmaph);
       //   collectTiles(Map.LOD_14, vectorTileUrlBmaph);
       // }
-
 
       // build rectangle props for each loadable tile
       _loadableTileKeys.forEach(_loadableTileKey => {

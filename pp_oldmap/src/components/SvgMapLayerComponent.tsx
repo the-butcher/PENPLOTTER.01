@@ -2,6 +2,8 @@ import { Position } from "geojson";
 import { useEffect, useState } from "react";
 import { IMapLayerProps } from "./IMapLayerProps";
 import { ColorOverrides } from "../map/color/PenOverrides";
+import { Pen } from "../map/Pen";
+import { Map } from "../map/Map";
 
 function SvgMapLayerComponent(props: IMapLayerProps) {
 
@@ -61,8 +63,8 @@ function SvgMapLayerComponent(props: IMapLayerProps) {
     }, [polylines018, polylines025, polylines035, polylines050]);
 
     const toStrokeWidth = (penWidth: number): number => {
-        return penWidth * 3;
         // return 0.2;
+        return Pen.getPenWidthPixels(penWidth, Map.SCALE, Map.LOD_VS) * 1.50; // pen width + tolerance as observed
     }
     const stroke = 'rgba(0, 0, 0, 1)';
 

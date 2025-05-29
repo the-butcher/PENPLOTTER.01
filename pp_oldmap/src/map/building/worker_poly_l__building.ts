@@ -4,8 +4,10 @@ import { PPGeometry } from 'pp-geom';
 import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileKey } from '../../vectortile/VectorTileKey';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 import { MapLayerBuildings } from './MapLayerBuildings';
+import { Pen } from '../Pen';
+import { Map } from '../Map';
 
 self.onmessage = (e) => {
 
@@ -50,11 +52,11 @@ self.onmessage = (e) => {
     polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // get outer rings, all holes removed
-    let polygons025 = PPGeometry.destructurePolygons(polyData);
-    polygons025.forEach(polygonO => {
+    let polygons018 = PPGeometry.destructurePolygons(polyData);
+    polygons018.forEach(polygonO => {
         polygonO.coordinates = polygonO.coordinates.slice(0, 1);
     });
-    let multiPolygonO = PPGeometry.restructurePolygons(polygons025);
+    let multiPolygonO = PPGeometry.restructurePolygons(polygons018);
 
     // get inner ring reversed, act like real polygons temporarily
     let polygonsI: Polygon[] = PPGeometry.destructurePolygons(polyData);
@@ -81,13 +83,13 @@ self.onmessage = (e) => {
 
     // let the polygons be a litte smaller than original to account for pen width
     const inout0 = 0;
-    const polygonInset = -2;
+    const polygonInset = - Pen.getPenWidthMeters(0.18, Map.SCALE) / 2; // -2;
 
     // outer polygon inset (to account for pen width)
     const inoutO: number[] = [inout0, polygonInset - inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutO[0]}, ${inoutO[1]}] ...`);
-    polygons025 = PPGeometry.bufferOutAndIn(multiPolygonO, ...inoutO);
-    multiPolygonO = PPGeometry.restructurePolygons(polygons025);
+    polygons018 = PPGeometry.bufferOutAndIn(multiPolygonO, ...inoutO);
+    multiPolygonO = PPGeometry.restructurePolygons(polygons018);
 
     const inoutI: number[] = [polygonInset - inout0, inout0];
     console.log(`${workerInput.name}, buffer in-out [${inoutI[0]}, ${inoutI[1]}] ...`);

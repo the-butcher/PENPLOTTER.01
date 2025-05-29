@@ -38,7 +38,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
     });
 
     const lineNames = new Set(tileData.map(f => f.properties!.name));
-    console.log('lineNames', lineNames);
+    // console.log('lineNames', lineNames);
 
     let polyText: Feature<MultiPolygon, TFillProps>[] = [];
 
@@ -77,7 +77,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                     vertical: 16,
                     charsign: 1.2,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                    fonttype: 'noto_serif________regular',
+                    fonttype: 'noto_serif___bold_regular',
                     idxvalid: () => true,
                     fillprop: {
                         type: 'none'
@@ -85,7 +85,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                 };
                 // console.log('lineName', lineName, labelDefs)
                 for (let i = 0; i < labelDefs.length; i++) {
-                    if (labelDefs[i].plotName === lineName) {
+                    if (labelDefs[i].tileName === lineName) {
                         labelDef = labelDefs[i];
                         break;
                     }
@@ -109,6 +109,9 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                 turf.rewind(labelLine4326, {
                     mutate: true
                 });
+
+                // TODO :: there needs to be some kind of font metering, so right, center and left align will work
+
                 labelLine4326 = turf.lineSliceAlong(labelLine4326, labelLineLength * labelDef.distance, labelLineLength, {
                     units: 'meters'
                 }).geometry;
@@ -134,7 +137,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                 };
 
                 const glyphSetter = GlyphSetter.alongLabelLine(labelLineFeature4326, labelDef.charsign);
-                const _polyText = font.getLabel(lineName, glyphSetter);
+                const _polyText = font.getLabel(labelDef.plotName, glyphSetter);
                 polyText.push(turf.feature(_polyText, labelDef.fillprop));
 
             };

@@ -1,45 +1,45 @@
 import { PPGeometry } from 'pp-geom';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
-import { IWorkerPlotInput } from '../common/IWorkerPlotInput';
 import { Map } from '../Map';
 import { Pen } from '../Pen';
+import { IWorkerPlotInput } from '../plot/IWorkerPlotInput';
 
 self.onmessage = (e) => {
 
     const workerInput: IWorkerPlotInput = e.data;
 
-    const polygonCount025 = 4;
-    const polygonCount050 = 50;
-    const polygonDelta025 = Pen.getPenWidthMeters(0.25, Map.SCALE) * -0.40;
-    const polygonDelta050 = Pen.getPenWidthMeters(0.50, Map.SCALE) * -0.40;
+    const polygonCount018 = 4;
+    const polygonCount035 = 50;
+    const polygonDelta018 = Pen.getPenWidthMeters(0.18, Map.SCALE) * -0.60;
+    const polygonDelta035 = Pen.getPenWidthMeters(0.35, Map.SCALE) * -0.60;
 
     // thinner rings for better edge precision
-    const distances025: number[] = [];
-    for (let i = 0; i < polygonCount025; i++) {
-        distances025.push(polygonDelta025);
+    const distances018: number[] = [];
+    for (let i = 0; i < polygonCount018; i++) {
+        distances018.push(polygonDelta018);
     }
-    console.log(`${workerInput.name}, buffer collect 025 ...`, distances025);
-    const features025 = PPGeometry.bufferCollect2(workerInput.polyData, true, ...distances025);
+    console.log(`${workerInput.name}, buffer collect 018 ...`, distances018);
+    const features018 = PPGeometry.bufferCollect2(workerInput.polyData, true, ...distances018);
 
-    const distances050: number[] = [polygonDelta050 * 2.00]; // let the first ring be well inside the finer rings
-    for (let i = 0; i < polygonCount050; i++) {
-        distances050.push(polygonDelta050);
+    const distances035: number[] = [(polygonCount018 + 1) * polygonDelta018]; // let the first ring be well inside the finer rings
+    for (let i = 0; i < polygonCount035; i++) {
+        distances035.push(polygonDelta035);
     }
-    console.log(`${workerInput.name}, buffer collect 050 ...`, distances050);
-    const features050 = PPGeometry.bufferCollect2(workerInput.polyData, false, ...distances050);
+    console.log(`${workerInput.name}, buffer collect 035 ...`, distances035);
+    const features035 = PPGeometry.bufferCollect2(workerInput.polyData, false, ...distances035);
 
-    const connected025 = PPGeometry.connectBufferFeatures(features025);
-    const multiPolyline025 = PPGeometry.restructurePolylines(connected025);
+    const connected018 = PPGeometry.connectBufferFeatures(features018);
+    const multiPolyline018 = PPGeometry.restructurePolylines(connected018);
 
-    const connected050 = PPGeometry.connectBufferFeatures(features050);
-    const multiPolyline050 = PPGeometry.restructurePolylines(connected050);
+    const connected035 = PPGeometry.connectBufferFeatures(features035);
+    const multiPolyline035 = PPGeometry.restructurePolylines(connected035);
 
-    PPGeometry.cleanAndSimplify(multiPolyline025);
-    PPGeometry.cleanAndSimplify(multiPolyline050);
+    PPGeometry.cleanAndSimplify(multiPolyline018);
+    PPGeometry.cleanAndSimplify(multiPolyline035);
 
     const workerOutput: IWorkerLineOutput = {
-        multiPolyline025,
-        multiPolyline050
+        multiPolyline018,
+        multiPolyline035
     };
     self.postMessage(workerOutput);
 

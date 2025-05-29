@@ -5,7 +5,7 @@ export class SymbolUtil {
 
     static createChurchSymbol = (coordinate4326: Position): Position[][] => {
 
-        const baseRadius = 12;
+        const baseRadius = 20;
         const startRadius = - Math.PI / 2;
         const endRadius = startRadius + Math.PI * 2;
 
@@ -40,7 +40,7 @@ export class SymbolUtil {
 
     static createSummitSymbol = (coordinate4326: Position): Position[][] => {
 
-        const baseRadius = 6;
+        const baseRadius = 12;
         const startRadius = - Math.PI / 2;
         const endRadius = startRadius + Math.PI * 2;
 

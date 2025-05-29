@@ -1,5 +1,5 @@
 
-export type ORIG_PEN = 'p018' | 'p025' | 'p035' | 'p050';
+export type ORIG_PEN = `p018` | `p025` | `p035` | `p050`;
 
 /**
  * w018 - solid blue - water
@@ -8,7 +8,7 @@ export type ORIG_PEN = 'p018' | 'p025' | 'p035' | 'p050';
  * h025 - solid brown - contours
  *
  */
-export type DEST_PEN = 'w018' | 'w035' | 'v025' | 'h018' | 'h025';
+export type DEST_PEN = `c018` | `w018` | `w035` | `v025` | `h018` | `h025`;
 
 export interface IPenOverride {
     name: string;
@@ -16,14 +16,16 @@ export interface IPenOverride {
     dest: DEST_PEN;
 }
 
+const alpha = 1;
 export const PEN_COLORS: { [k in ORIG_PEN | DEST_PEN]: string } = {
-    p018: 'rgba(0, 0, 0, 1)',
-    p025: 'rgba(0, 0, 0, 1)',
-    p035: 'rgba(0, 0, 0, 1)',
-    p050: 'rgba(0, 0, 0, 1)',
-    w018: 'rgba(0, 0, 100, 1)',
-    w035: 'rgba(0, 0, 100, 1)',
-    v025: 'rgba(150, 75, 0, 0.2)',
-    h018: 'rgba(150, 75, 0, 1)',
-    h025: 'rgba(150, 75, 0, 1)',
+    c018: `rgba(0, 0, 0, ${alpha})`,
+    p018: `rgba(0, 0, 0, ${alpha})`,
+    p025: `rgba(0, 0, 0, ${alpha})`,
+    p035: `rgba(0, 0, 0, ${alpha})`,
+    p050: `rgba(0, 0, 0, ${alpha})`,
+    w018: `rgba(0, 0, 100, ${alpha})`,
+    w035: `rgba(0, 0, 100, ${alpha})`,
+    v025: `rgba(150, 75, 0, 0.2)`,
+    h018: `rgba(150, 75, 0, ${alpha})`,
+    h025: `rgba(150, 75, 0, ${alpha})`,
 };

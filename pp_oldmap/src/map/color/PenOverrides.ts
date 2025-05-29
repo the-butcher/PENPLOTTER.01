@@ -59,12 +59,14 @@ export class ColorOverrides {
             name: Map.LAYER__NAME_CONTOUR_TX,
             orig: "p018",
             dest: "h018"
-        }
-        ,
-        {
-            name: Map.LAYER__NAME______FRAME,
+        }, {
+            name: Map.LAYER__NAME_______CROP,
             orig: "p018",
             dest: "h018"
+        }, {
+            name: Map.LAYER__NAME_______CROP,
+            orig: "p025",
+            dest: "c018"
         }
 
     ];
