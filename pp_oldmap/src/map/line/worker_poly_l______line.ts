@@ -2,7 +2,7 @@ import * as turf from '@turf/turf';
 import { Feature, GeoJsonProperties, LineString, MultiPolygon, Polygon } from "geojson";
 import { PPGeometry } from 'pp-geom';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 
 self.onmessage = (e) => {
 

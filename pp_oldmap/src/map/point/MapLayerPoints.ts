@@ -148,11 +148,11 @@ export class MapLayerPoints extends AMapLayer<Point, GeoJsonProperties> {
             const workerInstance = new Worker(new URL('../plot/worker_plot_l__polytext.ts', import.meta.url), { type: 'module' });
             workerInstance.onmessage = (e) => {
                 this.applyWorkerOutputLine(e.data);
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

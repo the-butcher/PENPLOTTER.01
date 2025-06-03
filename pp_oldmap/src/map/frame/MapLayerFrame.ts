@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, GeoJsonProperties, LineString, MultiLineString, Polygon, Position } from "geojson";
+import { BBox, Feature, GeoJsonProperties, LineString, MultiLineString, MultiPolygon, Polygon, Position } from "geojson";
 import { AMapLayer } from "../AMapLayer";
 import { IWorkerPolyInputLineLabel } from '../linelabel/IWorkerPolyInputLineLabel';
 import { IWorkerPolyOutputLineLabel } from '../linelabel/IWorkerPolyOutputLineLabel';
@@ -9,7 +9,6 @@ import * as JSONfn from 'json-fn';
 import { PPGeometry, PPTransformation } from 'pp-geom';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 import { ILabelDefLineLabel } from '../linelabel/ILabelDefLineLabel';
-import { MapLayerBridge2 } from '../road2/MapLayerBridge2';
 import { MapLayerRoad2 } from '../road2/MapLayerRoad2';
 
 export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
@@ -23,17 +22,22 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
     coordinateUL4326Crop: Position = [0, 0];
     coordinateLR4326Crop: Position = [0, 0];
 
+
+    private readonly magnNord: number;
+
     public static FRAME_BASE_UNIT = 100;
     public static FRAME_____WIDTH = 150;
 
     private labelDefs: ILabelDefLineLabel[] = [];
 
-    constructor(name: string) {
+    constructor(name: string, magnNord: number) {
         super(name, {
             accepts: () => {
                 return false;
             }
         });
+
+        this.magnNord = magnNord;
     }
 
     getRectCoordinates3857(ul: Position, lr: Position): Position[] {
@@ -92,41 +96,41 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
         ];
         this.coordinateLR4326Crop = turf.toWgs84(this.coordinateLR3857Crop);
 
-        this.polyData = {
-            type: 'MultiPolygon',
-            coordinates: [
+        // this.polyData = {
+        //     type: 'MultiPolygon',
+        //     coordinates: [
 
-                [this.getRectCoordinates3857([ // upper frame bar
-                    this.coordinateUL3857Inner[0],
-                    this.coordinateUL3857Crop[1]
-                ], [
-                    this.coordinateLR3857Inner[0],
-                    this.coordinateUL3857Inner[1]
-                ]).map(c => turf.toWgs84(c))],
-                [this.getRectCoordinates3857([ // right frame bar
-                    this.coordinateLR3857Inner[0],
-                    this.coordinateUL3857Crop[1]
-                ], [
-                    this.coordinateLR3857Crop[0],
-                    this.coordinateLR3857Crop[1]
-                ]).map(c => turf.toWgs84(c))],
-                [this.getRectCoordinates3857([ // lower frame bar
-                    this.coordinateUL3857Inner[0],
-                    this.coordinateLR3857Inner[1]
-                ], [
-                    this.coordinateLR3857Inner[0],
-                    this.coordinateLR3857Crop[1]
-                ]).map(c => turf.toWgs84(c))],
-                [this.getRectCoordinates3857([ // left frame bar
-                    this.coordinateUL3857Crop[0],
-                    this.coordinateUL3857Crop[1]
-                ], [
-                    this.coordinateUL3857Inner[0],
-                    this.coordinateLR3857Crop[1]
-                ]).map(c => turf.toWgs84(c))],
+        //         [this.getRectCoordinates3857([ // upper frame bar
+        //             this.coordinateUL3857Inner[0],
+        //             this.coordinateUL3857Crop[1]
+        //         ], [
+        //             this.coordinateLR3857Inner[0],
+        //             this.coordinateUL3857Inner[1]
+        //         ]).map(c => turf.toWgs84(c))],
+        //         [this.getRectCoordinates3857([ // right frame bar
+        //             this.coordinateLR3857Inner[0],
+        //             this.coordinateUL3857Crop[1]
+        //         ], [
+        //             this.coordinateLR3857Crop[0],
+        //             this.coordinateLR3857Crop[1]
+        //         ]).map(c => turf.toWgs84(c))],
+        //         [this.getRectCoordinates3857([ // lower frame bar
+        //             this.coordinateUL3857Inner[0],
+        //             this.coordinateLR3857Inner[1]
+        //         ], [
+        //             this.coordinateLR3857Inner[0],
+        //             this.coordinateLR3857Crop[1]
+        //         ]).map(c => turf.toWgs84(c))],
+        //         [this.getRectCoordinates3857([ // left frame bar
+        //             this.coordinateUL3857Crop[0],
+        //             this.coordinateUL3857Crop[1]
+        //         ], [
+        //             this.coordinateUL3857Inner[0],
+        //             this.coordinateLR3857Crop[1]
+        //         ]).map(c => turf.toWgs84(c))],
 
-            ]
-        };
+        //     ]
+        // };
 
     }
 
@@ -148,6 +152,8 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
                 this.coordinateLR3857Outer[1] + innerFrameMargin
             ]).map(c => turf.toWgs84(c))
         ]);
+
+
 
         // load border of austria
         const atBorderCollection = await new GeoJsonLoader().load<Polygon, GeoJsonProperties>('at_border.geojson');
@@ -215,6 +221,15 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
             coordinates: coordinates050
         };
 
+        // const frameCrop = await new GeoJsonLoader().load<Polygon, GeoJsonProperties>('crop_hallein.geojson');
+        // console.log('frameCrop', frameCrop);
+        // const frameCropInner: MultiPolygon = {
+        //     type: 'MultiPolygon',
+        //     coordinates: [[frameCrop.features[0].geometry.coordinates[1].reverse()]]
+        // };
+        // this.multiPolyline025 = PPGeometry.clipMultiPolyline(this.multiPolyline025, turf.feature(frameCropInner));
+        // this.multiPolyline050 = PPGeometry.clipMultiPolyline(this.multiPolyline050, turf.feature(frameCropInner));
+
         const coordinateUL4326Inner = turf.toWgs84(this.coordinateUL3857Inner);
         const coordinateLR4326Inner = turf.toWgs84(this.coordinateLR3857Inner);
 
@@ -226,7 +241,7 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
         ]);
         const mercatorScale = 1 / Math.cos(centerCoord4326[1] * PPGeometry.GRAD_TO_RAD);
 
-        const offsetMetersX = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000];
+        const offsetMetersX = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000].map(o => o - 700);
         const offsetMetersYMin = 250;
         const offsetMetersYMax = 300;
         offsetMetersX.forEach(offsetMetersX => {
@@ -244,11 +259,11 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
         [offsetMetersYMin, offsetMetersYMax].forEach(offsetMetersY => {
             this.multiPolyline018.coordinates.push([
                 [
-                    scalebarCenterX3857 + 2000 * mercatorScale,
+                    scalebarCenterX3857 + offsetMetersX[0] * mercatorScale,
                     this.coordinateLR3857Outer[1] - offsetMetersY
                 ],
                 [
-                    scalebarCenterX3857, // - 1000 * mercatorScale,
+                    scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 1] * mercatorScale, // - 1000 * mercatorScale,
                     this.coordinateLR3857Outer[1] - offsetMetersY
                 ]
             ].map(c => turf.toWgs84(c)));
@@ -277,44 +292,78 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
 
         let offsetMetersYLbl = offsetMetersYMin - 30
         await this.createLabel('SCALE ~1:25000', turf.toWgs84([
-            scalebarCenterX3857 + 1000 * mercatorScale - 320,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 2] * mercatorScale - 320,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]), turf.toWgs84([
-            scalebarCenterX3857 + 1000 * mercatorScale + 320,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 2] * mercatorScale + 320,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]));
 
         offsetMetersYLbl = offsetMetersYMax + 95
         await this.createLabel('0', turf.toWgs84([
-            scalebarCenterX3857 - 8,
+            scalebarCenterX3857 + offsetMetersX[0] * mercatorScale - 8,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]), turf.toWgs84([
-            scalebarCenterX3857 + 100,
+            scalebarCenterX3857 + offsetMetersX[0] * mercatorScale + 100,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]));
         await this.createLabel('1000', turf.toWgs84([
-            scalebarCenterX3857 + 1000 * mercatorScale - 100,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 2] * mercatorScale - 100,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]), turf.toWgs84([
-            scalebarCenterX3857 + 1000 * mercatorScale + 100,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 2] * mercatorScale + 100,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]));
         await this.createLabel('2000 METERS', turf.toWgs84([
-            scalebarCenterX3857 + 2000 * mercatorScale - 180,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 1] * mercatorScale - 180,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]), turf.toWgs84([
-            scalebarCenterX3857 + 2000 * mercatorScale + 400,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 1] * mercatorScale + 400,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]));
 
         offsetMetersYLbl = offsetMetersYMax + 200;
         await this.createLabel('CONTOUR INTERVAL 50 METERS', turf.toWgs84([
-            scalebarCenterX3857 + 1000 * mercatorScale - 750,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 2] * mercatorScale - 750,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]), turf.toWgs84([
-            scalebarCenterX3857 + 1000 * mercatorScale + 750,
+            scalebarCenterX3857 + offsetMetersX[offsetMetersX.length - 2] * mercatorScale + 750,
             this.coordinateLR3857Outer[1] - offsetMetersYLbl
         ]));
+
+        // await this.createLabel('GREIN', turf.toWgs84([
+        //     this.coordinateLR3857Outer[0] - 2010,
+        //     this.coordinateLR3857Outer[1] - offsetMetersYLbl + 150
+        // ]), turf.toWgs84([
+        //     this.coordinateLR3857Outer[0] - 1000,
+        //     this.coordinateLR3857Outer[1] - offsetMetersYLbl + 150
+        // ]), MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 3.20);
+
+        await this.createLabel('HALLEIN', turf.toWgs84([
+            this.coordinateLR3857Outer[0] - 2010,
+            this.coordinateLR3857Outer[1] - offsetMetersYLbl + 207
+        ]), turf.toWgs84([
+            this.coordinateLR3857Outer[0] - 1000,
+            this.coordinateLR3857Outer[1] - offsetMetersYLbl + 207
+        ]), MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 2.23);
+
+        // offsetMetersYLbl = offsetMetersYMax + 95
+        await this.createLabel('DATA: BASEMAP.AT', turf.toWgs84([
+            this.coordinateLR3857Outer[0] - 2000,
+            this.coordinateLR3857Outer[1] - offsetMetersYLbl
+        ]), turf.toWgs84([
+            this.coordinateLR3857Outer[0] - 1000,
+            this.coordinateLR3857Outer[1] - offsetMetersYLbl
+        ]));
+
+        // // offsetMetersYLbl = offsetMetersYMax + 200
+        // await this.createLabel('@FleischerHannes', turf.toWgs84([
+        //     this.coordinateLR3857Outer[0] - 3000,
+        //     this.coordinateLR3857Outer[1] - offsetMetersYLbl
+        // ]), turf.toWgs84([
+        //     this.coordinateLR3857Outer[0] - 2000,
+        //     this.coordinateLR3857Outer[1] - offsetMetersYLbl
+        // ]));
 
         // border labels
         const frcToMin = 1 / 60;
@@ -335,7 +384,6 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
             await this.createLabelY(labelY, index++);
         }
 
-        // https://www.magnetic-declination.com/Austria/Grein/102707.html#google_vignette
         const nortarrowRayA: Position[] = [
             [
                 this.coordinateUL3857Inner[0],
@@ -354,7 +402,8 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
                 this.coordinateLR3857Outer[1] - 175
             ],
         ];
-        const magneticNorth = 4.92;
+        // const magneticNorth = 4.92; // https://www.magnetic-declination.com/Austria/Grein/102707.html#google_vignette
+        const magneticNorth = this.magnNord; // https://www.magnetic-declination.com/Austria/Hallein/103450.html
         let nortarrowRayB = PPTransformation.transformPosition1(nortarrowRayA, PPTransformation.matrixTranslationInstance(-this.coordinateUL3857Inner[0], 500 - this.coordinateLR3857Outer[1]));
         nortarrowRayB = PPTransformation.transformPosition1(nortarrowRayB, PPTransformation.matrixScaleInstance(-0.9, 0.9));
         nortarrowRayB = PPTransformation.transformPosition1(nortarrowRayB, PPTransformation.matrixRotationInstance(-magneticNorth * PPGeometry.GRAD_TO_RAD));
@@ -374,7 +423,13 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
 
         let legendPosX3857 = this.coordinateUL3857Inner[0] + 800;
 
-        const createRoadSymbol = async (label: string, legendPosY3857: number, roadCategoryIndex: number, dashArray?: [number, number]): Promise<void> => {
+        const roadLegendPositionsY = [220, 360, 500];
+        let roadLegendPositionIndex = 0;
+
+        const createRoadSymbol = async (label: string, roadCategoryIndex: number, dashArray?: [number, number]): Promise<void> => {
+
+            const legendPosY3857 = roadLegendPositionsY[roadLegendPositionIndex++];
+            // console.log('legendPosY3857', legendPosY3857, 'roadLegendPositionIndex', roadLegendPositionIndex);
 
             const targetContainer = roadCategoryIndex <= 3 ? this.multiPolyline035 : this.multiPolyline025;
 
@@ -418,16 +473,19 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
                 this.coordinateLR3857Outer[1] - legendPosY3857
             ]));
 
+            if (roadLegendPositionIndex >= 3) {
+                legendPosX3857 += 1250;
+                roadLegendPositionIndex = 0;
+            }
+
         }
 
-        createRoadSymbol("MAIN ROAD", 220, 3)
-        createRoadSymbol("SECONDARY ROAD", 360, 4)
-        createRoadSymbol("OTHER ROAD", 500, 5, [16, 24])
-
-        legendPosX3857 += 1250;
-
-        createRoadSymbol("GRAVEL ROAD", 220, 6)
-        createRoadSymbol("PEDESTRIAN/FOOTPATH", 360, 7, [16, 20])
+        await createRoadSymbol("HIGHWAY", 0);
+        await createRoadSymbol("MAIN ROAD", 3);
+        await createRoadSymbol("SECONDARY ROAD", 4)
+        await createRoadSymbol("OTHER ROAD", 5, [16, 24])
+        await createRoadSymbol("GRAVEL ROAD", 6)
+        await createRoadSymbol("PEDESTRIAN, FOOTPATH", 7, [16, 20])
 
         // this.createMainLabel();
 
@@ -596,7 +654,7 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
 
     }
 
-    async createLabel(name: string, position4326A: Position, position4326B: Position) {
+    async createLabel(name: string, position4326A: Position, position4326B: Position, txtscale: number = MapDefs.DEFAULT_TEXT_SCALE__LOCATION) {
 
         const labelLineFeatureDeg: Feature<LineString, GeoJsonProperties> = turf.feature({
             type: 'LineString',
@@ -613,7 +671,7 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
             distance: 0.01,
             vertical: 0,
             charsign: 1.2,
-            txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 1,
+            txtscale,
             fonttype: 'noto_serif___bold_regular',
             idxvalid: JSONfn.stringify(() => true),
             fillprop: {
@@ -659,6 +717,8 @@ export class MapLayerFrame extends AMapLayer<LineString, GeoJsonProperties> {
     //     });
 
     // }
+
+
 
     async processPlot(): Promise<void> {
         // nothing

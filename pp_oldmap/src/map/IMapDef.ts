@@ -18,5 +18,7 @@ export interface IMapDef {
      */
     water_tx: string;
     padding: number;
+    shadeMin: number;
+    magnNord: number;
     labelDefs: ILabelDef[];
 }

@@ -8,7 +8,7 @@ import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil'
 import { AMapLayer } from '../AMapLayer';
 import { IWorkerLineOutput } from '../common/IWorkerLineOutput';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 import { ISymbolDefPointDash, IWorkerLineInputLine } from './IWorkerLineInputLine';
 import { ISymbolProperties } from '../common/ISymbolProperties';
 
@@ -44,6 +44,7 @@ export class MapLayerLines extends AMapLayer<LineString, ISymbolProperties> {
                 symbol: symbolValue
             }));
         });
+
     }
 
     async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> { // bboxMap4326: BBox

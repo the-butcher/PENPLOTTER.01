@@ -23,11 +23,13 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
     roadPolylines: MultiLineString[];
     bridgePolylines: MultiLineString[];
 
+    static minOpenEndIndex = 0;
+
     static bufferDistanceMin = 0.5;
     static bufferDistances: number[] = [
-        10, // highway
-        9, // ramp
-        9, // speedway
+        9, // highway
+        8, // ramp
+        8, // speedway
         8.5, // major roads
         6.5, // community
         6, // other roads -- the could have one dashed side
@@ -219,13 +221,23 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                 this.roadOutlines[roadCategoryIndex] = PPGeometry.clipMultiPolyline(this.roadOutlines[roadCategoryIndex], bridgeBufferMultiPolygon);
 
-                const featureCollection = turf.featureCollection([turf.feature(this.roadPolygons[roadCategoryIndex]), bridgeBufferMultiPolygon]);
-                const difference = turf.difference(featureCollection);
-                if (difference) {
-                    const differenceGeometry: TUnionPolygon = difference!.geometry; // subtract inner polygons from outer
+                // clip away parallel bridges too (i.e. for ramps running parallel to highways, where the ramp bridge would then clip the highway otherwise)
+                this.bridgePolylines[roadCategoryIndex] = PPGeometry.clipMultiPolyline(this.bridgePolylines[roadCategoryIndex], bridgeBufferMultiPolygon);
+
+                const featureCollectionRB = turf.featureCollection([turf.feature(this.roadPolygons[roadCategoryIndex]), bridgeBufferMultiPolygon]);
+                const differenceRB = turf.difference(featureCollectionRB);
+                if (differenceRB) {
+                    const differenceGeometry: TUnionPolygon = differenceRB!.geometry; // subtract inner polygons from outer
                     const polygonsD = PPGeometry.destructurePolygons(differenceGeometry);
                     this.roadPolygons[roadCategoryIndex] = PPGeometry.restructurePolygons(polygonsD);
                 }
+
+                // const featureCollectionBB = turf.featureCollection([turf.feature(this.bridgePolygons[roadCategoryIndex]), bridgeBufferMultiPolygon]);
+                // const differenceBB = turf.difference(featureCollectionBB);
+                // if (differenceBB) {
+                //     console.log('differenceBB', differenceBB, bridgeCategoryIndex, roadCategoryIndex)
+                // }
+
 
             }
 
@@ -325,7 +337,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         if (openEnd0 || openEndL) {
 
             // first, faster, search
-            for (let roadCategoryIndexB = 2; roadCategoryIndexB < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexB++) {
+            for (let roadCategoryIndexB = MapLayerRoad2.minOpenEndIndex; roadCategoryIndexB < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexB++) {
 
                 for (let roadPolylineIndexB = 0; roadPolylineIndexB < this.roadPolylines[roadCategoryIndexB].coordinates.length; roadPolylineIndexB++) {
 
@@ -363,7 +375,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         // is still open, second, slower, search
         if (openEnd0 || openEndL) {
 
-            for (let roadCategoryIndexB = 2; roadCategoryIndexB < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexB++) {
+            for (let roadCategoryIndexB = MapLayerRoad2.minOpenEndIndex; roadCategoryIndexB < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexB++) {
 
                 for (let roadPolylineIndexB = 0; roadPolylineIndexB < this.roadPolylines[roadCategoryIndexB].coordinates.length; roadPolylineIndexB++) {
 
@@ -440,7 +452,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
         const openEnds: IOpenEnd[] = [];
         // start with index 2 to skip highways and ramps and also end early because we do not need to handle line only ends
-        for (let roadCategoryIndexA = 2; roadCategoryIndexA < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexA++) {
+        for (let roadCategoryIndexA = MapLayerRoad2.minOpenEndIndex; roadCategoryIndexA < MapLayerRoad2.bufferDistances.length - 3; roadCategoryIndexA++) {
             for (let roadPolylineIndexA = 0; roadPolylineIndexA < this.roadPolylines[roadCategoryIndexA].coordinates.length; roadPolylineIndexA++) {
                 openEnds.push(...this.findOpenEnds(roadCategoryIndexA, roadPolylineIndexA, bboxMap4326));
             }
@@ -493,6 +505,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
         });
 
         // TODO :: could be faster if openPoly were split by category
+        this.roadOutlines[0] = PPGeometry.clipMultiPolyline(this.roadOutlines[0], turf.feature(openPoly));
         this.roadOutlines[3] = PPGeometry.clipMultiPolyline(this.roadOutlines[3], turf.feature(openPoly));
         this.roadOutlines[4] = PPGeometry.clipMultiPolyline(this.roadOutlines[4], turf.feature(openPoly));
         this.roadOutlines[5] = PPGeometry.clipMultiPolyline(this.roadOutlines[5], turf.feature(openPoly));
@@ -537,7 +550,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
         // debug
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
-        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
+        this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[2].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[3].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[4].coordinates);

@@ -6,7 +6,7 @@ import { IVectorTileKey } from '../../vectortile/IVectorTileKey';
 import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 import { AMapLayer } from '../AMapLayer';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 import { ISymbolDefPointFill, IWorkerLineInputPolygon } from './IWorkerLineInputPolygon';
 import { ISymbolProperties } from '../common/ISymbolProperties';
 import { GeoJsonLoader } from '../../util/GeoJsonLoader';
@@ -68,11 +68,11 @@ export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
-                workerInstance.terminate();
+                // workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                workerInstance.terminate();
+                // workerInstance.terminate();s
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

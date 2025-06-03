@@ -79,10 +79,10 @@ export class MapLayerTunnels extends AMapLayer<LineString, GeoJsonProperties> {
 
     async processPlot(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
-        console.log(`${this.name}, creating dashes ...`);
+        console.log(`${this.name}, processing plot, creating dashes ...`);
 
-        this.multiPolyline04 = PPGeometry.dashMultiPolyline(this.multiPolyline04, [16, 30]);
-        this.multiPolyline025.coordinates = this.multiPolyline04.coordinates;
+        this.multiPolyline025 = PPGeometry.dashMultiPolyline(this.multiPolyline025, [16, 30]);
+        // this.multiPolyline025.coordinates = this.multiPolyline04.coordinates;
 
         console.log(`${this.name}, clipping to bboxMap4326 ...`);
         this.bboxClipLayer(bboxMap4326);

@@ -7,7 +7,161 @@ export class MapDefs {
     static DEFAULT_TEXT_SCALE__LOCATION = 0.050;
     static DEFAULT_TEXT_SCALE_____WATER = 0.100;
 
+    static MAP_DEF____SEMMERING: IMapDef = {
+        shadeMin: 750,
+        magnNord: 5.06,
+        hachures: 'hachures_semmering.geojson',
+        contours: 'contours_semmering.geojson',
+        surface: 'surface_semmering.json',
+        locatons: '',
+        clippoly: '',
+        bordertx: '',
+        water_tx: '',
+        bbox3857: PPGeometry.bboxAtCenter([
+            1762500,
+            6046300
+        ],
+            4000 * 2.25,
+            2600 * 2.25
+        ),
+        padding: 200,
+        labelDefs: [
+            {
+                tileName: '2550',
+                plotName: '2550',
+                distance: 0.75,
+                vertical: 12,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: '2450',
+                plotName: '2450',
+                distance: 0.47,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: '2400',
+                plotName: '2400',
+                distance: 0.60,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: '2250',
+                plotName: '2250',
+                distance: 0.25,
+                vertical: 12,
+                charsign: 0,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: 'Aussichtswarte Edelweißspitze',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: 'Fuschertörl',
+                plotName: 'Fuschertörl',
+                distance: 25,
+                vertical: -20,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: '2455 m',
+                plotName: '2455 m',
+                distance: 20,
+                vertical: 15,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: 'Edelweißhütte',
+                plotName: 'Edelweißhütte',
+                distance: -350,
+                vertical: -40,
+                charsign: 1.02,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => true,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: 'Fuscher Törl',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+            {
+                tileName: '2428 m',
+                plotName: '',
+                distance: 0,
+                vertical: 0,
+                charsign: 0,
+                txtscale: 0,
+                fonttype: 'noto_serif________regular',
+                idxvalid: () => false,
+                fillprop: {
+                    type: 'none'
+                }
+            },
+        ]
+    }
+
     static MAP_DEF________GREIN: IMapDef = {
+        shadeMin: 200,
+        magnNord: 4.92,
         hachures: 'hachures_grein.geojson',
         contours: 'contours_grein.geojson',
         surface: 'surface_grein.json',
@@ -327,6 +481,8 @@ export class MapDefs {
     }
 
     static MAP_DEF_________MOON: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         hachures: 'hachures_moon.geojson',
         contours: 'contours_moon.geojson',
         surface: '',
@@ -398,6 +554,8 @@ export class MapDefs {
     }
 
     static MAP_DEF_FUSCHERTOERL: IMapDef = {
+        shadeMin: 700,
+        magnNord: 0,
         hachures: 'hachures_fuschertoerl.geojson',
         contours: 'contours_fuschertoerl.geojson',
         surface: '',
@@ -560,6 +718,8 @@ export class MapDefs {
     // }
 
     static MAP_DEF___DUERNSTEIN: IMapDef = {
+        shadeMin: 200,
+        magnNord: 0,
         hachures: 'hachures_duernstein.geojson',
         contours: 'contours_duernstein.geojson',
         surface: '',
@@ -689,6 +849,8 @@ export class MapDefs {
     // }
 
     static MAP_DEF____HALLSTATT: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         hachures: 'hachures_hallstatt.geojson',
         contours: 'contours_hallstatt.geojson',
         surface: '',
@@ -839,6 +1001,8 @@ export class MapDefs {
     }
 
     static MAP_DEF_____HAINBURG: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         hachures: 'hachures_hainburg.geojson',
         contours: 'contours_hainburg.geojson',
         surface: '',
@@ -885,6 +1049,8 @@ export class MapDefs {
     }
 
     static MAP_DEF____OLDDANUBE: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         contours: 'contours_altedonau.geojson',
         hachures: 'hachures_altedonau.geojson',
         surface: '',
@@ -931,6 +1097,8 @@ export class MapDefs {
     }
 
     static MAP_DEF___BADGASTEIN: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         contours: 'contours_badgastein.geojson',
         hachures: 'hachures_badgastein.geojson',
         surface: '',
@@ -952,6 +1120,8 @@ export class MapDefs {
     }
 
     static MAP_DEF___KAHLENBERG: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         contours: 'contours_kahlenberg.geojson',
         hachures: 'hachures_kahlenberg.geojson',
         surface: '',
@@ -973,6 +1143,8 @@ export class MapDefs {
     }
 
     static MAP_DEF__SCHOENBRUNN: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         contours: 'contours_schoenbrunn.geojson',
         hachures: 'hachures_schoenbrunn.geojson',
         surface: '',
@@ -1006,6 +1178,8 @@ export class MapDefs {
     }
 
     static MAP_DEF_____WOLFGANG: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         contours: 'contours_wolfgang.geojson',
         hachures: 'hachures_wolfgang.geojson',
         surface: '',
@@ -1113,6 +1287,8 @@ export class MapDefs {
     // }
 
     static MAP_DEF_____SALZBURG: IMapDef = {
+        shadeMin: 0,
+        magnNord: 0,
         contours: 'contours_salzburg.geojson',
         hachures: 'hachures_salzburg.geojson',
         surface: '',
@@ -1159,39 +1335,24 @@ export class MapDefs {
     }
 
     static MAP_DEF______HALLEIN: IMapDef = {
+        shadeMin: 0,
+        magnNord: 4.50,
         contours: 'contours_hallein.geojson',
         hachures: 'hachures_hallein.geojson',
-        surface: '',
+        surface: 'surface_hallein.json',
         clippoly: 'clippoly_hallein.geojson',
         bordertx: 'bordertx_hallein.geojson',
         locatons: '',
         water_tx: '',
         bbox3857: PPGeometry.bboxAtCenter([
-            1457650,
-            6054200
+            1460000,
+            6052325
         ],
-            4000,
-            2828
+            4000 * 2.25,
+            2600 * 2.25
         ),
-        // bbox3857: [
-        //     1455650, 6052700,
-        //     1459650, 6055700
-        // ],
         padding: 200,
         labelDefs: [
-            {
-                tileName: '450',
-                plotName: '450',
-                distance: 0.30,
-                vertical: 12,
-                charsign: 0,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
-                fonttype: 'noto_serif________regular',
-                idxvalid: () => true,
-                fillprop: {
-                    type: 'none'
-                }
-            },
             {
                 tileName: 'DEUTSCHLAND',
                 plotName: 'DEUTSCHLAND',
@@ -1199,7 +1360,7 @@ export class MapDefs {
                 vertical: -20,
                 charsign: 1.2,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'noto_serif________regular',
+                fonttype: 'noto_serif___bold_regular',
                 idxvalid: () => true,
                 fillprop: {
                     type: 'none'
@@ -1212,7 +1373,7 @@ export class MapDefs {
                 vertical: 57,
                 charsign: 1.2,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'noto_serif___thin_regular',
+                fonttype: 'noto_serif___bold_regular',
                 idxvalid: () => true,
                 fillprop: {
                     type: 'none'
@@ -1223,9 +1384,9 @@ export class MapDefs {
                 plotName: 'Hallein',
                 distance: 0.50,
                 vertical: -12,
-                charsign: 1.1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 3,
-                fonttype: 'noto_serif___bold__italic',
+                charsign: 1.2,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+                fonttype: 'noto_serif___bold_regular',
                 idxvalid: () => false,
                 fillprop: {
                     type: 'buff'
@@ -1236,9 +1397,9 @@ export class MapDefs {
                 plotName: 'Mitterau',
                 distance: -150,
                 vertical: 20,
-                charsign: 1,
+                charsign: 1.2,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'noto_serif________regular',
+                fonttype: 'noto_serif___bold_regular',
                 idxvalid: () => false,
                 fillprop: {
                     type: 'none'
@@ -1249,9 +1410,9 @@ export class MapDefs {
                 plotName: 'Adneter Gries',
                 distance: 75,
                 vertical: 60,
-                charsign: 1,
+                charsign: 1.2,
                 txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                fonttype: 'noto_serif________regular',
+                fonttype: 'noto_serif___bold_regular',
                 idxvalid: () => false,
                 fillprop: {
                     type: 'none'
@@ -1263,37 +1424,22 @@ export class MapDefs {
                 distance: 0,
                 vertical: 0,
                 charsign: 1.2,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION * 4,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
                 fonttype: 'noto_serif___bold_regular',
                 idxvalid: () => false,
-                fillprop: {
-                    type: 'hatch',
-                    angle: 30,
-                    space: 0.000075
-                }
-            },
-            {
-                tileName: 'Salzach',
-                plotName: 'Salzach',
-                distance: 0.285,
-                vertical: 0,
-                charsign: 1.1,
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 1.25,
-                fonttype: 'noto_serif________regular',
-                idxvalid: () => true,
                 fillprop: {
                     type: 'none'
                 }
             },
             {
-                tileName: 'Leprosenhauskapelle',
-                plotName: '',
-                distance: 0,
-                vertical: 0,
-                charsign: 0,
-                txtscale: 0,
-                fonttype: 'noto_serif________regular',
-                idxvalid: () => false,
+                tileName: 'Salzach',
+                plotName: 'Salzach',
+                distance: 0.56,
+                vertical: 35,
+                charsign: 1.2,
+                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER * 0.62,
+                fonttype: 'noto_serif___bold__italic',
+                idxvalid: (index: number) => index === 0,
                 fillprop: {
                     type: 'none'
                 }
@@ -1301,128 +1447,128 @@ export class MapDefs {
         ]
     }
 
-    static MAP_DEF_______VIGAUN: IMapDef = {
-        contours: 'contours_vigaun.geojson',
-        hachures: 'hachures_vigaun.geojson',
-        surface: '',
-        locatons: '',
-        clippoly: '',
-        bordertx: '',
-        water_tx: '',
-        bbox3857: PPGeometry.bboxAtCenter([
-            1461800,
-            6050920
-        ],
-            4000,
-            2828
-        ),
-        padding: 200,
-        labelDefs: [
-            {
-                tileName: 'Bad Vigaun',
-                plotName: 'Bad Vigaun',
-                distance: 130,
-                vertical: 0,
-                charsign: 1.02,
-                fonttype: 'noto_serif________regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Langwies',
-                plotName: 'Langwies',
-                distance: 60,
-                vertical: -90,
-                charsign: 1.02,
-                fonttype: 'noto_serif________regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Weinleiten',
-                plotName: 'Weinleiten',
-                distance: -40,
-                vertical: 30,
-                charsign: 1.02,
-                fonttype: 'noto_serif________regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Brettstein',
-                plotName: 'Brettstein',
-                distance: -50,
-                vertical: -30,
-                charsign: 1.02,
-                fonttype: 'noto_serif________regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Vigaun',
-                plotName: '',
-                distance: 0,
-                vertical: 0,
-                charsign: 0,
-                txtscale: 0,
-                fonttype: 'noto_serif________regular',
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Wirtstaller',
-                plotName: '',
-                distance: 0,
-                vertical: 0,
-                charsign: 0,
-                txtscale: 0,
-                fonttype: 'noto_serif________regular',
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Samhofkapelle',
-                plotName: '',
-                distance: 0,
-                vertical: 0,
-                charsign: 0,
-                txtscale: 0,
-                fonttype: 'noto_serif________regular',
-                idxvalid: () => false,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-            {
-                tileName: 'Salzach',
-                plotName: 'Salzach',
-                distance: 0.25,
-                vertical: 24,
-                charsign: 1.02,
-                fonttype: 'noto_serif________regular',
-                txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
-                idxvalid: (index: number) => index === 1,
-                fillprop: {
-                    type: 'none'
-                }
-            },
-        ]
-    }
+    // static MAP_DEF_______VIGAUN: IMapDef = {
+    //     contours: 'contours_vigaun.geojson',
+    //     hachures: 'hachures_vigaun.geojson',
+    //     surface: '',
+    //     locatons: '',
+    //     clippoly: '',
+    //     bordertx: '',
+    //     water_tx: '',
+    //     bbox3857: PPGeometry.bboxAtCenter([
+    //         1461800,
+    //         6050920
+    //     ],
+    //         4000,
+    //         2828
+    //     ),
+    //     padding: 200,
+    //     labelDefs: [
+    //         {
+    //             tileName: 'Bad Vigaun',
+    //             plotName: 'Bad Vigaun',
+    //             distance: 130,
+    //             vertical: 0,
+    //             charsign: 1.02,
+    //             fonttype: 'noto_serif________regular',
+    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Langwies',
+    //             plotName: 'Langwies',
+    //             distance: 60,
+    //             vertical: -90,
+    //             charsign: 1.02,
+    //             fonttype: 'noto_serif________regular',
+    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Weinleiten',
+    //             plotName: 'Weinleiten',
+    //             distance: -40,
+    //             vertical: 30,
+    //             charsign: 1.02,
+    //             fonttype: 'noto_serif________regular',
+    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Brettstein',
+    //             plotName: 'Brettstein',
+    //             distance: -50,
+    //             vertical: -30,
+    //             charsign: 1.02,
+    //             fonttype: 'noto_serif________regular',
+    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE__LOCATION,
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Vigaun',
+    //             plotName: '',
+    //             distance: 0,
+    //             vertical: 0,
+    //             charsign: 0,
+    //             txtscale: 0,
+    //             fonttype: 'noto_serif________regular',
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Wirtstaller',
+    //             plotName: '',
+    //             distance: 0,
+    //             vertical: 0,
+    //             charsign: 0,
+    //             txtscale: 0,
+    //             fonttype: 'noto_serif________regular',
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Samhofkapelle',
+    //             plotName: '',
+    //             distance: 0,
+    //             vertical: 0,
+    //             charsign: 0,
+    //             txtscale: 0,
+    //             fonttype: 'noto_serif________regular',
+    //             idxvalid: () => false,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //         {
+    //             tileName: 'Salzach',
+    //             plotName: 'Salzach',
+    //             distance: 0.25,
+    //             vertical: 24,
+    //             charsign: 1.02,
+    //             fonttype: 'noto_serif________regular',
+    //             txtscale: MapDefs.DEFAULT_TEXT_SCALE_____WATER,
+    //             idxvalid: (index: number) => index === 1,
+    //             fillprop: {
+    //                 type: 'none'
+    //             }
+    //         },
+    //     ]
+    // }
 
 }

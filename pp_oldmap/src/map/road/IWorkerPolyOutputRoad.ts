@@ -1,5 +1,5 @@
 import { MultiLineString, Polygon } from "geojson";
-import { IWorkerPolyOutput } from "../common/IWorkerPolyoutput";
+import { IWorkerPolyOutput } from "../common/IWorkerPolyOutput";
 
 export interface IWorkerPolyOutputRoad extends IWorkerPolyOutput {
     multiPolyline02: MultiLineString;

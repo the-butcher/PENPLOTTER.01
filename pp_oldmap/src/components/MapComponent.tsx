@@ -64,7 +64,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF________GREIN;
+    const _mapDef = MapDefs.MAP_DEF____SEMMERING;
 
     const _map = new Map({
 
@@ -102,7 +102,7 @@ function MapComponent() {
         //       // 7 Friedhof
         //       // 8 Freizeit
         //       // 9 Weingarten
-        //       if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7, 9)) {
+        //       if (vectorTileFeature.layerName === 'NUTZUNG_L16_20' && vectorTileFeature.hasValue('_symbol', 3, 6, 7, 9)) { // && vectorTileFeature.hasValue('_symbol', 3, 6, 7, 9)
         //         return true;
         //       } else {
         //         return false;
@@ -180,15 +180,15 @@ function MapComponent() {
         //     }
         //   }, l => l.multiPolyline025, [16, 4])
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
-        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-        //     }
-        //   })
-        // },
+        {
+          createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
+              return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+            }
+          })
+        },
         // {
         //   createLayerInstance: () => new MapLayerBridge2(Map.LAYER__NAME_____BRIDGE, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -198,13 +198,13 @@ function MapComponent() {
         //     }
         //   })
         // },
-        // {
-        //   createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
-        //     }
-        //   })
-        // },
+        {
+          createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
+            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+              return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
+            }
+          })
+        },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
         //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -229,7 +229,7 @@ function MapComponent() {
         //         return false;
         //       }
         //     }
-        //   }, l => l.multiPolyline050, [0, 0], -10)
+        //   }, l => l.multiPolyline050, [20, 50], 0)
         // },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
@@ -274,11 +274,11 @@ function MapComponent() {
         //   }, [2, -2], 500, {}, _mapDef.clippoly)
         // },
         {
-          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME)
+          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, _mapDef.magnNord)
         },
-        // {
-        //   createLayerInstance: () => new MapLayerCrop(Map.LAYER__NAME_______CROP, _mapDef.surface)
-        // },
+        {
+          createLayerInstance: () => new MapLayerCrop(Map.LAYER__NAME_______CROP, _mapDef.surface, _mapDef.shadeMin)
+        },
 
 
       ],
@@ -309,9 +309,13 @@ function MapComponent() {
 
     const layer = map!.findLayerByName(id);
 
-    const polylines050 = PPGeometry.destructurePolylines(layer!.multiPolyline035);
-    const features = polylines050.map(p => turf.feature(p));
+    const polygons = PPGeometry.destructurePolygons(layer!.polyData);
+    const features = polygons.map(p => turf.feature(p));
     const featureCollection = turf.featureCollection(features);
+
+    // const polylines050 = PPGeometry.destructurePolylines(layer!.multiPolyline035);
+    // const features = polylines050.map(p => turf.feature(p));
+    // const featureCollection = turf.featureCollection(features);
 
     const a = document.createElement("a");
     const e = new MouseEvent("click");
@@ -435,9 +439,9 @@ function MapComponent() {
       const vectorTileUrlBmapv: IVectorTileUrl = {
         toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmapv/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
       };
-      // collectTiles(Map.LOD_16, vectorTileUrlBmapv);
-      // collectTiles(Map.LOD_15, vectorTileUrlBmapv);
-      // collectTiles(Map.LOD_14, vectorTileUrlBmapv);
+      collectTiles(Map.LOD_16, vectorTileUrlBmapv);
+      collectTiles(Map.LOD_15, vectorTileUrlBmapv);
+      collectTiles(Map.LOD_14, vectorTileUrlBmapv);
 
       // if (map.findLayerByName(Map.LAYER__NAME____CONTOUR) || map.findLayerByName(Map.LAYER__NAME_CONTOUR_TX)) {
       //   const vectorTileUrlBmaph: IVectorTileUrl = {

@@ -2,7 +2,7 @@ import * as turf from '@turf/turf';
 import { GeoJsonProperties, Polygon } from 'geojson';
 import { PPGeometry } from 'pp-geom';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 
 
 self.onmessage = (e) => {
@@ -41,12 +41,17 @@ self.onmessage = (e) => {
     polyData = PPGeometry.bboxClipMultiPolygon(polyData, workerInput.bboxClp4326);
 
     // another very small in-out removes artifacts at the bounding box edges
-    const inoutA: number[] = [-0.11, 0.11];
-    console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
-    const polygonsA1 = PPGeometry.bufferOutAndIn(polyData, ...inoutA);
-    polyData = PPGeometry.restructurePolygons(polygonsA1);
+    // const inoutA: number[] = [-0.11, 0.11];
+    // console.log(`${workerInput.name}, buffer in-out [${inoutA[0]}, ${inoutA[1]}] ...`);
+    // const polygonsA1 = PPGeometry.bufferOutAndIn(polyData, ...inoutA);
+    // polyData = PPGeometry.restructurePolygons(polygonsA1);
 
+    console.log(`${workerInput.name}, simplifying ...`);
     PPGeometry.cleanAndSimplify(polyData);
+    polyData = PPGeometry.cleanEmptyPolygons(polyData);
+
+    console.log(`${workerInput.name}, smoothing ...`);
+    polyData = PPGeometry.smoothPolygons(polyData, 1);
 
     const workerOutput: IWorkerPolyOutput = {
         polyData

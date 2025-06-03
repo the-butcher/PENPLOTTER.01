@@ -1,7 +1,7 @@
 import { GeoJsonProperties, Polygon } from 'geojson';
 import { PPGeometry } from 'pp-geom';
 import { IWorkerPolyInput } from '../common/IWorkerPolyInput';
-import { IWorkerPolyOutput } from '../common/IWorkerPolyoutput';
+import { IWorkerPolyOutput } from '../common/IWorkerPolyOutput';
 import { danube___all } from '../Rivers';
 
 self.onmessage = (e) => {
@@ -26,7 +26,11 @@ self.onmessage = (e) => {
     const polygonsA1 = PPGeometry.bufferOutAndIn(polyData, ...inoutA);
     polyData = PPGeometry.restructurePolygons(polygonsA1);
 
+    // must simplify before smoothing, or densified coordinates may be in the way
     PPGeometry.cleanAndSimplify(polyData);
+    polyData = PPGeometry.smoothPolygons(polyData, 5);
+
+
 
     const workerOutput: IWorkerPolyOutput = {
         polyData

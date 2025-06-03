@@ -39,8 +39,8 @@ self.onmessage = (e) => {
     multiPolyline018 = PPGeometry.bboxClipMultiPolyline(multiPolyline018, workerInput.bboxMap4326);
     multiPolyline035 = PPGeometry.bboxClipMultiPolyline(multiPolyline035, workerInput.bboxMap4326);
 
-    PPGeometry.cleanAndSimplify(multiPolyline018);
-    PPGeometry.cleanAndSimplify(multiPolyline035);
+    // PPGeometry.cleanAndSimplify(multiPolyline018);
+    // PPGeometry.cleanAndSimplify(multiPolyline035);
 
     const workerOutput: IWorkerLineOutput = {
         multiPolyline018,

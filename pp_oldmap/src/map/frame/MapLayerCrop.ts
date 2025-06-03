@@ -1,10 +1,11 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, GeoJsonProperties, LineString, Position } from "geojson";
+import { BBox, Feature, FeatureCollection, GeoJsonProperties, LineString, Polygon, Position } from "geojson";
 import { ISurface } from '../../util/ISurface';
 import { JsonLoader } from '../../util/JsonLoader';
 import { Surface } from '../../util/Surface';
 import { AMapLayer } from "../AMapLayer";
 import { MapLayerFrame } from './MapLayerFrame';
+import { GeoJsonLoader } from '../../util/GeoJsonLoader';
 
 export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -18,14 +19,16 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
     coordinateLR4326Crop: Position = [0, 0];
 
     private surfacePath: string;
+    private readonly shadeMin: number;
 
-    constructor(name: string, surfacePath: string) {
+    constructor(name: string, surfacePath: string, shadeMin: number) {
         super(name, {
             accepts: () => {
                 return false;
             }
         });
         this.surfacePath = surfacePath;
+        this.shadeMin = shadeMin;
     }
 
     getRectCoordinates3857(ul: Position, lr: Position): Position[] {
@@ -84,6 +87,12 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
         ];
         this.coordinateLR4326Crop = turf.toWgs84(this.coordinateLR3857Crop);
 
+        // const frameCrop = await new GeoJsonLoader().load<Polygon, GeoJsonProperties>('crop_hallein.geojson');
+        // this.polyData = {
+        //     type: 'MultiPolygon',
+        //     coordinates: [frameCrop.features[0].geometry.coordinates]
+        // };
+
         this.polyData = {
             type: 'MultiPolygon',
             coordinates: [
@@ -130,6 +139,10 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
         if (this.surfacePath !== '') {
 
             const surface = await new JsonLoader().load<ISurface>(this.surfacePath);
+
+            // const shadowLines = await new GeoJsonLoader().load<LineString, GeoJsonProperties>('shadowline_hallein.geojson');
+            // const shadowPolyline3857 = shadowLines.features[0];
+
             const shadowCoordinates3857: Position[] = [
                 turf.toWgs84([
                     this.coordinateUL3857Inner[0],
@@ -148,6 +161,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
                 type: 'LineString',
                 coordinates: shadowCoordinates3857
             });
+
             const length035 = turf.length(shadowPolyline3857, {
                 units: 'meters'
             });
@@ -159,7 +173,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
                     units: 'meters'
                 }).geometry.coordinates;
                 const position3857 = turf.toMercator(position4326);
-                const surfaceValue = (Surface.getSurfaceValue(surface, position3857) - 200) * (i % 2 == 0 ? 0.60 : 0.60);
+                const surfaceValue = (Surface.getSurfaceValue(surface, position3857) - this.shadeMin) * 0.60;
                 if (surfaceValue > 0) {
                     coordinates025.push([
                         turf.toWgs84([
@@ -175,6 +189,8 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
             }
 
         }
+
+
 
         coordinates018.push([ // upper crop mark
             turf.toWgs84([

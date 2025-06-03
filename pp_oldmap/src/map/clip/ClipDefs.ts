@@ -228,6 +228,15 @@ export class ClipDefs {
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
         {
+            layerNameDest: Map.LAYER__NAME_____BORDER,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
             layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
             layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
