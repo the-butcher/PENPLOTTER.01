@@ -1,4 +1,4 @@
-import { Button, CssBaseline, Stack, Step, StepContent, StepLabel, Stepper, Typography } from '@mui/material';
+import { Button, CssBaseline, Divider, Stack, Step, StepContent, StepLabel, Stepper, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import BluetoothSenderComponent from './components/BluetoothSenderComponent';
@@ -40,14 +40,7 @@ const STEP_DEF_PROPERTIES: IStepDefProperties[] = [
     valid: (fileSvgProperties: IFileSvgProperties, _confSvgProperties: ICnfASvgProperties, connBleProperties: IConnBleProperties) => {
       return fileSvgProperties.fileLabel !== '' && connBleProperties.success;
     }
-  },
-
-  // {
-  //   label: 'plot',
-  //   valid: (fileSvgProperties: IFileSvgProperties, _confSvgProperties: IConfSvgProperties, connBleProperties: IConnBleProperties, sendBleProperties: ISendBleProperties) => {
-  //     return fileSvgProperties.fileLabel !== '' && connBleProperties.success && sendBleProperties.lines.length > 0;
-  //   }
-  // }
+  }
 ];
 
 function RootApp() {
@@ -149,7 +142,7 @@ function RootApp() {
 
   const handlePenDone = () => {
 
-    console.debug(`📞 handling pen done`);
+    console.log(`📞 handling pen done`);
 
     sendBlePropertiesRef.current = {
       ...sendBlePropertiesRef.current,
@@ -159,7 +152,7 @@ function RootApp() {
 
     cnfBSvgPropertiesRef.current = {
       ...cnfBSvgPropertiesRef.current,
-      penId: ObjectUtil.createId()
+      // penId: ObjectUtil.createId()
     };
     setCnfBSvgProperties(cnfBSvgPropertiesRef.current);
 
@@ -169,7 +162,7 @@ function RootApp() {
 
   const handleCnfASvgProperties = (_cnfASvgProperties: Pick<ICnfASvgProperties, 'paperExtent' | 'connectSort' | 'keepTopLeft'>) => {
 
-    console.debug(`📞 handling cnfa svg properties (pathProperties)`, _cnfASvgProperties);
+    console.log(`📞 handling cnfa a properties (_cnfASvgProperties)`, _cnfASvgProperties);
 
     cnfASvgPropertiesRef.current = {
       ...cnfASvgPropertiesRef.current,
@@ -181,7 +174,7 @@ function RootApp() {
 
   const handleCnfBSvgProperties = (_cnfBSvgProperties: Pick<ICnfBSvgProperties, 'penMaxSpeed' | 'penId'>) => {
 
-    console.debug(`📞 handling cnfn svg properties (pathProperties)`, _cnfBSvgProperties);
+    console.log(`📞 handling cnfn b properties (_cnfBSvgProperties)`, _cnfBSvgProperties);
 
     cnfBSvgPropertiesRef.current = {
       ...cnfBSvgPropertiesRef.current,
@@ -224,7 +217,7 @@ function RootApp() {
     paperExtent: {
       xMin: 0,
       yMin: 0,
-      xMax: 200, // 200
+      xMax: 176, // 200
       yMax: 148  // 148
     },
     connectSort: true,
@@ -246,7 +239,7 @@ function RootApp() {
     extent: {
       xMin: 0,
       yMin: 0,
-      xMax: 210, // A5
+      xMax: 176, // A5
       yMax: 148  // A5
     },
     selId: ObjectUtil.createId(),
@@ -274,7 +267,8 @@ function RootApp() {
 
   const sendBlePropertiesRef = useRef<ISendBleProperties>({
     lines: [],
-    handlePenDone
+    handlePenDone,
+    penId: ObjectUtil.createId()
   });
   const [sendBleProperties, setSendBleProperties] = useState<ISendBleProperties>(sendBlePropertiesRef.current);
 
@@ -296,11 +290,17 @@ function RootApp() {
         }
       });
       penIds.sort();
+
       console.log('penIds from file', penIds);
+      let penId = ObjectUtil.createId();
+      if (penIds.indexOf('c018') !== -1) {
+        penId = 'c018';
+      }
 
       cnfBSvgPropertiesRef.current = {
         ...cnfBSvgPropertiesRef.current,
-        penIds
+        penIds,
+        penId
       };
       setCnfBSvgProperties(cnfBSvgPropertiesRef.current);
 
@@ -353,8 +353,8 @@ function RootApp() {
         overallExtent.yMax = (fileSvgProperties.extent.yMax - fileSvgProperties.extent.yMin) * scale;
       }
 
-      // TODO :: REMOVE (start at position)
-      // cnfBSvgProperties.penId = 'v025'
+      // // TODO :: REMOVE (start at position)
+      // cnfBSvgProperties.penId = 'h018'
 
       const isPenIdSet = ObjectUtil.isPenIdSet(cnfBSvgProperties.penId);
 
@@ -389,7 +389,8 @@ function RootApp() {
       }, linepathNoShorts, cnfASvgProperties.connectSort);
 
       // TODO :: REMOVE (start at position)
-      // const skipCount = 446;
+      // console.log('linepathConnecteds', linepathConnecteds.length);
+      // const skipCount = 21180;
       // // linepathConnecteds.splice(skipCount, linepathConnecteds.length - skipCount);
       // linepathConnecteds.splice(0, skipCount);
       // if (linepathConnecteds.length > 0) {
@@ -430,7 +431,8 @@ function RootApp() {
       if (isPenIdSet) {
         sendBlePropertiesRef.current = {
           ...sendBlePropertiesRef.current,
-          lines: plottableLines
+          lines: plottableLines,
+          penId: cnfBSvgProperties.penId
         };
         setSendBleProperties(sendBlePropertiesRef.current);
       }
@@ -464,7 +466,7 @@ function RootApp() {
               width: '250px'
             }}
           >
-            <Step key={'pick'}
+            <Step key={'pick'} active={true}
               sx={{
                 width: 'inherit'
               }}
@@ -482,7 +484,7 @@ function RootApp() {
                 }
               </StepContent>
             </Step>
-            <Step key={'cnfa'}>
+            <Step key={'cnfa'} active={true}>
               <StepLabel>
                 configure
               </StepLabel>
@@ -496,12 +498,19 @@ function RootApp() {
                   }}
                 >
                   <CnfASvgComponent {...cnfASvgProperties} />
-                  {
+                  <Divider
+                    sx={{
+                      marginTop: '6px',
+                      marginBottom: '24px'
+                    }}
+                  />
+                  <CnfBSvgComponent {...cnfBSvgProperties} />
+                  {/* {
                     connBleProperties.device ? <BluetoothSenderComponent {...{
                       ...connBleProperties,
                       ...sendBleProperties
                     }} /> : null
-                  }
+                  } */}
                 </Stack>
               </StepContent>
             </Step>
@@ -571,7 +580,7 @@ function RootApp() {
                     paddingTop: '12px'
                   }}
                 >
-                  <CnfBSvgComponent {...cnfBSvgProperties} />
+                  {/* <CnfBSvgComponent {...cnfBSvgProperties} /> */}
                   {
                     connBleProperties.device ? <BluetoothSenderComponent {...{
                       ...connBleProperties,

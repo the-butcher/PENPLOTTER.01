@@ -2,17 +2,18 @@
 import AdjustIcon from '@mui/icons-material/Adjust';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import DrawIcon from '@mui/icons-material/Draw';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { Button, Divider, FormControl, Grid, IconButton, MenuItem, Select, Slider, Typography } from '@mui/material';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControl, Grid, IconButton, MenuItem, Select, Slider, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { BlockUtil } from '../util/BlockUtil';
 import { GeometryUtil } from '../util/GeometryUtil';
 import { IBlockPlanar, IConnBleProperties, ISendBleProperties } from '../util/Interfaces';
 import { UNO_R4_SERVICE_UUID } from './PickDeviceComponent';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 export const CHARACTERISTIC_BUFF_SIZE = '067c3c93-eb63-4905-b292-478642f8ae99';
 export const CHARACTERISTIC_BUFF_VALS = 'd3116fb9-adc1-4fc4-9cb4-ceb48925fa1b';
@@ -22,7 +23,7 @@ export type GATT_OPERATION_TYPE = 'buffsize' | 'position' | 'blockbytes' | 'none
 
 function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties) {
 
-    const { lines, device, handleConnBleProperties, handlePenDone } = props;
+    const { lines, penId, device, handleConnBleProperties, handlePenDone } = props;
 
     // const [connectionState, setConnectionState] = useState<IConnBleProperties>({
     //     success: true,
@@ -37,8 +38,12 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     const [buffSize, setBuffSize] = useState<number>(GeometryUtil.BT___BUFF_MAX);
     const [position, setPosition] = useState<IBlockPlanar>();
 
-    const [buffCoords, setBuffCoords] = useState<IBlockPlanar[]>([]);
-    const [buffCoordsTotal, setBuffCoordsTotal] = useState<number>(0);
+    // temporary storage for blocks
+    const [buffCoordCache, setBuffCoordCache] = useState<IBlockPlanar[]>([]);
+
+    // actual feed for blocks
+    const [buffCoordQueue, setBuffCoordQueue] = useState<IBlockPlanar[]>([]);
+    const [buffCoordTotal, setBuffCoordTotal] = useState<number>(0);
 
     const blockBytesRef = useRef<Uint8Array<ArrayBufferLike>>();
 
@@ -59,8 +64,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     const writeBlockBytesTo = useRef<number>(-1);
 
     const abortPen = () => {
-        setBuffCoords([]);
-        setBuffCoordsTotal(0);
+        setBuffCoordQueue([]);
+        setBuffCoordTotal(0);
         setBuffSize(GeometryUtil.BT___BUFF_MAX);
         handlePenDone();
     }
@@ -81,7 +86,13 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             });
         }
         // console.log('moving pen to', _buffCoords)
-        setBuffCoords(_buffCoords);
+        setBuffCoordQueue(_buffCoords);
+
+    }
+
+    const flushCacheToQueue = () => {
+
+        setBuffCoordQueue([...buffCoordCache]);
 
     }
 
@@ -105,7 +116,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 vo: 5
             });
         }
-        setBuffCoords(_buffCoords);
+        setBuffCoordQueue(_buffCoords);
 
     }
 
@@ -265,8 +276,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 vi = vo;
             }
 
-            setBuffCoords(_buffCords);
-            setBuffCoordsTotal(_buffCords.length);
+            setBuffCoordCache(_buffCords);
+            setBuffCoordTotal(_buffCords.length);
         }
 
     }, [lines]);
@@ -461,11 +472,11 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.log('⚙ updating BluetoothSenderComponent (buffSize)', buffSize);
 
-        if (!blockBytesRef.current && buffCoords.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4) {
+        if (!blockBytesRef.current && buffCoordQueue.length > 0 && buffSize > GeometryUtil.BT___BUFF_BLK * 4) {
 
             blockBytesRef.current = new Uint8Array(); // assign,something right awys, so another buff size read does not get the opportunity to rewrite
 
-            const _blockCoordsSplice = buffCoords.splice(0, GeometryUtil.BT___BUFF_BLK);
+            const _blockCoordsSplice = buffCoordQueue.splice(0, GeometryUtil.BT___BUFF_BLK);
             // fill to GeometryUtil.BT___BUFF_BLK entries in case the splice command provided less than GeometryUtil.BT___BUFF_BLK (happens at the end of file)
             while (_blockCoordsSplice.length < GeometryUtil.BT___BUFF_BLK) {
                 _blockCoordsSplice.push({
@@ -477,16 +488,16 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 });
             };
 
-            console.log('_blockCoordsSplice', _blockCoordsSplice);
+            // console.log('_blockCoordsSplice', _blockCoordsSplice);
 
             blockBytesRef.current = BlockUtil.createBlockBytes(_blockCoordsSplice);
             writeBlockBytes();
 
-        } else if (buffCoords.length === 0 && buffSize === GeometryUtil.BT___BUFF_MAX) {
+        } else if (buffCoordQueue.length === 0 && buffSize === GeometryUtil.BT___BUFF_MAX) {
             handlePenDone();
         }
 
-    }, [buffSize, buffCoords]);
+    }, [buffSize, buffCoordQueue]);
 
     useEffect(() => {
 
@@ -503,164 +514,220 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     }, [buffSizeCharacteristic, buffValsCharacteristic, positionCharacteristic]);
 
+    const [open, setOpen] = useState(false);
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
     return (
 
-        <Grid container spacing={2} sx={{ alignItems: 'top' }}>
+        <>
 
-            <Grid item xs={12}>
-                <Divider
-                    style={{
-                        margin: '10px 0px 10px 0px',
-                        padding: '10px 0px 10px 0px'
-                    }}
-                />
-            </Grid>
+            <Grid container spacing={2} sx={{ alignItems: 'top' }}>
 
-            <Grid item xs={12}>
-                <FormControl sx={{
-                    width: 'calc(100% - 10px)',
-
-                }} size="small"
-                >
-                    <Select
-                        value={penDistance}
+                <Grid item xs={12}>
+                    <Divider
                         style={{
-                            width: '100%',
-                            height: '32px'
+                            margin: '10px 0px 10px 0px',
+                            padding: '10px 0px 10px 0px'
                         }}
-                        onChange={(e) => setPenDistance(e.target.value as number)}
+                    />
+                </Grid>
+
+                <Grid item xs={12}>
+                    <FormControl sx={{
+                        width: 'calc(100% - 10px)',
+
+                    }} size="small"
                     >
-                        {
-                            penDistances.map(_penDistance =>
-                                <MenuItem key={`p${_penDistance * 100}`} value={_penDistance}>{`${_penDistance.toFixed(2)} mm`}</MenuItem>
-                            )
-                        }
-
-                    </Select>
-                </FormControl>
-            </Grid>
-
-            <Grid item xs={3}></Grid>
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="y-axis up" onClick={() => movePenYUp()}>
-                    <KeyboardArrowUpIcon />
-                </IconButton>
-            </Grid>
-            <Grid item xs={3}></Grid>
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="pen up" onClick={() => movePenZUp()}>
-                    <ArrowUpwardIcon />
-                </IconButton>
-            </Grid>
-
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="x-axis left" onClick={() => movePenXLeft()}>
-                    <KeyboardArrowLeftIcon />
-                </IconButton>
-            </Grid>
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="pen home" onClick={() => movePenHome()}>
-                    <AdjustIcon />
-                </IconButton>
-            </Grid>
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="x-axis right" onClick={() => movePenXRight()}>
-                    <KeyboardArrowRightIcon />
-                </IconButton>
-            </Grid>
-            <Grid item xs={3}></Grid>
-
-            <Grid item xs={3}></Grid>
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="y-axis down" onClick={() => movePenYDown()}>
-                    <KeyboardArrowDownIcon />
-                </IconButton>
-            </Grid>
-            <Grid item xs={3}></Grid>
-            <Grid item xs={3}>
-                <IconButton disabled={!positionCharacteristic} aria-label="pen down" onClick={() => movePenZDown()}>
-                    <ArrowDownwardIcon />
-                </IconButton>
-            </Grid>
-            <Grid item xs={12}>
-                <Button
-                    disabled={!positionCharacteristic}
-                    variant={'contained'}
-                    onClick={() => resetAtPosition()}
-                    startIcon={<RestartAltIcon />}
-                    sx={{
-                        width: 'calc(100% - 11px)',
-                        margin: '0px 0px 10px 1px'
-                    }}
-                >
-                    reset here
-                </Button>
-            </Grid>
-            <Grid item xs={12}>
-                <Divider
-                    style={{
-                        margin: '0px 0px 10px 0px'
-                    }}
-                />
-            </Grid>
-
-            <Grid item xs={12}>
-                <Typography variant='caption'>{GeometryUtil.BT___BUFF_MAX - buffSize}/{GeometryUtil.BT___BUFF_MAX}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-                <Slider
-                    size='small'
-                    disabled={buffSize === GeometryUtil.BT___BUFF_MAX}
-                    value={GeometryUtil.BT___BUFF_MAX - buffSize}
-                    aria-labelledby="input-slider"
-                    max={GeometryUtil.BT___BUFF_MAX}
-                    min={0}
-                    marks={
-                        [
+                        <Select
+                            value={penDistance}
+                            style={{
+                                width: '100%',
+                                height: '32px'
+                            }}
+                            onChange={(e) => setPenDistance(e.target.value as number)}
+                        >
                             {
-                                value: GeometryUtil.BT___BUFF_MAX - GeometryUtil.BT___BUFF_BLK * 4,
-                                label: `${GeometryUtil.BT___BUFF_BLK * 4}`
+                                penDistances.map(_penDistance =>
+                                    <MenuItem key={`p${_penDistance * 100}`} value={_penDistance}>{`${_penDistance.toFixed(2)} mm`}</MenuItem>
+                                )
                             }
-                        ]
-                    }
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <Typography variant='caption'>{buffCoords.length}/{buffCoordsTotal}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-                <Slider
-                    size='small'
-                    disabled={buffCoords.length === 0}
-                    value={buffCoords.length}
-                    aria-labelledby="input-slider"
-                    max={buffCoordsTotal}
-                    min={0}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <Divider
-                    style={{
-                        padding: '10px 0px 10px 0px'
-                    }}
-                />
-            </Grid>
+
+                        </Select>
+                    </FormControl>
+                </Grid>
+
+                <Grid item xs={3}></Grid>
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="y-axis up" onClick={() => movePenYUp()}>
+                        <KeyboardArrowUpIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={3}></Grid>
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="pen up" onClick={() => movePenZUp()}>
+                        <ArrowUpwardIcon />
+                    </IconButton>
+                </Grid>
+
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="x-axis left" onClick={() => movePenXLeft()}>
+                        <KeyboardArrowLeftIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="pen home" onClick={() => movePenHome()}>
+                        <AdjustIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="x-axis right" onClick={() => movePenXRight()}>
+                        <KeyboardArrowRightIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={3}></Grid>
+
+                <Grid item xs={3}></Grid>
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="y-axis down" onClick={() => movePenYDown()}>
+                        <KeyboardArrowDownIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={3}></Grid>
+                <Grid item xs={3}>
+                    <IconButton disabled={!positionCharacteristic} aria-label="pen down" onClick={() => movePenZDown()}>
+                        <ArrowDownwardIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={12}>
+                    <Button
+                        disabled={!positionCharacteristic}
+                        variant={'contained'}
+                        onClick={() => resetAtPosition()}
+                        startIcon={<RestartAltIcon />}
+                        sx={{
+                            width: 'calc(100% - 11px)',
+                            margin: '0px 0px 10px 1px'
+                        }}
+                    >
+                        reset here
+                    </Button>
+                </Grid>
+                <Grid item xs={12}>
+                    <Divider
+                        style={{
+                            margin: '0px 0px 10px 0px'
+                        }}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <Button
+                        disabled={buffCoordCache.length === 0 || buffCoordQueue.length > 0}
+                        variant="contained"
+                        onClick={() => handleClickOpen()}
+                        startIcon={<DrawIcon />}
+                        sx={{
+                            width: 'calc(100% - 11px)',
+                            margin: '0px 0px 10px 1px'
+                        }}
+                    >
+                        flush pen
+                    </Button>
+                </Grid>
+                <Grid item xs={12}>
+                    <Divider
+                        style={{
+                            margin: '0px 0px 10px 0px'
+                        }}
+                    />
+                </Grid>
+
+                <Grid item xs={12}>
+                    <Typography variant='caption'>{GeometryUtil.BT___BUFF_MAX - buffSize}/{GeometryUtil.BT___BUFF_MAX}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                    <Slider
+                        size='small'
+                        disabled={buffSize === GeometryUtil.BT___BUFF_MAX}
+                        value={GeometryUtil.BT___BUFF_MAX - buffSize}
+                        aria-labelledby="input-slider"
+                        max={GeometryUtil.BT___BUFF_MAX}
+                        min={0}
+                        marks={
+                            [
+                                {
+                                    value: GeometryUtil.BT___BUFF_MAX - GeometryUtil.BT___BUFF_BLK * 4,
+                                    label: `${GeometryUtil.BT___BUFF_BLK * 4}`
+                                }
+                            ]
+                        }
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <Typography variant='caption'>{buffCoordQueue.length}/{buffCoordTotal}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                    <Slider
+                        size='small'
+                        disabled={buffCoordQueue.length === 0}
+                        value={buffCoordQueue.length}
+                        aria-labelledby="input-slider"
+                        max={buffCoordTotal}
+                        min={0}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <Divider
+                        style={{
+                            padding: '10px 0px 10px 0px'
+                        }}
+                    />
+                </Grid>
+
+            </Grid >
             <Grid item xs={12}>
                 <Button
-                    disabled={buffCoords.length === 0}
+                    disabled={buffCoordQueue.length === 0}
                     variant="contained"
                     onClick={() => abortPen()}
                     sx={{
-                        width: '100%'
-                        // marginTop: '10px'
+                        width: 'calc(100% - 11px)',
+                        margin: '10px 0px 10px 1px'
                     }}
                 >
                     abort pen
                 </Button>
             </Grid>
-        </Grid >
 
+            <Dialog
+                open={open}
+                onClose={handleClose}
+            >
+                <DialogTitle>
+                    {`flush to device?`}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        {`there are ${buffCoordTotal} blocks from pen ${penId} ready to be flushed. by clicking 'yes' these blocks will be transferred to the device.`}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>no</Button>
+                    <Button onClick={() => {
+                        handleClose();
+                        flushCacheToQueue();
+                    }} autoFocus>
+                        yes
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
+        </>
 
     );
 }

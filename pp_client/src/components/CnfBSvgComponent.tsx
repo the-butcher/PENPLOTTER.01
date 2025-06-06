@@ -1,4 +1,5 @@
-import DrawIcon from '@mui/icons-material/Draw';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Divider, Grid, IconButton, Slider, TextField, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { ICnfBSvgProperties } from '../util/Interfaces';
@@ -84,25 +85,28 @@ function CnfBSvgComponent(props: ICnfBSvgProperties) {
                     }}
                 />
             </Grid>
-            {penIds.map((penId) => (
+            {penIds.map((_penId) => (
                 <>
 
-
-                    <Grid item xs={9} key={`t${penId}`}>
+                    <Grid item xs={3} key={`b${_penId}`}>
+                        <IconButton
+                            aria-label="comment"
+                            onClick={() => handlePenIdButtonClick(_penId)}
+                        >
+                            {
+                                penId === _penId ? <RadioButtonCheckedIcon color='primary' /> : <RadioButtonUncheckedIcon />
+                            }
+                            {/* <DrawIcon /> */}
+                        </IconButton>
+                    </Grid>
+                    <Grid item xs={9} key={`t${_penId}`}>
                         <Typography
                             style={{
                                 marginTop: '10px'
                             }}
-                        >{`pen ${penId}`}</Typography>
+                        >{`pen ${_penId}`}</Typography>
                     </Grid>
-                    <Grid item xs={3} key={`b${penId}`}>
-                        <IconButton
-                            aria-label="comment"
-                            onClick={() => handlePenIdButtonClick(penId)}
-                        >
-                            <DrawIcon />
-                        </IconButton>
-                    </Grid>
+
 
                 </>
             ))}

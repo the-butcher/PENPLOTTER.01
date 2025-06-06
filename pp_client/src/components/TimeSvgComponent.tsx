@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ILine2D, ITimeSvgProperties } from "../util/Interfaces";
 import LineSvgComponent from "./LineSvgComponent";
 import { Stack, Typography } from "@mui/material";
+import { GeometryUtil } from "../util/GeometryUtil";
 
 function TimeSvgComponent(props: ITimeSvgProperties) {
 
@@ -37,6 +38,8 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
 
         let scndsL: number;
         let scndsT = 0; // total seconds
+        let mmsT = 0;
+        let cntT = 0;
 
         for (let i = 0; i < _lines3D.length; i++) {
 
@@ -46,6 +49,13 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
             speedO = _lines3D[i].speedB;
             scndsL = _lines3D[i].length * 2 / (speedI + speedO);
             scndsT += scndsL;
+
+            if (_lines3D[i].coordA.z === GeometryUtil.Z_VALUE_PEN_D && _lines3D[i].coordB.z === GeometryUtil.Z_VALUE_PEN_D) {
+                mmsT += _lines3D[i].length;
+            } else if (_lines3D[i].coordA.z !== GeometryUtil.Z_VALUE_PEN_D && _lines3D[i].coordB.z === GeometryUtil.Z_VALUE_PEN_D) {
+                cntT++;
+            }
+
 
             if (speedI + speedO === 0) {
                 console.warn('zero speeds', i, _lines3D[i]);
@@ -95,7 +105,7 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
         const hrsT = Math.floor(scndsT / 3600)
         const minT = Math.floor((scndsT / 60) % 60);
         const secT = Math.round(scndsT % 60);
-        setTotalTime(`${hrsT.toString().padStart(2, '0')}:${minT.toString().padStart(2, '0')}:${secT.toString().padStart(2, '0')} (${Math.round(scndsT)}s)`);
+        setTotalTime(`${hrsT.toString().padStart(2, '0')}:${minT.toString().padStart(2, '0')}:${secT.toString().padStart(2, '0')} (${Math.round(scndsT)}s), ${cntT} lines, ${Math.round(mmsT).toLocaleString()}mm`);
 
     }, [_lines3D]);
 
@@ -106,7 +116,7 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
             }}
         >
             <Typography>{totalTime}</Typography>
-            <svg
+            {/* <svg
                 style={{
                     height,
                     width
@@ -119,7 +129,7 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
                 {
                     brdrs.map(b => <LineSvgComponent key={b.id} {...b} strokeWidth={0.2} stroke={'red'} selId={selId} handleLineClick={handleLineClick} />)
                 }
-            </svg >
+            </svg > */}
         </Stack>
     )
 }

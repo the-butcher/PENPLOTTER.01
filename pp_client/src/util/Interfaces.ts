@@ -32,6 +32,7 @@ export interface IConnBleProperties {
 export interface ISendBleProperties {
     lines: ILine3D[];
     handlePenDone: () => void;
+    penId: string;
     // device?: BluetoothDevice;
     // handleConnectionState: (state: IConnBleProperties) => void;
 }
