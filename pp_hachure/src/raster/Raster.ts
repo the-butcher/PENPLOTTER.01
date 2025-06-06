@@ -18,6 +18,7 @@ export class Raster {
 
     static RAD2DEG = 180 / Math.PI;
     static DEG2RAD = Math.PI / 180;
+    static NO_DATA = 0;
 
     static getSampleRange(rasterData: Pick<IRasterDataProps, 'data' | 'width' | 'height'>): IRange {
         let pixelIndex: number;
@@ -28,10 +29,18 @@ export class Raster {
             for (let x = 0; x < rasterData.width; x++) {
                 pixelIndex = (y * rasterData.width + x);
                 valCur = rasterData.data[pixelIndex];
-                valMin = Math.min(valMin, valCur);
-                valMax = Math.max(valMax, valCur);
+                if (valCur != Raster.NO_DATA) {
+                    valMin = Math.min(valMin, valCur);
+                    valMax = Math.max(valMax, valCur);
+                }
             }
         }
+        // valMin = 10832;
+        // valMax = 30646;
+        console.log('sampleRange', {
+            min: valMin,
+            max: valMax
+        });
         return {
             min: valMin,
             max: valMax
