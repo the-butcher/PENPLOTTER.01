@@ -169,7 +169,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
                             } else if (roadIntersects.features.length > MapLayerRoad2.bufferDistanceMin) {
 
-                                console.log('roadIntersects', bridgeCategoryIndex, roadCategoryIndex, roadIntersects);
+                                // console.log('roadIntersects', bridgeCategoryIndex, roadCategoryIndex, roadIntersects);
 
                                 // we need to find out if the first point on the bridge is within or not within the road polygon to know which segments are actually crossing the road
                                 const firstPointOfBridge: Point = {
@@ -178,7 +178,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                                 }
                                 const firstPointWithin = turf.booleanWithin(firstPointOfBridge, this.roadPolygons[roadCategoryIndex]);
                                 const startIndex = firstPointWithin ? 1 : 0;
-                                console.log('startIndex', startIndex);
+                                // console.log('startIndex', startIndex);
 
                                 for (let intersectIndex = startIndex; intersectIndex < roadIntersects.features.length - 1; intersectIndex += 2) {
 
@@ -196,7 +196,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                                     ];
                                     locations = locations.sort((a, b) => a - b);
 
-                                    console.log('locations', locations);
+                                    // console.log('locations', locations);
 
                                     const _subbridgePolyline = turf.lineSliceAlong(_bridgePolyline, locations[0], locations[1], {
                                         units: 'meters'
@@ -457,7 +457,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
                 openEnds.push(...this.findOpenEnds(roadCategoryIndexA, roadPolylineIndexA, bboxMap4326));
             }
         }
-        console.log('openEnds', openEnds);
+        // console.log('openEnds', openEnds);
 
         const openPoly: MultiPolygon = PPGeometry.emptyMultiPolygon();
         openEnds.forEach(openEnd => {
@@ -550,7 +550,7 @@ export class MapLayerRoad2 extends AMapLayer<LineString, ISymbolProperties> {
 
         // debug
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[0].coordinates);
-        this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
+        // this.multiPolyline018.coordinates.push(...this.bridgePolylines[1].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[2].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[3].coordinates);
         // this.multiPolyline018.coordinates.push(...this.bridgePolylines[4].coordinates);

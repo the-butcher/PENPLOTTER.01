@@ -26,11 +26,14 @@ export class Map {
     static readonly LAYER__NAME___LOCATION = "l___location";
     static readonly LAYER__NAME______FRAME = "l______frame";
     static readonly LAYER__NAME_______CROP = "l_______crop";
+    static readonly LAYER__NAME______STAMP = "l______stamp";
     static readonly LAYER__NAME____RAILWAY = "l____railway";
     static readonly LAYER__NAME_______TRAM = "l_______tram";
     static readonly LAYER__NAME__SHIP_LINE = "l__ship_line";
-    static readonly LAYER__NAME_____BORDER = "l_____border";
-    static readonly LAYER__NAME__BORDER_TX = "l__border_tx";
+    static readonly LAYER__NAME___BORDER_N = "l___border_n";
+    static readonly LAYER__NAME___BORDER_C = "l___border_c";
+    static readonly LAYER__NAME_BORDER_TXN = "l_border_txn";
+    static readonly LAYER__NAME_BORDER_TXC = "l_border_txc";
     static readonly LAYER__NAME______ROADS = "l______roads";
     static readonly LAYER__NAME_____BRIDGE = "l_____bridge";
     static readonly LAYER__NAME_____TUNNEL = "l_____tunnel";

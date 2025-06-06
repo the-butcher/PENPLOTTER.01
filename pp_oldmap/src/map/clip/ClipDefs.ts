@@ -181,8 +181,14 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
-            layerNameClip: Map.LAYER__NAME_____BORDER,
-            distance: 9,
+            layerNameClip: Map.LAYER__NAME_______TRAM,
+            distance: 2,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME___BORDER_C,
+            distance: 0,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -190,7 +196,34 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME____HACHURE,
-            layerNameClip: Map.LAYER__NAME__BORDER_TX,
+            layerNameClip: Map.LAYER__NAME___BORDER_N,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____HACHURE,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME____CONTOUR,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
             distance: 9,
             status: 'pending',
             options: {
@@ -199,8 +232,8 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME____CONTOUR,
-            layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 9,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
+            distance: 0,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -208,8 +241,17 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME_VEGETATION,
-            layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 9,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_VEGETATION,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
+            distance: 0,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -217,8 +259,35 @@ export class ClipDefs {
         },
         {
             layerNameDest: Map.LAYER__NAME__GREENAREA,
-            layerNameClip: Map.LAYER__NAME__BORDER_TX,
-            distance: 9,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__GREENAREA,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
+            distance: 12,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME_CONTOUR_TX,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
+            distance: 12,
             status: 'pending',
             options: {
                 skipMlt: false
@@ -228,7 +297,16 @@ export class ClipDefs {
         // FRAME (as clipping layer)
         /////////////////////////////////////////////
         {
-            layerNameDest: Map.LAYER__NAME_____BORDER,
+            layerNameDest: Map.LAYER__NAME___BORDER_C,
+            layerNameClip: Map.LAYER__NAME_______CROP,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___BORDER_N,
             layerNameClip: Map.LAYER__NAME_______CROP,
             distance: 0,
             status: 'pending',
@@ -378,6 +456,24 @@ export class ClipDefs {
             }
         },
         {
+            layerNameDest: Map.LAYER__NAME__BUILDINGS,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
+            layerNameDest: Map.LAYER__NAME__BUILDINGS,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
+            distance: 0,
+            status: 'pending',
+            options: {
+                skipMlt: false
+            }
+        },
+        {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME_____CHURCH,
             distance: 0,
@@ -390,8 +486,44 @@ export class ClipDefs {
             status: 'pending'
         },
         {
+            layerNameDest: Map.LAYER__NAME___BORDER_C,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___BORDER_N,
+            layerNameClip: Map.LAYER__NAME_____SUMMIT,
+            distance: 0,
+            status: 'pending'
+        },
+        {
             layerNameDest: Map.LAYER__NAME______ROADS,
             layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___BORDER_C,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME___BORDER_N,
+            layerNameClip: Map.LAYER__NAME___LOCATION,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME______ROADS,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXC,
+            distance: 0,
+            status: 'pending'
+        },
+        {
+            layerNameDest: Map.LAYER__NAME______ROADS,
+            layerNameClip: Map.LAYER__NAME_BORDER_TXN,
             distance: 0,
             status: 'pending'
         },

@@ -31,6 +31,8 @@ import { MapLayerBridge2 } from "../map/road2/MapLayerBridge2";
 import { MapLayerTunnels } from "../map/tunnel/MapLayerTunnels";
 import { MapLayerPoints } from "../map/point/MapLayerPoints";
 import { MapLayerCrop } from "../map/frame/MapLayerCrop";
+import { Layout } from "../map/frame/Layout";
+import { MapLayerStamp } from "../map/frame/MapLayerStamp";
 
 export type TMapContainer = 'canvas' | 'svg';
 export type TGeomentryType = 'polygon' | 'polyline';
@@ -64,7 +66,7 @@ function MapComponent() {
 
     console.debug("✨ building map component");
 
-    const _mapDef = MapDefs.MAP_DEF____SEMMERING;
+    const _mapDef = MapDefs.MAP_DEF______HALLEIN;
 
     const _map = new Map({
 
@@ -180,15 +182,15 @@ function MapComponent() {
         //     }
         //   }, l => l.multiPolyline025, [16, 4])
         // },
-        {
-          createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
-              const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
-              return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
-            }
-          })
-        },
+        // {
+        //   createLayerInstance: () => new MapLayerRoad2(Map.LAYER__NAME______ROADS, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       const isGipOrBridge = vectorTileFeature.layerName === 'GIP_L_GIP_144' || vectorTileFeature.layerName === 'GIP_BAUWERK_L_BRÜCKE';
+        //       const isCommonRoad = vectorTileFeature.hasValue('_symbol', 0, 1, 2, 3, 4, 5, 6, 7, 8); // 0, 1, 2, 3, 4, 5, 6, 7, 8
+        //       return vectorTileKey.lod === 15 && isGipOrBridge && isCommonRoad;
+        //     }
+        //   })
+        // },
         // {
         //   createLayerInstance: () => new MapLayerBridge2(Map.LAYER__NAME_____BRIDGE, {
         //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -198,13 +200,13 @@ function MapComponent() {
         //     }
         //   })
         // },
-        {
-          createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
-            accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-              return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
-            }
-          })
-        },
+        // {
+        //   createLayerInstance: () => new MapLayerTunnels(Map.LAYER__NAME_____TUNNEL, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       return vectorTileKey.lod === 15 && vectorTileFeature.layerName === 'GIP_BAUWERK_L_TUNNEL_BRUNNENCLA';
+        //     }
+        //   })
+        // },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME_____SUMMIT, {
         //     accepts: (_vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
@@ -218,18 +220,6 @@ function MapComponent() {
         //       return vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'GEONAMEN_P_KIRCHE_KAPELLE'
         //     }
         //   }, 'createChurchSymbol', _mapDef.labelDefs, '')
-        // },
-        // {
-        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME_____BORDER, {
-        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
-        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
-        //         console.log('vectorTileFeature', vectorTileKey, vectorTileFeature);
-        //         return true;
-        //       } else {
-        //         return false;
-        //       }
-        //     }
-        //   }, l => l.multiPolyline050, [20, 50], 0)
         // },
         // {
         //   createLayerInstance: () => new MapLayerPoints(Map.LAYER__NAME___LOCATION, {
@@ -260,7 +250,32 @@ function MapComponent() {
         //   }, _mapDef.labelDefs, _mapDef.contours)
         // },
         // {
-        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME__BORDER_TX, {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME___BORDER_C, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, l => l.multiPolyline035, [20, 20], 0, {}, 'gemeinden_single.geojson')
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME_BORDER_TXC, {
+        //     accepts: () => {
+        //       return false;
+        //     }
+        //   }, _mapDef.labelDefs, 'gemeinden_double.geojson')
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLines(Map.LAYER__NAME___BORDER_N, {
+        //     accepts: (vectorTileKey: IVectorTileKey, vectorTileFeature: IVectorTileFeature) => {
+        //       if (vectorTileKey.lod === 14 && vectorTileFeature.layerName === 'BEV_STAAT_L_STAATSGRENZE') {
+        //         return true;
+        //       } else {
+        //         return false;
+        //       }
+        //     }
+        //   }, l => l.multiPolyline050, [20, 50], 0) //
+        // },
+        // {
+        //   createLayerInstance: () => new MapLayerLineLabel(Map.LAYER__NAME_BORDER_TXN, {
         //     accepts: () => {
         //       return false;
         //     }
@@ -274,10 +289,13 @@ function MapComponent() {
         //   }, [2, -2], 500, {}, _mapDef.clippoly)
         // },
         {
-          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, _mapDef.magnNord)
+          createLayerInstance: () => new MapLayerFrame(Map.LAYER__NAME______FRAME, _mapDef.magnNord, Layout.LAYOUT__PORTRAIT)
         },
         {
-          createLayerInstance: () => new MapLayerCrop(Map.LAYER__NAME_______CROP, _mapDef.surface, _mapDef.shadeMin)
+          createLayerInstance: () => new MapLayerCrop(Map.LAYER__NAME_______CROP, _mapDef.surface, _mapDef.shadeMin, Layout.LAYOUT__PORTRAIT)
+        },
+        {
+          createLayerInstance: () => new MapLayerStamp(Map.LAYER__NAME______STAMP, Layout.LAYOUT__PORTRAIT)
         },
 
 
@@ -309,13 +327,14 @@ function MapComponent() {
 
     const layer = map!.findLayerByName(id);
 
-    const polygons = PPGeometry.destructurePolygons(layer!.polyData);
-    const features = polygons.map(p => turf.feature(p));
-    const featureCollection = turf.featureCollection(features);
-
-    // const polylines050 = PPGeometry.destructurePolylines(layer!.multiPolyline035);
-    // const features = polylines050.map(p => turf.feature(p));
+    // const polygons = PPGeometry.destructurePolygons(layer!.polyData);
+    // const features = polygons.map(p => turf.feature(p));
     // const featureCollection = turf.featureCollection(features);
+    const featureCollection = turf.featureCollection([]);
+
+    const polylines = PPGeometry.destructurePolylines(layer!.multiPolyline050);
+    const features = polylines.map(p => turf.feature(p));
+    featureCollection.features.push(...features); // = turf.featureCollection(features);
 
     const a = document.createElement("a");
     const e = new MouseEvent("click");
@@ -439,9 +458,9 @@ function MapComponent() {
       const vectorTileUrlBmapv: IVectorTileUrl = {
         toUrl: (tileKey) => `https://nbfleischer.int.vertigis.com/bmapv/tile/${tileKey.lod}/${tileKey.row}/${tileKey.col}.pbf`
       };
-      collectTiles(Map.LOD_16, vectorTileUrlBmapv);
-      collectTiles(Map.LOD_15, vectorTileUrlBmapv);
-      collectTiles(Map.LOD_14, vectorTileUrlBmapv);
+      // collectTiles(Map.LOD_16, vectorTileUrlBmapv);
+      // collectTiles(Map.LOD_15, vectorTileUrlBmapv);
+      // collectTiles(Map.LOD_14, vectorTileUrlBmapv);
 
       // if (map.findLayerByName(Map.LAYER__NAME____CONTOUR) || map.findLayerByName(Map.LAYER__NAME_CONTOUR_TX)) {
       //   const vectorTileUrlBmaph: IVectorTileUrl = {

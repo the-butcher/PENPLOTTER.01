@@ -136,7 +136,7 @@ export class MapLayerWater extends AMapLayer<Polygon, GeoJsonProperties> {
         this.filterPolylinesShorterThan(20, {
             skip035: true
         });
-        this.filterPolylinesShorterThan(200, {
+        this.filterPolylinesShorterThan(50, {
             skip018: true
         });
 

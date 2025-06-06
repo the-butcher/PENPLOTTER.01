@@ -1,11 +1,14 @@
 import * as turf from '@turf/turf';
-import { BBox, Feature, FeatureCollection, GeoJsonProperties, LineString, Polygon, Position } from "geojson";
+import { BBox, Feature, GeoJsonProperties, LineString, Position } from "geojson";
 import { ISurface } from '../../util/ISurface';
 import { JsonLoader } from '../../util/JsonLoader';
 import { Surface } from '../../util/Surface';
 import { AMapLayer } from "../AMapLayer";
+import { ILayout } from './ILayout';
 import { MapLayerFrame } from './MapLayerFrame';
-import { GeoJsonLoader } from '../../util/GeoJsonLoader';
+import { VectorTileKey } from '../../vectortile/VectorTileKey';
+import { Map } from '../Map';
+import { VectorTileGeometryUtil } from '../../vectortile/VectorTileGeometryUtil';
 
 export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
 
@@ -20,8 +23,9 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
 
     private surfacePath: string;
     private readonly shadeMin: number;
+    private layout: ILayout;
 
-    constructor(name: string, surfacePath: string, shadeMin: number) {
+    constructor(name: string, surfacePath: string, shadeMin: number, layout: ILayout) {
         super(name, {
             accepts: () => {
                 return false;
@@ -29,6 +33,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
         });
         this.surfacePath = surfacePath;
         this.shadeMin = shadeMin;
+        this.layout = layout;
     }
 
     getRectCoordinates3857(ul: Position, lr: Position): Position[] {
@@ -53,7 +58,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
 
     async accept(): Promise<void> { }
 
-    async processPoly(_bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
+    async processPoly(bboxClp4326: BBox, bboxMap4326: BBox): Promise<void> {
 
         console.log(`${this.name}, processing ...`);
 
@@ -83,7 +88,7 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
         ];
         this.coordinateLR3857Crop = [
             this.coordinateLR3857Outer[0] + MapLayerFrame.FRAME_BASE_UNIT,
-            this.coordinateLR3857Outer[1] - MapLayerFrame.FRAME_BASE_UNIT * 6
+            this.coordinateLR3857Outer[1] - this.layout.cropLROffY
         ];
         this.coordinateLR4326Crop = turf.toWgs84(this.coordinateLR3857Crop);
 
@@ -92,6 +97,21 @@ export class MapLayerCrop extends AMapLayer<LineString, GeoJsonProperties> {
         //     type: 'MultiPolygon',
         //     coordinates: [frameCrop.features[0].geometry.coordinates]
         // };
+        const bboxClpUL3857 = turf.toMercator([
+            bboxClp4326[0], bboxClp4326[3]
+        ]);
+        const minTileKey = VectorTileKey.toTileKey([bboxClpUL3857[0], bboxClpUL3857[1]], Map.LOD_VS);
+        const min3857Pos = VectorTileGeometryUtil.toMercator(minTileKey);
+
+        const coordinate3857ToCoordinateCanvas = (coordinate3857: Position): Position => {
+            const x = (coordinate3857[0] - min3857Pos[0]) / VectorTileKey.lods[Map.LOD_VS].resolution;
+            const y = (min3857Pos[1] - coordinate3857[1]) / VectorTileKey.lods[Map.LOD_VS].resolution;
+            return [x, y];
+        };
+
+        const coordinateUL0000Crop = coordinate3857ToCoordinateCanvas(this.coordinateUL3857Crop);
+        const coordinateLR0000Crop = coordinate3857ToCoordinateCanvas(this.coordinateLR3857Crop);
+        console.log('viewBox', `${coordinateUL0000Crop[0]}, ${coordinateUL0000Crop[1]}, ${coordinateLR0000Crop[0] - coordinateUL0000Crop[0]}, ${coordinateLR0000Crop[1] - coordinateUL0000Crop[1]}`);
 
         this.polyData = {
             type: 'MultiPolygon',

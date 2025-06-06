@@ -73,7 +73,7 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                 let labelDef: ILabelDef = {
                     tileName: lineName,
                     plotName: lineName,
-                    distance: 0.50,
+                    distance: 0.55,
                     vertical: 16,
                     charsign: 1.2,
                     txtscale: MapDefs.DEFAULT_TEXT_SCALE_LINELABEL,
@@ -106,9 +106,12 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputLineLabel>): Promis
                     continue; // next
                 };
 
-                turf.rewind(labelLine4326, {
-                    mutate: true
-                });
+                if (labelDef.charsign > 0) {
+                    turf.rewind(labelLine4326, {
+                        mutate: true
+                    });
+                }
+                labelDef.charsign = Math.abs(labelDef.charsign);
 
                 // TODO :: there needs to be some kind of font metering, so right, center and left align will work
 

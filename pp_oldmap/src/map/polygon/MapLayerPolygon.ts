@@ -68,11 +68,11 @@ export class MapLayerPolygon extends AMapLayer<Polygon, ISymbolProperties> {
             workerInstance.onmessage = (e) => {
                 const workerOutput: IWorkerPolyOutput = e.data;
                 this.polyData = workerOutput.polyData;
-                // workerInstance.terminate();
+                workerInstance.terminate();
                 resolve();
             };
             workerInstance.onerror = (e) => {
-                // workerInstance.terminate();s
+                workerInstance.terminate();
                 reject(e);
             };
             workerInstance.postMessage(workerInput);

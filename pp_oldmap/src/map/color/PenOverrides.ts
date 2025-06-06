@@ -67,6 +67,14 @@ export class ColorOverrides {
             name: Map.LAYER__NAME_______CROP,
             orig: "p018",
             dest: "c018"
+        }, {
+            name: Map.LAYER__NAME______STAMP,
+            orig: "p018",
+            dest: "w018"
+        }, {
+            name: Map.LAYER__NAME______STAMP,
+            orig: "p035",
+            dest: "w035"
         }
 
     ];

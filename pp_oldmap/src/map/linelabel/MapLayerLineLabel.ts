@@ -148,6 +148,7 @@ export class MapLayerLineLabel extends AMapLayer<LineString, GeoJsonProperties> 
 
         const workerInput: IWorkerPlotInput = {
             name: this.name,
+            polyData: PPGeometry.emptyMultiPolygon(),
             polyText: this.polyText,
         };
 

@@ -110,16 +110,24 @@ const handleMessage = async (e: MessageEvent<IWorkerPolyInputPoint>): Promise<IW
 
     };
 
-    const bufferDist = 12;
+    let bufferDist = 12;
 
     // buffer around symbols
     let bufferPolygons: Polygon[] = [];
     if (multiPolyline025.coordinates.length > 0) {
-        const linebuffer018 = turf.buffer(multiPolyline025, bufferDist, {
+        let linebuffer018 = turf.buffer(multiPolyline025, bufferDist, {
+            units: 'meters'
+        }) as Feature<Polygon | MultiPolygon>;
+        linebuffer018 = turf.buffer(linebuffer018, 10, {
+            units: 'meters'
+        }) as Feature<Polygon | MultiPolygon>;
+        linebuffer018 = turf.buffer(linebuffer018, -10, {
             units: 'meters'
         }) as Feature<Polygon | MultiPolygon>;
         bufferPolygons.push(...PPGeometry.destructurePolygons(linebuffer018.geometry));
     }
+
+    bufferDist = 8;
 
     const polyBuffer: MultiPolygon = {
         type: 'MultiPolygon',
