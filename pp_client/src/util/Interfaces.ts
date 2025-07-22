@@ -144,4 +144,5 @@ export interface IExtent {
 }
 
 export type ELineDirection = "df" | "dr";
-export const LINE_DIRECTIONS: ELineDirection[] = ['df', 'dr'];
+// export const LINE_DIRECTIONS: ELineDirection[] = ['df', 'dr'];
+export const LINE_DIRECTIONS: ELineDirection[] = ['df']; // forward only to draw hachures only upwards

@@ -217,7 +217,7 @@ function RootApp() {
     paperExtent: {
       xMin: 0,
       yMin: 0,
-      xMax: 176, // 200
+      xMax: 290, // 176 (a4 hoch), 200
       yMax: 148  // 148
     },
     connectSort: true,
@@ -239,7 +239,7 @@ function RootApp() {
     extent: {
       xMin: 0,
       yMin: 0,
-      xMax: 176, // A5
+      xMax: 290, // 176 (a4 hoch), 200
       yMax: 148  // A5
     },
     selId: ObjectUtil.createId(),
@@ -383,6 +383,7 @@ function RootApp() {
         };
       })
 
+      console.log('linepathNoShorts', linepathNoShorts.length);
       const linepathConnecteds = GeometryUtil.connectLinepaths({
         x: overallExtent.xMin,
         y: overallExtent.yMin
@@ -390,11 +391,12 @@ function RootApp() {
 
       // TODO :: REMOVE (start at position)
       // console.log('linepathConnecteds', linepathConnecteds.length);
-      // const skipCount = 21180;
+      // const skipCount = 83610;
       // // linepathConnecteds.splice(skipCount, linepathConnecteds.length - skipCount);
       // linepathConnecteds.splice(0, skipCount);
       // if (linepathConnecteds.length > 0) {
-      //   // linepathConnecteds[0].segments.splice(0, 115)
+      //   console.log('linepathConnecteds[0].segments', linepathConnecteds[0].segments);
+      //   // linepathConnecteds[0].segments.splice(0, 231);
       // }
 
       rootSvgPropertiesRef.current = {

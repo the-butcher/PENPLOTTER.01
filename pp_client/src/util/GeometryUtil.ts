@@ -686,25 +686,33 @@ export class GeometryUtil {
             let coordE: ICoordinate2D; // edge coordinate
             let distE: number; // edge distance
             let distMin: number = Number.MAX_VALUE;
-            let pathMin: ILinePath;
+            let pathMin: ILinePath | undefined;
             let drctMin: ELineDirection;
             let indxMin: number;
+            const direction: ELineDirection = 'df';
 
             for (let pathIndex = 0; pathIndex < linePaths.length; pathIndex++) {
                 if (connectSort) {
-                    LINE_DIRECTIONS.forEach(direction => {
-                        coordE = GeometryUtil.getEdgeCoord(direction, linePaths[pathIndex]);
-                        distE = GeometryUtil.getDistance2D(coordR, coordE);
-                        if (distE < distMin && pathMin?.id !== linePaths[pathIndex].id) { //
-                            if (pathMin?.id === linePaths[pathIndex].id) {
-                                console.log('self connect!')
-                            }
-                            distMin = distE;
-                            pathMin = linePaths[pathIndex];
-                            drctMin = direction;
-                            indxMin = pathIndex;
+
+                    // LINE_DIRECTIONS.forEach(direction => {
+                    coordE = GeometryUtil.getEdgeCoord(direction, linePaths[pathIndex]);
+
+                    if (Math.abs(coordE.x - coordR.x) >= distMin || Math.abs(coordE.y - coordR.y) >= distMin) {
+                        continue;
+                    }
+
+                    distE = GeometryUtil.getDistance2D(coordR, coordE);
+                    if (distE < distMin && pathMin?.id !== linePaths[pathIndex].id) { //
+                        if (pathMin?.id === linePaths[pathIndex].id) {
+                            console.log('self connect!')
                         }
-                    });
+                        distMin = distE;
+                        pathMin = linePaths[pathIndex];
+                        drctMin = direction;
+                        indxMin = pathIndex;
+                    }
+                    // });
+
                 } else {
                     coordE = GeometryUtil.getEdgeCoord('df', linePaths[pathIndex]);
                     distMin = GeometryUtil.getDistance2D(coordR, coordE);
