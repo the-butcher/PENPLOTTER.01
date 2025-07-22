@@ -1,7 +1,7 @@
 import * as turf from "@turf/turf";
 import * as d3Contour from 'd3-contour';
 import * as d3Array from 'd3-array';
-import { Feature, LineString } from "geojson";
+import { Feature, LineString, Position } from "geojson";
 import { IRasterDataProps } from '../components/IRasterDataProps';
 import { IContourProperties } from "../content/IContourProperties";
 import { GeometryUtil } from '../util/GeometryUtil';
@@ -25,13 +25,23 @@ export class Raster {
         let valCur: number;
         let valMin = Number.MAX_VALUE;
         let valMax = Number.MIN_VALUE;
+        let positionMin: Position = [-1, -1];
+        let positionMax: Position = [-1, -1];
         for (let y = 0; y < rasterData.height; y++) {
             for (let x = 0; x < rasterData.width; x++) {
                 pixelIndex = (y * rasterData.width + x);
                 valCur = rasterData.data[pixelIndex];
                 if (valCur != Raster.NO_DATA) {
-                    valMin = Math.min(valMin, valCur);
-                    valMax = Math.max(valMax, valCur);
+                    if (valCur < valMin) {
+                        valMin = valCur;
+                        positionMin = [x, y];
+                    }
+                    if (valCur > valMax) {
+                        valMax = valCur;
+                        positionMax = [x, y];
+                    }
+                    // valMin = Math.min(valMin, valCur);
+                    // valMax = Math.max(valMax, valCur);
                 }
             }
         }
@@ -40,7 +50,7 @@ export class Raster {
         console.log('sampleRange', {
             min: valMin,
             max: valMax
-        });
+        }, positionMin, positionMax);
         return {
             min: valMin,
             max: valMax

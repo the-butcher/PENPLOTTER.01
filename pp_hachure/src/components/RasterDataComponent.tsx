@@ -79,6 +79,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                     width: width,
                     height: height
                 });
+                // console.log('valueRangeSample', valueRangeSample);
 
                 const sampleToHeight = (sample: number): number => {
                     return ObjectUtil.mapValues(sample, valueRangeSample, valueRange);

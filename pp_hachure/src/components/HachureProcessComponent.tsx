@@ -1,8 +1,9 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import DownloadIcon from '@mui/icons-material/Download';
-import { Button, Divider, FormHelperText, Grid, Slider } from "@mui/material";
+import { Button, Divider, FormHelperText, Grid, Slider, TextField } from "@mui/material";
 import { Mark } from '@mui/material/Slider/useSlider.types';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { IRange } from '../util/IRange';
 import { ICommonConfigProps } from './ICommonConfigProps';
 import { IHachureProcessProps } from "./IHachureProcessProps";
 import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageLoaderComponent';
@@ -18,7 +19,7 @@ import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageL
  */
 function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProps) {
 
-    const { value, valueRange, handleHachureExport, handleContourExport, handleSurfaceExport, activeStep, handleCommonConfig } = { ...props };
+    const { value, valueRange, handleHachureExport, handleContourExport, handleSurfaceExport, activeStep, handleCommonConfig, showHelperTexts } = { ...props };
 
     useEffect(() => {
         console.debug('✨ building HachureConfigComponent');
@@ -29,6 +30,26 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
             value: value,
             label: `${value.toFixed(1)}m`
         };
+    };
+
+    const [minZ, setMinZ] = useState<number>(0);
+    const [maxZ, setMaxZ] = useState<number>(9000);
+
+    const minZRange: IRange = {
+        min: 0,
+        max: 20000
+    };
+    const maxZRange: IRange = {
+        min: 0,
+        max: 20000
+    };
+
+    const handleMinZInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMinZ(event.target.value === '' ? minZ : Number(event.target.value));
+    };
+
+    const handleMaxZInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMaxZ(event.target.value === '' ? maxZ : Number(event.target.value));
     };
 
     return (
@@ -67,6 +88,56 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
             {
                 activeStep === STEP_INDEX_HACHURE_PROCESS ? <>
                     <Grid item xs={12}>
+                        <TextField
+                            label={'min z'}
+                            value={minZ}
+                            type={'number'}
+                            variant={'outlined'}
+                            size={'small'}
+                            onChange={handleMinZInputChange}
+                            disabled={activeStep !== STEP_INDEX_HACHURE_PROCESS}
+                            sx={{
+                                width: '100%'
+                            }}
+                            slotProps={{
+                                htmlInput: {
+                                    ...minZRange,
+                                    step: 100,
+                                    type: 'number'
+                                },
+                                inputLabel: {
+                                    shrink: true
+                                }
+                            }}
+                            helperText={showHelperTexts ? 'the maximum exportable height of vertices' : undefined}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label={'max z'}
+                            value={maxZ}
+                            type={'number'}
+                            variant={'outlined'}
+                            size={'small'}
+                            onChange={handleMaxZInputChange}
+                            disabled={activeStep !== STEP_INDEX_HACHURE_PROCESS}
+                            sx={{
+                                width: '100%'
+                            }}
+                            slotProps={{
+                                htmlInput: {
+                                    ...maxZRange,
+                                    step: 100,
+                                    type: 'number'
+                                },
+                                inputLabel: {
+                                    shrink: true
+                                }
+                            }}
+                            helperText={showHelperTexts ? 'the maximum exportable height of vertices' : undefined}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
                         <Button
                             sx={{
                                 width: '100%'
@@ -77,7 +148,7 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                             size={'small'}
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
-                            onClick={handleHachureExport}
+                            onClick={() => handleHachureExport(minZ, maxZ)}
                         >download hachures</Button>
                     </Grid>
                     <Grid item xs={12}
@@ -95,7 +166,7 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                             size={'small'}
                             tabIndex={-1}
                             startIcon={<DownloadIcon />}
-                            onClick={handleContourExport}
+                            onClick={() => handleContourExport(minZ, maxZ)}
                         >download contours</Button>
                     </Grid>
                     <Grid item xs={12}

@@ -69,7 +69,7 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
     const hachureDimDefault = toHachureDimDefault(props);
     const hachureDimRange: IRange = {
         min: ObjectUtil.roundFlex(hachureDimDefault / 5),
-        max: ObjectUtil.roundFlex(hachureDimDefault * 5)
+        max: ObjectUtil.roundFlex(hachureDimDefault * 10)
     };
     // console.log('hachureDimRange', hachureDimRange);
 

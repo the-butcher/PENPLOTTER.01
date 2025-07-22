@@ -20,5 +20,5 @@ export interface IContent {
      * get this contour as a geojson {@link LineString} holding WGS84 (epsg:4326) coordinates
      * @returns
      */
-    toLineString: () => LineString;
+    toLineString: (minZ: number, maxZ: number) => LineString;
 }

@@ -127,20 +127,20 @@ function ImageLoaderComponent() {
         });
     };
 
-    const handleHachureExport = () => {
+    const handleHachureExport = (minZ: number, maxZ: number) => {
         console.debug('handleHachureExport', hachures);
         const _hachures = [
             ...hachuresProgressRef.current,
             ...hachuresCompleteRef.current
-        ];
-        handleGeoJsonExport(_hachures.map(h => turf.feature(h.toLineString(), {
+        ].filter(h => h.getLastVertex().height >= minZ || h.getFirstVertex().height <= maxZ);
+        handleGeoJsonExport(_hachures.map(h => turf.feature(h.toLineString(minZ, maxZ), {
             minHeight: h.getFirstVertex().height,
             maxHeight: h.getLastVertex().height,
         })), 'hachures');
     };
 
-    const handleContourExport = () => {
-        handleGeoJsonExport(contoursRef.current.filter(c => c.getHeight() % hachureConfig.contourDsp === 0).map(c => turf.feature(c.toLineString(), {
+    const handleContourExport = (minZ: number, maxZ: number) => {
+        handleGeoJsonExport(contoursRef.current.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 && c.getHeight() >= minZ && c.getHeight() <= maxZ).map(c => turf.feature(c.toLineString(minZ, maxZ), {
             height: c.getHeight().toFixed(0)
         })), 'contours');
     };
@@ -430,6 +430,8 @@ function ImageLoaderComponent() {
 
             const minHeight = rasterConfig.valueRange.min - rasterConfig.valueRange.min % hachureConfig.contourOff + hachureConfig.contourOff;
             // const maxHeight = rasterConfig.valueRange.max - rasterConfig.valueRange.max % hachureConfig.contourOff;
+
+            // console.log('minHeight', minHeight);
 
             let minContourHeight = minHeight;
             let minContours: IContour[] = [];

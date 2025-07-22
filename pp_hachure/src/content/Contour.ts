@@ -185,19 +185,49 @@ export class Contour implements IContour {
             ];
             const heightI = heightFunction(positionPixlI);
             const heightS = heightFunction(positionPixlS);
-            slope = Math.atan2(heightI - heightS, lenS) * Raster.RAD2DEG;
+            const exaggeration = 3;
+            slope = Math.atan2((heightI - heightS) * exaggeration, lenS) * Raster.RAD2DEG;
+
+            const vals: [number, number, number][] = [
+                // [10, 70, 0.30],
+                // [325, 55, 0.40],
+                // [280, 40, 0.30],
+                [315, 45, 0.50],
+                [15, 60, 0.50],
+            ];
+
+            let hillshade = 0;
+            vals.forEach(val => {
+
+                const zenith = val[1];
+                let azimuthDeg = ObjectUtil.mapValues(val[0], {
+                    min: 0,
+                    max: 360
+                }, {
+                    min: -90 + 360,
+                    max: 270 + 360
+                });
+                while (azimuthDeg > 360) {
+                    azimuthDeg -= 360;
+                }
+
+                const valHillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
+                    Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimuthDeg - aspect + 180) * Raster.DEG2RAD));
+                hillshade += valHillshade * val[2];
+
+            });
 
             // https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
             // aspect is pointing "inwards" for this apps concerns, 180deg need to be added to let it face "outwards"
-            const hillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
-                Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimuthDeg - aspect + 180) * Raster.DEG2RAD));
+            // const hillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
+            //     Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimuthDeg - aspect + 180) * Raster.DEG2RAD));
 
             const incrmt = ObjectUtil.mapValues(hillshade, {
                 min: 0,
                 max: 1
             }, {
-                min: this.hachureConfig.contourDiv * 2.10, // larger means tighter spacing
-                max: this.hachureConfig.contourDiv * 0.10
+                min: this.hachureConfig.contourDiv * 2.00, // 2.10, // larger means tighter spacing
+                max: this.hachureConfig.contourDiv * 0.20
             });
 
             scaledLength += incrmt;
@@ -336,41 +366,41 @@ export class Contour implements IContour {
                     const position4326 = this.findPointAlong(length);
                     if (position4326) {
 
+                        // const positionPixl = GeometryUtil.position4326ToPixel(position4326, this.rasterConfig);
+
+                        // const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
+                        //     const lastVertex = h.getLastVertex();
+                        //     if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize) {
+                        //         return false;
+                        //     }
+                        //     if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize) {
+                        //         return false;
+                        //     }
+                        //     const distance = turf.distance(position4326, lastVertex.position4326, {
+                        //         units: this.rasterConfig.converter.projUnitName
+                        //     });
+                        //     return distance < this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize;
+                        // });
+
+                        // if (!hasNearbyEndOfCompletedHachure) {
+
                         const positionPixl = GeometryUtil.position4326ToPixel(position4326, this.rasterConfig);
+                        const aspect = this.lengthToAspect(length);
+                        const slope = this.lengthToSlope(length);
 
-                        const hasNearbyEndOfCompletedHachure = hachuresComplete.some(h => {
-                            const lastVertex = h.getLastVertex();
-                            if (Math.abs(positionPixl[0] - lastVertex.positionPixl[0]) > this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize) {
-                                return false;
-                            }
-                            if (Math.abs(positionPixl[1] - lastVertex.positionPixl[1]) > this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize) {
-                                return false;
-                            }
-                            const distance = turf.distance(position4326, lastVertex.position4326, {
-                                units: this.rasterConfig.converter.projUnitName
-                            });
-                            return distance < this.hachureConfig.avgSpacing * 3 / this.rasterConfig.cellsize;
-                        });
+                        const extraHachure = new Hachure({
+                            position4326,
+                            positionPixl,
+                            aspect,
+                            height: this.height,
+                            slope
+                        }, this.rasterConfig, this.hachureConfig);
+                        extraHachures.push(extraHachure);
+                        extraHachureAdded = true;
 
-                        if (!hasNearbyEndOfCompletedHachure) {
+                        scaledLengths.push(scaledLength);
 
-                            const positionPixl = GeometryUtil.position4326ToPixel(position4326, this.rasterConfig);
-                            const aspect = this.lengthToAspect(length);
-                            const slope = this.lengthToSlope(length);
-
-                            const extraHachure = new Hachure({
-                                position4326,
-                                positionPixl,
-                                aspect,
-                                height: this.height,
-                                slope
-                            }, this.rasterConfig, this.hachureConfig);
-                            extraHachures.push(extraHachure);
-                            extraHachureAdded = true;
-
-                            scaledLengths.push(scaledLength);
-
-                        }
+                        // }
 
                     } else {
                         console.warn('did not find point along');
@@ -436,7 +466,7 @@ export class Contour implements IContour {
                     });
 
                 } else {
-                    console.warn("did not find nearst but had intersection", nearestPoint?.properties?.dist);
+                    console.warn("did not find nearest but had intersection", nearestPoint?.properties?.dist);
                 }
 
             }

@@ -53,27 +53,32 @@ export class Hachure implements IHachure {
         return this.vertices.length;
     }
 
-    buildOffsetPositions(smooth: boolean): IPositionProperties[] {
+    buildOffsetPositions(smooth: boolean, minZ: number, maxZ: number): IPositionProperties[] {
 
         const offsetScale = this.hachureConfig.hachureArr ? 0.03 : 0.00;
 
         let offsetPositionsA: IPositionProperties[] = [];
         for (let i = 0; i < this.vertices.length; i++) { // upwards
             const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
-            offsetPositionsA.push(this.getOffsetPosition(this.vertices[i], offset));
+            if (this.vertices[i].height >= minZ && this.vertices[i].height <= maxZ) {
+                offsetPositionsA.push(this.getOffsetPosition(this.vertices[i], offset));
+            }
         }
 
         let offsetPositionsB: IPositionProperties[] = [];
         if (this.hachureConfig.hachureArr) {
             for (let i = this.vertices.length - 1; i >= 0; i--) { // downwards
                 const offset = (this.vertices[0].height - this.vertices[i].height) * offsetScale;
-                offsetPositionsB.push(this.getOffsetPosition(this.vertices[i], -offset));
+                if (this.vertices[i].height >= minZ && this.vertices[i].height <= maxZ) {
+                    offsetPositionsB.push(this.getOffsetPosition(this.vertices[i], -offset));
+                }
             }
         }
 
-        if (smooth) {
+        if (smooth && offsetPositionsA.length > 0) {
+            // console.log('offsetPositionsA.length', offsetPositionsA.length);
             offsetPositionsA = GeometryUtil.smoothPositions(offsetPositionsA, this.rasterConfig);
-            if (this.hachureConfig.hachureArr) {
+            if (this.hachureConfig.hachureArr && offsetPositionsB.length > 0) {
                 offsetPositionsB = GeometryUtil.smoothPositions(offsetPositionsB, this.rasterConfig);
             }
         }
@@ -83,7 +88,8 @@ export class Hachure implements IHachure {
             ...offsetPositionsA.slice(1),
         ];
 
-        if (smooth) {
+        // console.log('mergedPositions.length', mergedPositions.length);
+        if (smooth && mergedPositions.length > 0) {
             mergedPositions = GeometryUtil.simplifyPositions(mergedPositions, this.rasterConfig);
         }
 
@@ -109,7 +115,7 @@ export class Hachure implements IHachure {
         //     this.svgData += `M${vertex.positionPixl[0].toFixed(2)} ${vertex.positionPixl[1].toFixed(2)} `;
         // }
 
-        const offsetPositions = this.buildOffsetPositions(this.complete);
+        const offsetPositions = this.buildOffsetPositions(this.complete, Number.MIN_VALUE, Number.MAX_VALUE);
         for (let i = 0; i < offsetPositions.length; i++) {
             this.svgData += `${command}${offsetPositions[i].positionPixl[0].toFixed(2)} ${offsetPositions[i].positionPixl[1].toFixed(2)}`;
             command = 'L';
@@ -153,14 +159,14 @@ export class Hachure implements IHachure {
         return this.vertices[this.vertices.length - 1];
     };
 
-    toLineString(): LineString {
+    toLineString(minZ: number, maxZ: number): LineString {
 
         const lineString: LineString = {
             type: 'LineString',
             coordinates: []
         };
 
-        const offsetPositions = this.buildOffsetPositions(true);
+        const offsetPositions = this.buildOffsetPositions(true, minZ, maxZ);
         for (let i = 0; i < offsetPositions.length; i++) {
             lineString.coordinates.push(offsetPositions[i].position4326);
         }

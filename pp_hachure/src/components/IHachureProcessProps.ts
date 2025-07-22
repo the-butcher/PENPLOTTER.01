@@ -9,7 +9,7 @@ import { IRange } from "../util/IRange";
 export interface IHachureProcessProps {
     value: number;
     valueRange: IRange;
-    handleHachureExport: () => void;
-    handleContourExport: () => void;
+    handleHachureExport: (minZ: number, maxZ: number) => void;
+    handleContourExport: (minZ: number, maxZ: number) => void;
     handleSurfaceExport: () => void;
 }
