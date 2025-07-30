@@ -1,4 +1,4 @@
-import { ELineDirection, ICoordinate2D, ICoordinate3D, ICubcPath, IExtent, ILine2D, ILine3D, ILinePath, IMatrix2D, LINE_DIRECTIONS } from "./Interfaces";
+import { ELineDirection, ICoordinate2D, ICoordinate3D, ICubcPath, IExtent, ILine2D, ILine3D, ILinePath, IMatrix2D } from "./Interfaces";
 import { ObjectUtil } from "./ObjectUtil";
 // import Loess from 'loess';
 import simplify from "simplify-js";
@@ -10,7 +10,8 @@ export class GeometryUtil {
 
     static PEN___MIN_MMS = 0.5;
 
-    static PEN_____WIDTH = 0.1; // mm
+    static PEN_WIDTH_SEG = 0.1; // mm
+    static PEN_WIDTH_CON = 0.05; // mm
     static IMAGE___SCALE = 4;
     static IMAGE_PADDING = 2;
     static CONN___PREFIX = 'conn';
@@ -452,7 +453,7 @@ export class GeometryUtil {
             id: ObjectUtil.createId(),
             penId: cubicgroup.penId,
             segments: lines,
-            strokeWidth: GeometryUtil.PEN_____WIDTH,
+            strokeWidth: GeometryUtil.PEN_WIDTH_SEG,
             stroke: 'black'
         };
 
@@ -680,6 +681,13 @@ export class GeometryUtil {
 
         const connectedLinePaths: ILinePath[] = [];
 
+        // const coordsA = linePaths.map(l => GeometryUtil.getEdgeCoord('df', l));
+        // const coordsAX = coordsA.map(c => c.x);
+        // const minX = Math.min(...coordsAX);
+
+        // what if :: presort linepaths by either x or y, then after having connected one path start searching at an index nearby
+        // assumption would be that this would shorten the time to get into the fast exit criteria
+
         while (linePaths.length > 0) {
 
             // find closest path
@@ -703,9 +711,9 @@ export class GeometryUtil {
 
                     distE = GeometryUtil.getDistance2D(coordR, coordE);
                     if (distE < distMin && pathMin?.id !== linePaths[pathIndex].id) { //
-                        if (pathMin?.id === linePaths[pathIndex].id) {
-                            console.log('self connect!')
-                        }
+                        // if (pathMin?.id === linePaths[pathIndex].id) {
+                        //     console.log('self connect!')
+                        // }
                         distMin = distE;
                         pathMin = linePaths[pathIndex];
                         drctMin = direction;
@@ -733,7 +741,7 @@ export class GeometryUtil {
                 connectedLinePaths.push({
                     id: `${ObjectUtil.createId()}_${this.CONN___PREFIX}`,
                     penId: removedPenId,
-                    strokeWidth: 0.05,
+                    strokeWidth: GeometryUtil.PEN_WIDTH_CON,
                     stroke: 'black',
                     segments: [
                         {

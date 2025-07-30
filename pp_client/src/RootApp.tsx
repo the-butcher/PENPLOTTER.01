@@ -10,7 +10,7 @@ import RootSvgComponent from './components/RootSvgComponent';
 import TimeSvgComponent from './components/TimeSvgComponent';
 import VRulSvgComponent from './components/VRulSvgComponent';
 import { GeometryUtil } from './util/GeometryUtil';
-import { ICnfASvgProperties, ICnfBSvgProperties, IConnBleProperties, IFileSvgProperties, ILinePath, IPickSvgProperties, IRootSvgProperties, ISendBleProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
+import { ICnfASvgProperties, ICnfBSvgProperties, IConnBleProperties, IConnectSettings, IFileSvgProperties, ILinePath, IPickSvgProperties, IRootSvgProperties, ISendBleProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
 import { ObjectUtil } from './util/ObjectUtil';
 import { ThemeUtil } from './util/ThemeUtil';
 import CnfBSvgComponent from './components/CnfBSvgComponent';
@@ -293,9 +293,9 @@ function RootApp() {
 
       console.log('penIds from file', penIds);
       let penId = ObjectUtil.createId();
-      if (penIds.indexOf('c018') !== -1) {
-        penId = 'c018';
-      }
+      // if (penIds.indexOf('c050') !== -1) {
+      //   penId = 'c050';
+      // }
 
       cnfBSvgPropertiesRef.current = {
         ...cnfBSvgPropertiesRef.current,
@@ -308,11 +308,26 @@ function RootApp() {
 
   }, [fileSvgProperties]);
 
+  const lastConnectSettings = useRef<IConnectSettings>({
+    linePathCount: 0,
+    cubcPathCount: 0,
+    paperDimX: 0,
+    penId: ObjectUtil.createId()
+  });
+
   useEffect(() => {
 
-    console.log('⚙ updating root app component (cnfASvgProperties, cnfBSvgProperties)', cnfASvgProperties, cnfBSvgProperties);
+    console.debug('⚙ updating root app component (cnfASvgProperties, cnfBSvgProperties)', cnfASvgProperties, cnfBSvgProperties);
 
     if (fileSvgProperties.fileLabel !== '' && (fileSvgProperties.linePaths.length > 0 || fileSvgProperties.cubcPaths.length > 0)) {
+
+      let connectRequired = false;
+      if (fileSvgProperties.linePaths.length !== lastConnectSettings.current.linePathCount || fileSvgProperties.cubcPaths.length !== lastConnectSettings.current.cubcPathCount) {
+        connectRequired = true;
+        console.log('connectRequired due to changed linecounts');
+      }
+      lastConnectSettings.current.linePathCount = fileSvgProperties.linePaths.length;
+      lastConnectSettings.current.cubcPathCount = fileSvgProperties.cubcPaths.length;
 
       // convert cubic curves to lines
       const cubcpathsAsLinepaths = fileSvgProperties.cubcPaths.map(c => GeometryUtil.cubicgroupToLinegroup(c));
@@ -345,6 +360,8 @@ function RootApp() {
       const paperDimX = cnfASvgProperties.paperExtent.xMax - cnfASvgProperties.paperExtent.xMin;
       const scale = paperDimX / imageDimX;
       const linepathScaleds = GeometryUtil.scaleLinepaths(scale, linepathsOrigin);
+      // console.log('linepathScaleds', linepathScaleds.length);
+
       overallExtent = GeometryUtil.getLinepathsExtent(linepathScaleds);
       if (cnfASvgProperties.keepTopLeft) {
         overallExtent.xMin = 0;
@@ -353,21 +370,36 @@ function RootApp() {
         overallExtent.yMax = (fileSvgProperties.extent.yMax - fileSvgProperties.extent.yMin) * scale;
       }
 
-      // // TODO :: REMOVE (start at position)
-      // cnfBSvgProperties.penId = 'h018'
+      if (paperDimX !== lastConnectSettings.current.paperDimX) {
+        connectRequired = true;
+        console.log('connectRequired due to changed paperDimX');
+      }
+      lastConnectSettings.current.paperDimX = paperDimX;
+
+      // TODO :: REMOVE (start at position)
+      // cnfBSvgProperties.penId = 'c050';
 
       const isPenIdSet = ObjectUtil.isPenIdSet(cnfBSvgProperties.penId);
+      // console.log('isPenIdSet', isPenIdSet, cnfBSvgProperties.penId.length, cnfBSvgProperties.penId);
+
+      if (cnfBSvgProperties.penId !== lastConnectSettings.current.penId) {
+        connectRequired = true;
+        console.log('connectRequired due to changed penId');
+      }
+      lastConnectSettings.current.penId = cnfBSvgProperties.penId;
 
       // filtering for penId
       const linepathPenIds = isPenIdSet ? linepathScaleds.filter(p => p.penId === cnfBSvgProperties.penId) : linepathScaleds;
+      // console.log('linepathPenIds', linepathPenIds.length);
 
       // simplify and connect
       const linepathSimples = linepathPenIds.map(linepath => GeometryUtil.simplifyLinepath(0.010, linepath));
+      // console.log('linepathSimples', linepathSimples.length);
 
       // remove short segments
       const linepathNoShorts: ILinePath[] = [];
       for (let i = 0; i < linepathSimples.length; i++) {
-        const linepath = GeometryUtil.removeShortSegments(GeometryUtil.PEN_____WIDTH, linepathSimples[i]);
+        const linepath = GeometryUtil.removeShortSegments(GeometryUtil.PEN_WIDTH_SEG, linepathSimples[i]);
         if (linepath.segments.length > 0) {
           linepathNoShorts.push(linepath);
         }
@@ -377,40 +409,55 @@ function RootApp() {
           const s = p.segments[i];
           // p.segments.forEach(s => {
           const lengthAB = GeometryUtil.getDistance2D(s.coordA, s.coordB);
-          if (lengthAB < GeometryUtil.PEN_____WIDTH) {
+          if (lengthAB < GeometryUtil.PEN_WIDTH_SEG) {
             // console.log('short segment found', lengthAB, 'at position', i, 'in a path containing', p.segments.length, 'segments');
           }
         };
       })
 
-      console.log('linepathNoShorts', linepathNoShorts.length);
-      const linepathConnecteds = GeometryUtil.connectLinepaths({
-        x: overallExtent.xMin,
-        y: overallExtent.yMin
-      }, linepathNoShorts, cnfASvgProperties.connectSort);
+      let linepathConnecteds: ILinePath[] = [];
+      if (connectRequired) {
 
-      // TODO :: REMOVE (start at position)
-      // console.log('linepathConnecteds', linepathConnecteds.length);
-      // const skipCount = 83610;
-      // // linepathConnecteds.splice(skipCount, linepathConnecteds.length - skipCount);
-      // linepathConnecteds.splice(0, skipCount);
-      // if (linepathConnecteds.length > 0) {
-      //   console.log('linepathConnecteds[0].segments', linepathConnecteds[0].segments);
-      //   // linepathConnecteds[0].segments.splice(0, 231);
-      // }
+        console.log('linepathNoShorts', linepathNoShorts.length);
+        linepathConnecteds = GeometryUtil.connectLinepaths({
+          x: overallExtent.xMin,
+          y: overallExtent.yMin
+        }, linepathNoShorts, cnfASvgProperties.connectSort);
 
-      rootSvgPropertiesRef.current = {
-        lines: linepathConnecteds,
-        extent: overallExtent,
-        selId: ObjectUtil.createId(),
-        handleLineClick
+        console.log('linepathConnecteds', linepathConnecteds.length);
+        // TODO :: REMOVE (start at position)
+        // const skipCountA = 13;
+        // // linepathConnecteds.splice(skipCountA, linepathConnecteds.length - skipCountA);
+        // linepathConnecteds.splice(0, skipCountA);
+        // if (linepathConnecteds.length > 0) {
+        //   // const segments = linepathConnecteds[linepathConnecteds.length - 1].segments;
+        //   const segments = linepathConnecteds[0].segments;
+        //   console.log('segments', segments.length);
+        //   const skipCountB = 525;
+        //   console.log('linepathConnecteds[0].segments', linepathConnecteds[0].segments);
+        //   segments.splice(0, skipCountB);
+        //   // segments.splice(skipCountB, segments.length - skipCountB);
+        // }
+
+        rootSvgPropertiesRef.current = {
+          lines: linepathConnecteds,
+          extent: overallExtent,
+          selId: ObjectUtil.createId(),
+          handleLineClick
+        }
+        setRootSvgProperties(rootSvgPropertiesRef.current);
+
+      } else {
+
+        linepathConnecteds = rootSvgPropertiesRef.current.lines;
+
       }
-      setRootSvgProperties(rootSvgPropertiesRef.current);
 
 
 
       // now lets build a list of 3D lines (aka pen plotter lines)
       const plottableLines = GeometryUtil.linepathsToPlotpaths(linepathConnecteds, cnfBSvgProperties.penMaxSpeed);
+      // console.log('plottableLines', plottableLines.length);
 
       // TODO :: REMOVE (start at position)
       // if (plottableLines.length > 0) {

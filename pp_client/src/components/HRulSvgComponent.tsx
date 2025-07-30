@@ -54,7 +54,7 @@ function HRulSvgComponent(props: IRootSvgProperties) {
         >
             <path
                 style={{
-                    strokeWidth: GeometryUtil.PEN_____WIDTH,
+                    strokeWidth: GeometryUtil.PEN_WIDTH_SEG,
                     stroke: 'black',
                     fill: 'none'
                 }}

@@ -10,7 +10,7 @@ export class ObjectUtil {
     static PEN_ID_DEFAULT = 'p_000';
 
     static isPenIdSet = (penId: string): boolean => {
-        return penId.length <= 8;
+        return penId.length < 8;
     }
 
     /**

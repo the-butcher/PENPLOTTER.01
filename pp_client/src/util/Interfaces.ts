@@ -1,3 +1,10 @@
+export interface IConnectSettings {
+    linePathCount: number;
+    cubcPathCount: number;
+    paperDimX: number;
+    penId: string;
+}
+
 export interface IStepDefProperties {
     label: string;
     valid: (

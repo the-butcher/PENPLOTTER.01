@@ -10,7 +10,7 @@ export interface ILinestyleProperties {
 
 function LineSvgComponent(props: ILine2D & ILinestyleProperties) {
 
-    const { id, coordA, coordB, strokeWidth: _strokeWidth, stroke: _stroke, selId, handleLineClick } = { ...props };
+    const { coordA, coordB, strokeWidth: _strokeWidth, stroke: _stroke } = { ...props };
 
     const [strokeWidth] = useState<number>(_strokeWidth); // setStrokeWidth
     const [stroke] = useState<string>(_stroke); // setStroke
@@ -19,8 +19,8 @@ function LineSvgComponent(props: ILine2D & ILinestyleProperties) {
         <>
             <line
                 style={{
-                    stroke: id.startsWith(selId) ? 'red' : stroke,
-                    strokeWidth: id.startsWith(selId) ? Math.max(1, strokeWidth * 3) : strokeWidth,
+                    stroke,
+                    strokeWidth,
                     fill: 'none',
                     strokeLinecap: 'round'
                 }}
@@ -28,20 +28,6 @@ function LineSvgComponent(props: ILine2D & ILinestyleProperties) {
                 y1={coordA.y}
                 x2={coordB.x}
                 y2={coordB.y}
-                onClick={() => handleLineClick(id)}
-            />
-            <line
-                style={{
-                    stroke: 'rgba(0, 0, 0 , 0.0)',
-                    strokeWidth: 5,
-                    fill: 'none',
-                    strokeLinecap: 'round'
-                }}
-                x1={coordA.x}
-                y1={coordA.y}
-                x2={coordB.x}
-                y2={coordB.y}
-                onClick={() => handleLineClick(id)}
             />
         </>
 

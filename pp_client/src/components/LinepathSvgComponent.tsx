@@ -21,16 +21,16 @@ function LinepathSvgComponent(props: ILinePath & ILinepathstyleProperties) {
     useEffect(() => {
 
         console.debug('⚙ updating line path svg component (segments)', segments);
-        setLineSvgComponents(segments.map(s => <LineSvgComponent key={s.id} {...s} strokeWidth={s.id === selId ? strokeWidth * 3 : strokeWidth} stroke={stroke} selId={selId} handleLineClick={handleLineClick} />));
+        setLineSvgComponents(segments.map(s => <LineSvgComponent key={s.id} {...s} strokeWidth={strokeWidth} stroke={stroke} selId={selId} handleLineClick={handleLineClick} />));
 
     }, [segments, selId]);
 
     return (
-        <g>
+        <>
             {
                 lineSvgComponents
             }
-        </g>
+        </>
     )
 }
 

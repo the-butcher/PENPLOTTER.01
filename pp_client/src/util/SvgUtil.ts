@@ -29,7 +29,7 @@ export class SvgUtil {
                     id: ObjectUtil.createId(),
                     penId,
                     segments: lineSegments,
-                    strokeWidth: GeometryUtil.PEN_____WIDTH,
+                    strokeWidth: GeometryUtil.PEN_WIDTH_SEG,
                     stroke: 'black'
                 });
             }
@@ -308,7 +308,7 @@ export class SvgUtil {
                 id: ObjectUtil.createId(),
                 penId,
                 segments: lineSegments,
-                strokeWidth: GeometryUtil.PEN_____WIDTH,
+                strokeWidth: GeometryUtil.PEN_WIDTH_SEG,
                 stroke: 'black'
             });
 
