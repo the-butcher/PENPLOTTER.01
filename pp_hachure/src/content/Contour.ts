@@ -40,7 +40,7 @@ export class Contour implements IContour {
 
     private nearThreshold: number; // 0.1
 
-    constructor(feature: Feature<LineString, IContourProperties>, rasterConfig: IRasterConfigProps, hachureConfig: IHachureConfigProps, heightFunction: (positionPixl: Position) => number) {
+    constructor(feature: Feature<LineString, IContourProperties>, rasterConfig: IRasterConfigProps, hachureConfig: IHachureConfigProps, heightFunction: (positionPixl: Position) => number, shadeFunction: (positionPixl: Position) => number) {
 
         // console.log(feature.geometry);
 
@@ -121,19 +121,7 @@ export class Contour implements IContour {
         let aspect = 0;
         let scaledLength = 0;
 
-        const zenith = 45;
-        let azimuthDeg = ObjectUtil.mapValues(this.hachureConfig.azimuthDeg, {
-            min: 0,
-            max: 360
-        }, {
-            min: -90 + 360,
-            max: 270 + 360
-        });
-        while (azimuthDeg > 360) {
-            azimuthDeg -= 360;
-        }
         const lenS = 5;
-        // console.log('azimuthDeg', azimuthDeg);
 
         if (this.closed) {
 
@@ -185,49 +173,14 @@ export class Contour implements IContour {
             ];
             const heightI = heightFunction(positionPixlI);
             const heightS = heightFunction(positionPixlS);
-            const exaggeration = 3;
-            slope = Math.atan2((heightI - heightS) * exaggeration, lenS) * Raster.RAD2DEG;
+            slope = Math.atan2((heightI - heightS), lenS) * Raster.RAD2DEG;
 
-            const vals: [number, number, number][] = [
-                // [10, 70, 0.30],
-                // [325, 55, 0.40],
-                // [280, 40, 0.30],
-                [315, 45, 0.50],
-                [15, 60, 0.50],
-            ];
-
-            let hillshade = 0;
-            vals.forEach(val => {
-
-                const zenith = val[1];
-                let azimuthDeg = ObjectUtil.mapValues(val[0], {
-                    min: 0,
-                    max: 360
-                }, {
-                    min: -90 + 360,
-                    max: 270 + 360
-                });
-                while (azimuthDeg > 360) {
-                    azimuthDeg -= 360;
-                }
-
-                const valHillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
-                    Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimuthDeg - aspect + 180) * Raster.DEG2RAD));
-                hillshade += valHillshade * val[2];
-
-            });
-
-            // https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
-            // aspect is pointing "inwards" for this apps concerns, 180deg need to be added to let it face "outwards"
-            // const hillshade = (Math.cos(zenith * Raster.DEG2RAD) * Math.cos(slope * Raster.DEG2RAD) +
-            //     Math.sin(zenith * Raster.DEG2RAD) * Math.sin(slope * Raster.DEG2RAD) * Math.cos((azimuthDeg - aspect + 180) * Raster.DEG2RAD));
-
-            const incrmt = ObjectUtil.mapValues(hillshade, {
+            const incrmt = ObjectUtil.mapValues(shadeFunction(positionPixlI), {
                 min: 0,
                 max: 1
             }, {
-                min: this.hachureConfig.contourDiv * 2.00, // 2.10, // larger means tighter spacing
-                max: this.hachureConfig.contourDiv * 0.20
+                min: this.hachureConfig.contourDiv * 2.00, // larger means tighter spacing
+                max: this.hachureConfig.contourDiv * 0.30
             });
 
             scaledLength += incrmt;
@@ -313,7 +266,7 @@ export class Contour implements IContour {
         return this.height;
     }
 
-    handleHachures(hachuresProgress: IHachure[], hachuresComplete: IHachure[]): IHachure[] {
+    handleHachures(hachuresProgress: IHachure[]): IHachure[] { // , hachuresComplete: IHachure[]
 
         const extraHachures: IHachure[] = [];
 

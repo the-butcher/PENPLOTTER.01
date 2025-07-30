@@ -1,6 +1,6 @@
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import XIcon from '@mui/icons-material/X';
-import { Alert, AlertTitle, Box, Checkbox, Divider, FormControlLabel, FormGroup, FormHelperText, IconButton, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Checkbox, Divider, FormControlLabel, FormGroup, FormHelperText, IconButton, Radio, RadioGroup, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
 import { Feature, GeoJsonProperties, LineString } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -23,12 +23,15 @@ import { IRasterConfigProps } from './IRasterConfigProps';
 import { IRasterDataProps } from './IRasterDataProps';
 import RasterConfigComponent, { areRasterConfigPropsValid } from './RasterConfigComponent';
 import RasterDataComponent, { areRasterDataPropsValid } from './RasterDataComponent';
+import { IHillshadeConfigProps } from './IHillshadeConfigProps';
+import HillshadeConfigComponent from './HillshadeConfigComponent';
 
-export const STEP_INDEX_COMMON___CONFIG = 0;
-export const STEP_INDEX_RASTER___CONFIG = 1;
-export const STEP_INDEX_RASTER_____DATA = 2;
-export const STEP_INDEX_HACHURE__CONFIG = 3;
-export const STEP_INDEX_HACHURE_PROCESS = 4;
+export const STEP_INDEX_COMMON____CONFIG = 0;
+export const STEP_INDEX_RASTER____CONFIG = 1;
+export const STEP_INDEX_RASTER______DATA = 2;
+export const STEP_INDEX_HILLSHADE_CONFIG = 3;
+export const STEP_INDEX_HACHURE___CONFIG = 4;
+export const STEP_INDEX_HACHURE__PROCESS = 5;
 
 /**
  * central component of the app. all dependencies and flow is taken care of here
@@ -78,17 +81,19 @@ function ImageLoaderComponent() {
     const surfaceRef = useRef<ISurface>();
 
     const [active, setActive] = useState<boolean>(false);
-    const [showRaster, setShowRaster] = useState<boolean>(true);
+    // const [showRaster, setShowRaster] = useState<boolean>(true);
+    const [rasterType, setRasterType] = useState('none');
 
     const setContourToRef = useRef<number>(-1);
     const setExportPngRef = useRef<number>(-1);
 
     const handleRasterConfig = (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => {
         console.debug(`📞 handling raster config (rasterConfigUpdates)`, rasterConfigUpdates);
-        setRasterConfig({
+        rasterConfigRef.current = {
             ...rasterConfigUpdates,
             handleRasterConfig
-        });
+        };
+        setRasterConfig(rasterConfigRef.current);
         // this may only change the value range, raster data itself may not be set at that time
         setRasterData({
             ...rasterData,
@@ -111,12 +116,37 @@ function ImageLoaderComponent() {
         }
     };
 
-    const handleRasterData = (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
+    const handleRasterData = async (rasterDataUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
+
         console.debug(`📞 handling raster data (rasterDataUpdates)`, rasterDataUpdates);
-        setRasterDataRaw({
+        rasterDataRawRef.current = {
             ...rasterDataUpdates,
             handleRasterData
+        };
+        setRasterDataRaw(rasterDataRawRef.current);
+
+    };
+
+    const handleHillshade = (hillshadeUpdates: Omit<IRasterDataProps, 'handleRasterData'>) => {
+        console.debug(`📞 handling hillshade (hillshadeUpdates)`, hillshadeUpdates);
+        setHillshadeRaw({
+            ...hillshadeUpdates,
+            handleRasterData: handleHillshade
         });
+    };
+
+    const handleHillshadeConfig = (hillshadeConfigUpdates: Omit<IHillshadeConfigProps, 'handleHillshadeConfig'>) => {
+
+        console.log(`📞 handling hillshade config (hillshadeConfigUpdates)`, hillshadeConfigUpdates);
+        hillshadeConfigRef.current = {
+            ...hillshadeConfigUpdates,
+            handleHillshadeConfig
+        };
+        setHillshadeConfig(hillshadeConfigRef.current);
+
+        const _hillshadeRaw = Raster.calculateHillshade(rasterDataRawRef.current, rasterConfigRef.current, hillshadeConfigRef.current);
+        handleHillshade(_hillshadeRaw);
+
     };
 
     const handleHachureConfig = (hachureConfigUpdates: Omit<IHachureConfigProps, 'handleHachureConfig'>) => {
@@ -195,13 +225,13 @@ function ImageLoaderComponent() {
     };
 
     const commonConfigRef = useRef<ICommonConfigProps>({
-        activeStep: STEP_INDEX_RASTER___CONFIG,
+        activeStep: STEP_INDEX_RASTER____CONFIG,
         showHelperTexts: true,
         handleCommonConfig,
         handleAlertProps
     });
     const [commonConfig, setCommonConfig] = useState<ICommonConfigProps>(commonConfigRef.current);
-    const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>({
+    const rasterConfigRef = useRef<IRasterConfigProps>({
         cellsize: -1,
         wkt: GeometryUtil.WKT_3857,
         valueRange: {
@@ -221,7 +251,8 @@ function ImageLoaderComponent() {
         },
         handleRasterConfig
     });
-    const [rasterDataRaw, setRasterDataRaw] = useState<IRasterDataProps>({
+    const [rasterConfig, setRasterConfig] = useState<IRasterConfigProps>(rasterConfigRef.current);
+    const rasterDataRawRef = useRef<IRasterDataProps>({
         name: '',
         width: -1,
         height: -1,
@@ -233,6 +264,7 @@ function ImageLoaderComponent() {
         blurFactor: 0,
         handleRasterData
     });
+    const [rasterDataRaw, setRasterDataRaw] = useState<IRasterDataProps>(rasterDataRawRef.current);
     const [rasterData, setRasterData] = useState<IRasterDataProps>({
         name: '',
         width: -1,
@@ -245,6 +277,51 @@ function ImageLoaderComponent() {
         blurFactor: 0,
         handleRasterData
     });
+    const [hillshadeRaw, setHillshadeRaw] = useState<IRasterDataProps>({
+        name: '',
+        width: -1,
+        height: -1,
+        valueRange: {
+            min: -1,
+            max: -1
+        },
+        data: new Float32Array(),
+        blurFactor: 0,
+        handleRasterData: handleHillshade
+    });
+    const [hillshade, setHillshade] = useState<IRasterDataProps>({
+        name: '',
+        width: -1,
+        height: -1,
+        valueRange: {
+            min: -1,
+            max: -1
+        },
+        data: new Float32Array(),
+        blurFactor: 0,
+        handleRasterData: handleHillshade
+    });
+    const hillshadeConfigRef = useRef<IHillshadeConfigProps>({
+        zFactor: 4,
+        blurFactor: 0,
+        hillshadeDefs: [
+            {
+                id: ObjectUtil.createId(),
+                aziDeg: 315,
+                zenDeg: 45,
+                weight: 0.5
+            },
+            {
+                id: ObjectUtil.createId(),
+                aziDeg: 45,
+                zenDeg: 45,
+                weight: 0.5
+            }
+
+        ],
+        handleHillshadeConfig
+    });
+    const [hillshadeConfig, setHillshadeConfig] = useState<IHillshadeConfigProps>(hillshadeConfigRef.current);
     const [hachureConfig, setHachureConfig] = useState<IHachureConfigProps>({
         ...HACHURE_CONFIG_DEFAULT_METERS,
         handleHachureConfig
@@ -299,7 +376,12 @@ function ImageLoaderComponent() {
             units: rasterConfig.converter.projUnitName
         }) > minLength); // skip very short contour lines
         contourFeatures.forEach(contourFeature => {
-            _contours.push(new Contour(contourFeature, rasterConfig, hachureConfig, p => Raster.getRasterValue(rasterData, p[0], p[1])));
+            _contours.push(new Contour(contourFeature, rasterConfig, hachureConfig, p => Raster.getRasterValue(rasterData, p[0], p[1]), p => {
+                return ObjectUtil.mapValues(Raster.getRasterValue(hillshade, p[0], p[1]), hillshade.valueRange, {
+                    min: 0,
+                    max: 1
+                });
+            }));
         });
         return _contours;
 
@@ -336,14 +418,55 @@ function ImageLoaderComponent() {
         console.debug('⚙ updating ImageLoaderComponent (rasterDataRaw)', rasterDataRaw);
 
         if (areRasterDataPropsValid(rasterDataRaw)) {
+
             setRasterData(Raster.blurRasterData(rasterDataRaw, hachureConfig.blurFactor));
+
+            const _hillshadeRaw = Raster.calculateHillshade(rasterDataRaw, rasterConfigRef.current, hillshadeConfigRef.current);
+            handleHillshade(_hillshadeRaw);
+
         }
 
     }, [rasterDataRaw]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
+        console.log('⚙ updating ImageLoaderComponent (hillshadeRaw)', hillshadeRaw);
+
+        if (areRasterDataPropsValid(hillshadeRaw)) {
+            setHillshade(Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor));
+        }
+
+    }, [hillshadeRaw]);
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (hillshade)', hillshade);
+
+        renderRasterData(hillshade, {
+            ...rasterConfig,
+            valueRange: hillshade.valueRange
+        });
+
+    }, [hillshade]);
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (rasterType)', rasterType);
+
+        if (rasterType === 'height') {
+            renderRasterData(rasterData, rasterConfig);
+        } else if (rasterType === 'hillshade') {
+            renderRasterData(hillshade, {
+                ...rasterConfig,
+                valueRange: hillshade.valueRange
+            });
+        }
+
+    }, [rasterType]);
+
+    useEffect(() => {
+
+        console.log('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
 
         if (areRasterDataPropsValid(rasterData)) {
 
@@ -354,7 +477,14 @@ function ImageLoaderComponent() {
             svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
             svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
 
-            renderRasterData(rasterData);
+            renderRasterData(rasterData, rasterConfig);
+            // renderRasterData(hillshade, {
+            //     ...rasterConfig,
+            //     valueRange: {
+            //         min: 0,
+            //         max: 10000
+            //     }
+            // });
 
             const _surface: ISurface = {
                 originProj: rasterConfig.originProj,
@@ -403,6 +533,7 @@ function ImageLoaderComponent() {
         if (hachureConfig.blurFactor !== rasterData.blurFactor) {
             if (areRasterDataPropsValid(rasterDataRaw)) {
                 setRasterData(Raster.blurRasterData(rasterDataRaw, hachureConfig.blurFactor));
+                setHillshade(Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor));
             }
         }
 
@@ -410,7 +541,8 @@ function ImageLoaderComponent() {
 
             recalculateHeights();
             setActive(false);
-            setShowRaster(false);
+            // setShowRaster(false);
+            setRasterType('none');
             setTimeout(() => {
                 setActive(true);
             }, 100);
@@ -562,6 +694,14 @@ function ImageLoaderComponent() {
                     ...hachuresCompleteRef.current
                 ]);
 
+                // renderRasterData(hillshade, {
+                //     ...rasterConfig,
+                //     valueRange: {
+                //         min: 0,
+                //         max: 1
+                //     }
+                // });
+
             } else {
 
                 // TODO :: if not finalized yet => finalize (and maybe run another handleHachure iteration)
@@ -573,7 +713,9 @@ function ImageLoaderComponent() {
 
     }, [contours]);
 
-    const renderRasterData = (_rasterData: IRasterDataProps) => {
+    const renderRasterData = (_rasterData: IRasterDataProps, _rasterConfig: IRasterConfigProps) => {
+
+        console.log('_rasterConfig.valueRange', _rasterConfig.valueRange);
 
         const canvasElement = canvasRef.current;
         if (canvasElement) {
@@ -594,11 +736,11 @@ function ImageLoaderComponent() {
 
                     pixelIndex = (y * _rasterData.width + x);
                     valV = ObjectUtil.mapValues(_rasterData.data[pixelIndex], {
-                        min: rasterConfig.valueRange.min,
-                        max: rasterConfig.valueRange.max
+                        min: _rasterConfig.valueRange.min,
+                        max: _rasterConfig.valueRange.max
                     }, {
                         min: 0,
-                        max: 128
+                        max: 255
                     });
 
                     imageData.data[pixelIndex * 4 + 0] = valV;
@@ -742,7 +884,7 @@ function ImageLoaderComponent() {
                             </StepLabel>
                             <StepContent>
                                 <FormGroup>
-                                    <FormControlLabel
+                                    {/* <FormControlLabel
                                         control={<Checkbox
                                             sx={{
                                                 padding: '3px 12px'
@@ -753,7 +895,36 @@ function ImageLoaderComponent() {
                                         disabled={!areRasterDataPropsValid(rasterData)}
                                         checked={showRaster}
                                         label="show raster"
-                                    />
+                                    /> */}
+                                    {/* <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel> */}
+                                    <RadioGroup
+
+                                        aria-labelledby="demo-radio-buttons-group-label"
+                                        value={rasterType}
+                                        name="radio-buttons-group"
+                                        onChange={(e) => setRasterType(e.target.value)}
+
+
+                                    >
+                                        <FormControlLabel value="none" control={<Radio
+                                            size={'small'}
+                                            sx={{
+                                                padding: '3px 12px'
+                                            }}
+                                        />} label="none" />
+                                        <FormControlLabel value="height" control={<Radio
+                                            size={'small'}
+                                            sx={{
+                                                padding: '3px 12px'
+                                            }}
+                                        />} label="height" />
+                                        <FormControlLabel value="hillshade" control={<Radio
+                                            size={'small'}
+                                            sx={{
+                                                padding: '3px 12px'
+                                            }}
+                                        />} label="hillshade" />
+                                    </RadioGroup>
                                     <FormControlLabel
                                         control={<Checkbox
                                             sx={{
@@ -768,8 +939,9 @@ function ImageLoaderComponent() {
                                 </FormGroup>
                             </StepContent>
                         </Step>
+
                         <Step key={'rasterconf'}
-                            active={true}
+                            active={commonConfig.activeStep === STEP_INDEX_RASTER____CONFIG}
                             sx={{
                                 width: 'inherit'
                             }}
@@ -790,7 +962,7 @@ function ImageLoaderComponent() {
                             </StepContent>
                         </Step>
                         <Step key={'pickpng'}
-                            active={true}
+                            active={commonConfig.activeStep === STEP_INDEX_RASTER______DATA}
                             sx={{
                                 width: 'inherit'
                             }}
@@ -811,8 +983,29 @@ function ImageLoaderComponent() {
                                 }} />
                             </StepContent>
                         </Step>
+                        <Step key={'hillshadeconf'}
+                            active={commonConfig.activeStep === STEP_INDEX_HILLSHADE_CONFIG}
+                            sx={{
+                                width: 'inherit'
+                            }}
+                        >
+                            <StepLabel>
+                                <Typography>
+                                    hillshade settings
+                                </Typography>
+                            </StepLabel>
+                            <StepContent>
+                                {
+                                    commonConfig.showHelperTexts ? <FormHelperText>the hillshade settings offer possibilities to alter hillshade output.</FormHelperText> : null
+                                }
+                                <HillshadeConfigComponent {...{
+                                    ...hillshadeConfig,
+                                    ...commonConfig
+                                }} />
+                            </StepContent>
+                        </Step>
                         <Step key={'hachureconf'}
-                            active={true}
+                            active={commonConfig.activeStep === STEP_INDEX_HACHURE___CONFIG}
                             sx={{
                                 width: 'inherit'
                             }}
@@ -833,8 +1026,9 @@ function ImageLoaderComponent() {
                                 }} />
                             </StepContent>
                         </Step>
+
                         <Step key={'hachureprocess'}
-                            active={true}
+                            active={commonConfig.activeStep === STEP_INDEX_HACHURE__PROCESS}
                             sx={{
                                 width: 'inherit'
                             }}
@@ -889,7 +1083,7 @@ function ImageLoaderComponent() {
                     <canvas
                         ref={canvasRef}
                         style={{
-                            opacity: showRaster ? 1.0 : 0.0,
+                            opacity: rasterType !== 'none' ? 1.0 : 0.0,
                             margin: `${(imageMargin - 0.5) * 2}px`,
                             gridColumn: 1,
                             gridRow: 1
@@ -915,12 +1109,13 @@ function ImageLoaderComponent() {
                             }}></CropComponent> : null
                         }
                         {
-                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} closed={false} complete={c.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.25} />)
+                            contours.filter(c => c.getHeight() % hachureConfig.contourDsp === 0 || !c.complete).map(c => <ContentComponent key={c.id} svgData={c.svgData} closed={false} complete={c.complete} background={rasterType !== 'none' ? 'dark' : 'light'} strokeWidth={0.25} />)
                         }
                         {
-                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} closed={false} complete={h.complete} background={showRaster ? 'dark' : 'light'} strokeWidth={0.25} />)
+                            hachures.map(h => <ContentComponent key={h.id} svgData={h.svgData} closed={false} complete={h.complete} background={rasterType !== 'none' ? 'dark' : 'light'} strokeWidth={0.25} />)
                         }
                     </svg>
+
                 </div>
 
             </Stack>

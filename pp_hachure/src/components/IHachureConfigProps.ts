@@ -40,10 +40,6 @@ export interface IHachureConfigProps {
      */
     contourDsp: number;
     /**
-     * illumination azimuth, zero points north
-     */
-    azimuthDeg: number;
-    /**
      * random string, to force updates, i.e. in case an invalid input was made
      */
     hachureUid: string;
@@ -103,7 +99,6 @@ export const HACHURE_CONFIG_DEFAULT_METERS: Omit<IHachureConfigProps, 'handleHac
     hachureDim: 100,
     hachureArr: true,
     contourDsp: 50,
-    azimuthDeg: 280,
     propsCheck: false,
     hachureUid: ObjectUtil.createId()
 };

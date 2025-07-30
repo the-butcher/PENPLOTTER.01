@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { IRange } from '../util/IRange';
 import { ICommonConfigProps } from './ICommonConfigProps';
 import { ICoordinateConverter } from './ICoordinateConverter';
-import { STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
+import { STEP_INDEX_RASTER______DATA, STEP_INDEX_RASTER____CONFIG } from './ImageLoaderComponent';
 import { IRasterConfigProps } from "./IRasterConfigProps";
 import { TUnitAbbr, TUnitName } from './TUnit';
 
@@ -263,7 +263,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     size={'small'}
                     color={wktColor}
                     onChange={handleWktInputChange}
-                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    disabled={activeStep !== STEP_INDEX_RASTER____CONFIG}
                     sx={{
                         width: '100%'
                     }}
@@ -285,7 +285,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     variant={'outlined'}
                     size={'small'}
                     onChange={handleCellsizeInputChange}
-                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    disabled={activeStep !== STEP_INDEX_RASTER____CONFIG}
                     sx={{
                         width: '100%',
 
@@ -312,7 +312,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     variant={'outlined'}
                     size={'small'}
                     onChange={handleOriginProjXInputChange}
-                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    disabled={activeStep !== STEP_INDEX_RASTER____CONFIG}
                     sx={{
                         width: '100%'
                     }}
@@ -332,7 +332,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     variant={'outlined'}
                     size={'small'}
                     onChange={handleOriginProjYInputChange}
-                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    disabled={activeStep !== STEP_INDEX_RASTER____CONFIG}
                     sx={{
                         width: '100%'
                     }}
@@ -352,7 +352,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     variant={'outlined'}
                     size={'small'}
                     onChange={handleValueRangeMinInputChange}
-                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    disabled={activeStep !== STEP_INDEX_RASTER____CONFIG}
                     sx={{
                         width: '100%'
                     }}
@@ -372,7 +372,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                     variant={'outlined'}
                     size={'small'}
                     onChange={handleValueRangeMaxInputChange}
-                    disabled={activeStep !== STEP_INDEX_RASTER___CONFIG}
+                    disabled={activeStep !== STEP_INDEX_RASTER____CONFIG}
                     sx={{
                         width: '100%'
                     }}
@@ -385,7 +385,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                 />
             </Grid>
             {
-                activeStep === STEP_INDEX_RASTER___CONFIG ? <Grid item xs={12}
+                activeStep === STEP_INDEX_RASTER____CONFIG ? <Grid item xs={12}
                     sx={{
                         paddingTop: '12px !important'
                     }}
@@ -438,7 +438,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                 </Grid> : null
             }
             {
-                activeStep === STEP_INDEX_RASTER___CONFIG ? <>
+                activeStep === STEP_INDEX_RASTER____CONFIG ? <>
                     <Grid item xs={12}
                         sx={{
                             paddingTop: '8px !important'
@@ -456,7 +456,7 @@ function RasterConfigComponent(props: IRasterConfigProps & ICommonConfigProps) {
                             variant={'contained'}
                             size={'small'}
                             onClick={() => handleCommonConfig({
-                                activeStep: STEP_INDEX_RASTER_____DATA
+                                activeStep: STEP_INDEX_RASTER______DATA
                             })}
                             endIcon={<ArrowDownwardIcon />}
                             sx={{

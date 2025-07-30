@@ -18,7 +18,13 @@ export class ObjectUtil {
 
     static mapValues(valI: number, srcRange: IRange, dstRange: IRange): number {
         // return Math.max(dstRange.min, Math.min(dstRange.max, dstRange.min + (valI - srcRange.min) * (dstRange.max - dstRange.min) / (srcRange.max - srcRange.min)));
-        return dstRange.min + (valI - srcRange.min) * (dstRange.max - dstRange.min) / (srcRange.max - srcRange.min);
+        if (valI <= srcRange.min) {
+            return dstRange.min;
+        } else if (valI >= srcRange.max) {
+            return dstRange.max;
+        } else {
+            return dstRange.min + (valI - srcRange.min) * (dstRange.max - dstRange.min) / (srcRange.max - srcRange.min);
+        }
     }
 
     static roundFlex(value: number): number {

@@ -9,6 +9,7 @@ import { ICoordinateConverter } from "./ICoordinateConverter";
  * @since 18.04.2025
  */
 export interface IRasterConfigProps {
+
     cellsize: number;
     wkt: string;
     valueRange: IRange;
@@ -20,5 +21,7 @@ export interface IRasterConfigProps {
      * a helper for converting between raster spatial reference and WGS84/EPSG:4326
      */
     converter: ICoordinateConverter;
+
     handleRasterConfig: (rasterConfigUpdates: Omit<IRasterConfigProps, 'handleRasterConfig'>) => void;
+
 }

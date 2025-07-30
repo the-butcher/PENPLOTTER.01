@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { IRange } from '../util/IRange';
 import { ICommonConfigProps } from './ICommonConfigProps';
 import { IHachureProcessProps } from "./IHachureProcessProps";
-import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_HACHURE_PROCESS } from './ImageLoaderComponent';
+import { STEP_INDEX_HACHURE___CONFIG, STEP_INDEX_HACHURE__PROCESS } from './ImageLoaderComponent';
 
 /**
  * this component offerst status of the hachure processing and buttons to download hachures and config as geojson
@@ -86,7 +86,7 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                 </Grid> : null
             }
             {
-                activeStep === STEP_INDEX_HACHURE_PROCESS ? <>
+                activeStep === STEP_INDEX_HACHURE__PROCESS ? <>
                     <Grid item xs={12}>
                         <TextField
                             label={'min z'}
@@ -95,7 +95,7 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                             variant={'outlined'}
                             size={'small'}
                             onChange={handleMinZInputChange}
-                            disabled={activeStep !== STEP_INDEX_HACHURE_PROCESS}
+                            disabled={activeStep !== STEP_INDEX_HACHURE__PROCESS}
                             sx={{
                                 width: '100%'
                             }}
@@ -120,7 +120,7 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                             variant={'outlined'}
                             size={'small'}
                             onChange={handleMaxZInputChange}
-                            disabled={activeStep !== STEP_INDEX_HACHURE_PROCESS}
+                            disabled={activeStep !== STEP_INDEX_HACHURE__PROCESS}
                             sx={{
                                 width: '100%'
                             }}
@@ -199,18 +199,11 @@ function HachureProcessComponent(props: IHachureProcessProps & ICommonConfigProp
                             paddingTop: '8px !important'
                         }}
                     >
-                        <Divider></Divider>
-                    </Grid>
-                    <Grid item xs={12}
-                        sx={{
-                            paddingTop: '8px !important'
-                        }}
-                    >
                         <Button
                             variant={'contained'}
                             size={'small'}
                             onClick={() => handleCommonConfig({
-                                activeStep: STEP_INDEX_HACHURE__CONFIG
+                                activeStep: STEP_INDEX_HACHURE___CONFIG
                             })}
                             startIcon={<ArrowUpwardIcon />}
                             sx={{

@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Raster } from '../raster/Raster';
 import { ObjectUtil } from '../util/ObjectUtil';
 import { ICommonConfigProps } from './ICommonConfigProps';
-import { STEP_INDEX_HACHURE__CONFIG, STEP_INDEX_RASTER_____DATA, STEP_INDEX_RASTER___CONFIG } from './ImageLoaderComponent';
+import { STEP_INDEX_HILLSHADE_CONFIG, STEP_INDEX_RASTER______DATA, STEP_INDEX_RASTER____CONFIG } from './ImageLoaderComponent';
 import { IRasterDataProps } from './IRasterDataProps';
 
 export const areRasterDataPropsValid = (props: Omit<IRasterDataProps, 'handleRasterData'>) => {
@@ -123,7 +123,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                     value={name}
                     variant={'outlined'}
                     size={'small'}
-                    disabled={activeStep !== STEP_INDEX_RASTER_____DATA}
+                    disabled={activeStep !== STEP_INDEX_RASTER______DATA}
                     sx={{
                         width: '100%'
                     }}
@@ -145,7 +145,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                     type={'number'}
                     variant={'outlined'}
                     size={'small'}
-                    disabled={activeStep !== STEP_INDEX_RASTER_____DATA}
+                    disabled={activeStep !== STEP_INDEX_RASTER______DATA}
                     sx={{
                         width: '100%'
                     }}
@@ -167,7 +167,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                     type={'number'}
                     variant={'outlined'}
                     size={'small'}
-                    disabled={activeStep !== STEP_INDEX_RASTER_____DATA}
+                    disabled={activeStep !== STEP_INDEX_RASTER______DATA}
                     sx={{
                         width: '100%'
                     }}
@@ -183,7 +183,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                 />
             </Grid>
             {
-                activeStep === STEP_INDEX_RASTER_____DATA ? <Grid item xs={12}
+                activeStep === STEP_INDEX_RASTER______DATA ? <Grid item xs={12}
                     sx={{
                         paddingTop: '12px !important'
                     }}
@@ -223,7 +223,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                 </Grid> : null
             }
             {
-                activeStep === STEP_INDEX_RASTER_____DATA ? <>
+                activeStep === STEP_INDEX_RASTER______DATA ? <>
                     <Grid item xs={12}
                         sx={{
                             paddingTop: '8px !important'
@@ -240,7 +240,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                             variant={'contained'}
                             size={'small'}
                             onClick={() => handleCommonConfig({
-                                activeStep: STEP_INDEX_RASTER___CONFIG
+                                activeStep: STEP_INDEX_RASTER____CONFIG
                             })}
                             startIcon={<ArrowUpwardIcon />}
                             sx={{
@@ -261,7 +261,7 @@ function RasterDataComponent(props: IRasterDataProps & ICommonConfigProps) {
                             variant={'contained'}
                             size={'small'}
                             onClick={() => handleCommonConfig({
-                                activeStep: STEP_INDEX_HACHURE__CONFIG
+                                activeStep: STEP_INDEX_HILLSHADE_CONFIG
                             })}
                             endIcon={<ArrowDownwardIcon />}
                             sx={{
