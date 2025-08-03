@@ -3,17 +3,17 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import DownloadIcon from '@mui/icons-material/Download';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import UploadIcon from '@mui/icons-material/Upload';
+import WbTwilightIcon from '@mui/icons-material/WbTwilight';
 
-import { Button, Divider, FormHelperText, Grid, Slider, TextField } from "@mui/material";
+import { Button, Divider, FormHelperText, Grid, IconButton, TextField } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
+import { IRange } from '../util/IRange';
 import { ObjectUtil } from '../util/ObjectUtil';
+import HillshadeDefComponent from './HillshadeDefComponent';
 import { ICommonConfigProps } from './ICommonConfigProps';
 import { IHillshadeConfigProps } from './IHillshadeConfigProps';
-import { STEP_INDEX_HACHURE___CONFIG, STEP_INDEX_HILLSHADE_CONFIG, STEP_INDEX_RASTER______DATA } from './ImageLoaderComponent';
-import HillshadeDefComponent from './HillshadeDefComponent';
 import { IHillshadeDefProps } from './IHillshadeDefProps';
-import { Mark } from '@mui/material/Slider/useSlider.types';
-import { IRange } from '../util/IRange';
+import { STEP_INDEX_HACHURE___CONFIG, STEP_INDEX_HILLSHADE_CONFIG, STEP_INDEX_RASTER______DATA } from './ImageLoaderComponent';
 
 /**
  * this component shows input fields for raster configuration and offers the possibility to import an existing config file
@@ -31,24 +31,48 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
     const [loading, setLoading] = useState<boolean>(false);
     const [zFactorInt, setZFactorInt] = useState<number>(zFactor);
     const [blurFactorInt, setBlurFactorInt] = useState<number>(blurFactor);
+    const [hillshadeDefsInt, setHillshadeDefsInt] = useState<Omit<IHillshadeDefProps, 'handleHillshadeDef' | 'deleteHillshadeDef' | 'deletable'>[]>(hillshadeDefs);
     const handleHillshadeConfigToRef = useRef<number>(-1);
 
-    const blurFactorRange: IRange = {
-        min: 0.1,
-        max: 10
+    const zFactorRange: IRange = {
+        min: 1.00,
+        max: 10.00
     };
 
-    const handleHillshadeDef = (hillshadeDefUpdates: Omit<IHillshadeDefProps, 'handleHillshadeDef'>) => {
+    const blurFactorRange: IRange = {
+        min: 0.00,
+        max: 10.00
+    };
+
+    const appendHillshadeDef = () => {
+        setHillshadeDefsInt([
+            ...hillshadeDefsInt,
+            {
+                id: ObjectUtil.createId(),
+                aziDeg: 315,
+                zenDeg: 45,
+                weight: 0.5
+            }
+        ]);
+    };
+
+    const deleteHillshadeDef = (id: string) => {
+        setHillshadeDefsInt(hillshadeDefsInt.filter(hillshadeDef => hillshadeDef.id !== id));
+    };
+
+    const handleHillshadeDef = (hillshadeDefUpdates: Omit<IHillshadeDefProps, 'handleHillshadeDef' | 'deleteHillshadeDef' | 'deletable'>) => {
 
         console.log(`📞 handling hillshade def (hillshadeDefUpdates)`, hillshadeDefUpdates);
-        for (let i = 0; i < hillshadeDefs.length; i++) {
-            if (hillshadeDefs[i].id === hillshadeDefUpdates.id) {
-                hillshadeDefs[i].aziDeg = hillshadeDefUpdates.aziDeg;
-                hillshadeDefs[i].zenDeg = hillshadeDefUpdates.zenDeg;
-                hillshadeDefs[i].weight = hillshadeDefUpdates.weight;
+        const _hillshadeDefs = [...hillshadeDefsInt];
+        for (let i = 0; i < _hillshadeDefs.length; i++) {
+            if (_hillshadeDefs[i].id === hillshadeDefUpdates.id) {
+                _hillshadeDefs[i].aziDeg = hillshadeDefUpdates.aziDeg;
+                _hillshadeDefs[i].zenDeg = hillshadeDefUpdates.zenDeg;
+                _hillshadeDefs[i].weight = hillshadeDefUpdates.weight;
             }
         }
-        handleHillshadeConfigInt();
+        setHillshadeDefsInt(_hillshadeDefs);
+        // handleHillshadeConfigInt();
 
         // TODO :: delete option for hillshade defs
         // TODO :: insert option for hillshade defs
@@ -61,22 +85,22 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
 
     useEffect(() => {
 
-        console.debug('⚙ updating HillshadeConfigComponent (zFactor, blurFactor)', zFactor, blurFactor);
+        console.debug('⚙ updating HillshadeConfigComponent (zFactor, blurFactor, hillshadeDefs)', zFactor, blurFactor, hillshadeDefs);
         if (zFactor) {
             setZFactorInt(zFactor);
         }
         if (blurFactor) {
             setBlurFactorInt(blurFactor);
         }
-
+        setHillshadeDefsInt(hillshadeDefs);
     }, [zFactor, blurFactor]);
 
     useEffect(() => {
 
-        console.debug('⚙ updating HillshadeConfigComponent (zFactorInt, blurFactorInt)', zFactorInt, blurFactorInt);
+        console.debug('⚙ updating HillshadeConfigComponent (zFactorInt, blurFactorInt, hillshadeDefsInt)', zFactorInt, blurFactorInt, hillshadeDefsInt);
         handleHillshadeConfigInt();
 
-    }, [zFactorInt, blurFactorInt]);
+    }, [zFactorInt, blurFactorInt, hillshadeDefsInt]);
 
     // useEffect(() => {
     //     console.debug('⚙ updating HillshadeConfigComponent (hillshadeDefs)', hillshadeDefs);
@@ -91,14 +115,10 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
 
     const createHillshadeConfigFromInt = (): Omit<IHillshadeConfigProps, 'handleHillshadeConfig'> => {
         return {
-            zFactor: zFactorInt,
-            blurFactor: blurFactorInt,
-            hillshadeDefs
+            zFactor: ObjectUtil.limitToRange(zFactorInt, zFactorRange),
+            blurFactor: ObjectUtil.limitToRange(blurFactorInt, blurFactorRange),
+            hillshadeDefs: hillshadeDefsInt
         };
-    };
-
-    const handleZFactorSliderChange = (_event: Event, newValue: number | number[]) => {
-        setZFactorInt(newValue as number);
     };
 
     const hillshadeConfigFileFormat = '.hsc';
@@ -124,7 +144,10 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
                 if (file!.name.endsWith(hillshadeConfigFileFormat)) {
 
                     const _hillshadeConfig: IHillshadeConfigProps = JSON.parse(text);
-                    handleHillshadeConfig(_hillshadeConfig);
+                    setBlurFactorInt(_hillshadeConfig.blurFactor);
+                    setZFactorInt(_hillshadeConfig.zFactor);
+                    setHillshadeDefsInt(_hillshadeConfig.hillshadeDefs);
+                    // handleHillshadeConfig(_hillshadeConfig);
 
                 }
 
@@ -144,15 +167,12 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
         }
     };
 
-    const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value));
+    const handleZFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setZFactorInt(event.target.value === '' ? zFactorInt : Number(event.target.value));
     };
 
-    const createMark = (value: number): Mark => {
-        return {
-            value: value,
-            label: `${value.toFixed(0)}x`
-        };
+    const handleBlurFactorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setBlurFactorInt(event.target.value === '' ? blurFactorInt : Number(event.target.value));
     };
 
     return (
@@ -162,38 +182,30 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
                 paddingTop: '12px'
             }}
         >
-            <Grid item xs={12}
-                sx={{
-                    padding: '12px 24px 0px 30px !important',
-                }}
-            >
-                <FormHelperText
-                    disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                >z-factor</FormHelperText>
-                <Slider
-                    valueLabelDisplay={'on'}
-                    orientation={'horizontal'}
-                    aria-label="zFactor"
+            <Grid item xs={12}>
+                <TextField
+                    label={'z factor'}
                     value={zFactorInt}
-                    step={0.5}
-                    min={1}
-                    max={10}
-                    valueLabelFormat={value => `${value.toFixed(0)}x`}
-                    onChange={handleZFactorSliderChange}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
+                    onChange={handleZFactorInputChange}
                     disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                    marks={[
-                        createMark(1),
-                        createMark(10),
-                    ]}
                     sx={{
-                        marginTop: '36px',
+                        width: '100%'
                     }}
+                    slotProps={{
+                        htmlInput: {
+                            ...zFactorRange,
+                            step: 0.1,
+                            type: 'number'
+                        },
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
+                    helperText={showHelperTexts ? 'the z-factor applied when calculating hillshade' : undefined}
                 />
-                {
-                    showHelperTexts ? <FormHelperText
-                        disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                    >the z-factor applied when calculating hillshade</FormHelperText> : null
-                }
             </Grid>
             <Grid item xs={12}>
                 <TextField
@@ -224,14 +236,29 @@ function HillshadeConfigComponent(props: IHillshadeConfigProps & ICommonConfigPr
                 hillshadeDefs.map(hillshadeDef => <>
                     <Grid item xs={12}
                         sx={{
-                            paddingTop: '8px !important'
+                            paddingTop: '12px !important'
                         }}
                     >
-                        <Divider></Divider>
+                        <Divider />
                     </Grid>
-                    <HillshadeDefComponent key={hillshadeDef.id} {...hillshadeDef} handleHillshadeDef={handleHillshadeDef} activeStep={activeStep} showHelperTexts={showHelperTexts} handleAlertProps={handleAlertProps} handleCommonConfig={handleCommonConfig} />
+                    <HillshadeDefComponent key={hillshadeDef.id} deletable={hillshadeDefs.length > 1} {...hillshadeDef} handleHillshadeDef={handleHillshadeDef} deleteHillshadeDef={deleteHillshadeDef} activeStep={activeStep} showHelperTexts={showHelperTexts} handleAlertProps={handleAlertProps} handleCommonConfig={handleCommonConfig} />
                 </>)
             }
+            <Grid item xs={12}
+                sx={{
+                    paddingTop: '12px !important'
+                }}
+            >
+                <Divider />
+            </Grid>
+            <Grid item xs={10}>
+
+            </Grid>
+            <Grid item xs={2}>
+                <IconButton aria-label="delete" size="medium" onClick={() => appendHillshadeDef()}>
+                    <WbTwilightIcon fontSize="inherit" />
+                </IconButton>
+            </Grid>
             {
                 activeStep === STEP_INDEX_HILLSHADE_CONFIG ? <>
                     <Grid item xs={12}

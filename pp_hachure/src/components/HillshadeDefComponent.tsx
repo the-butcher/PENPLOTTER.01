@@ -1,8 +1,8 @@
-
-import { FormHelperText, Grid, Slider, TextField } from "@mui/material";
-import { Mark } from "@mui/material/Slider/useSlider.types";
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Grid, IconButton, TextField } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { IRange } from "../util/IRange";
+import { ObjectUtil } from "../util/ObjectUtil";
 import { ICommonConfigProps } from './ICommonConfigProps';
 import { IHillshadeDefProps } from './IHillshadeDefProps';
 import { STEP_INDEX_HILLSHADE_CONFIG } from './ImageLoaderComponent';
@@ -18,7 +18,7 @@ import { STEP_INDEX_HILLSHADE_CONFIG } from './ImageLoaderComponent';
  */
 function HillshadeDefComponent(props: IHillshadeDefProps & ICommonConfigProps) {
 
-    const { id, aziDeg, zenDeg, weight, handleHillshadeDef, activeStep, showHelperTexts } = { ...props };
+    const { id, aziDeg, zenDeg, weight, deletable, handleHillshadeDef, deleteHillshadeDef, activeStep, showHelperTexts } = { ...props };
 
     const [aziDegInt, setAziDegInt] = useState<number>(aziDeg);
     const [zenDegInt, setZenDegInt] = useState<number>(zenDeg);
@@ -26,9 +26,19 @@ function HillshadeDefComponent(props: IHillshadeDefProps & ICommonConfigProps) {
 
     const handleHillshadeDefToRef = useRef<number>(-1);
 
+    const aziDegRange: IRange = {
+        min: 0.00,
+        max: 360.00
+    };
+
+    const zenDegRange: IRange = {
+        min: 0.00,
+        max: 90.00
+    };
+
     const weightRange: IRange = {
-        min: 0.1,
-        max: 2
+        min: 0.10,
+        max: 2.00
     };
 
     useEffect(() => {
@@ -62,104 +72,80 @@ function HillshadeDefComponent(props: IHillshadeDefProps & ICommonConfigProps) {
 
     }, [aziDegInt, zenDegInt, weightInt]);
 
-    const createHillshadeDefFromInt = (): Omit<IHillshadeDefProps, 'handleHillshadeDef'> => {
+    const createHillshadeDefFromInt = (): Omit<IHillshadeDefProps, 'handleHillshadeDef' | 'deleteHillshadeDef' | 'deletable'> => {
         return {
             id,
-            aziDeg: aziDegInt,
-            zenDeg: zenDegInt,
-            weight: weightInt
+            aziDeg: ObjectUtil.limitToRange(aziDegInt, aziDegRange),
+            zenDeg: ObjectUtil.limitToRange(zenDegInt, zenDegRange),
+            weight: ObjectUtil.limitToRange(weightInt, weightRange)
         };
     };
 
-    const handleAziDegSliderChange = (_event: Event, newValue: number | number[]) => {
-        setAziDegInt(newValue as number);
+    const handleAziDegInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAziDegInt(event.target.value === '' ? aziDegInt : Number(event.target.value));
     };
 
-    const handleZenDegSliderChange = (_event: Event, newValue: number | number[]) => {
-        setZenDegInt(newValue as number);
+    const handleZenDegInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setZenDegInt(event.target.value === '' ? zenDegInt : Number(event.target.value));
     };
 
     const handleWeightInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setWeightInt(event.target.value === '' ? weightInt : Number(event.target.value));
     };
 
-
-    const createMark = (value: number): Mark => {
-        return {
-            value: value,
-            label: `${value.toFixed(0)}deg`
-        };
-    };
-
     return (
         <>
-            <Grid item xs={12}
-                sx={{
-                    padding: '12px 24px 0px 30px !important',
-                }}
-            >
-                <FormHelperText
-                    disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                >illumination azimuth (deg)</FormHelperText>
-                <Slider
-                    valueLabelDisplay={'on'}
-                    orientation={'horizontal'}
-                    aria-label="azimuth"
+            <Grid item xs={10}>
+                <TextField
+                    label={'azimuth'}
                     value={aziDegInt}
-                    step={1}
-                    min={0}
-                    max={360}
-                    valueLabelFormat={value => `${value.toFixed(0)}deg`}
-                    onChange={handleAziDegSliderChange}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
+                    onChange={handleAziDegInputChange}
                     disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                    marks={[
-                        createMark(0),
-                        createMark(360),
-                    ]}
                     sx={{
-                        marginTop: '36px',
+                        width: '100%'
                     }}
+                    slotProps={{
+                        htmlInput: {
+                            ...aziDegRange,
+                            step: 0.1,
+                            type: 'number'
+                        },
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
+                    helperText={showHelperTexts ? 'the azimuth angle of illumination, zero pointing north, 90 pointing east' : undefined}
                 />
-                {
-                    showHelperTexts ? <FormHelperText
-                        disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                    >the azimuth angle of illumination, zero pointing north</FormHelperText> : null
-                }
             </Grid>
-            <Grid item xs={12}
-                sx={{
-                    padding: '12px 24px 0px 30px !important',
-                }}
-            >
-                <FormHelperText
-                    disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                >illumination altitude (deg)</FormHelperText>
-                <Slider
-                    valueLabelDisplay={'on'}
-                    orientation={'horizontal'}
-                    aria-label="altitude"
+            <Grid item xs={10}>
+                <TextField
+                    label={'altitude'}
                     value={zenDegInt}
-                    step={1}
-                    min={0}
-                    max={90}
-                    valueLabelFormat={value => `${value.toFixed(0)}deg`}
-                    onChange={handleZenDegSliderChange}
+                    type={'number'}
+                    variant={'outlined'}
+                    size={'small'}
+                    onChange={handleZenDegInputChange}
                     disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                    marks={[
-                        createMark(0),
-                        createMark(90),
-                    ]}
                     sx={{
-                        marginTop: '36px',
+                        width: '100%'
                     }}
+                    slotProps={{
+                        htmlInput: {
+                            ...zenDegRange,
+                            step: 0.1,
+                            type: 'number'
+                        },
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
+                    helperText={showHelperTexts ? 'the altitude of illumination, 90° being vertical' : undefined}
                 />
-                {
-                    showHelperTexts ? <FormHelperText
-                        disabled={activeStep !== STEP_INDEX_HILLSHADE_CONFIG}
-                    >the azimuth angle of illumination, zero pointing north</FormHelperText> : null
-                }
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={10}>
                 <TextField
                     label={'weight'}
                     value={weightInt}
@@ -183,6 +169,11 @@ function HillshadeDefComponent(props: IHillshadeDefProps & ICommonConfigProps) {
                     }}
                     helperText={showHelperTexts ? 'the weight of this illumination layer' : undefined}
                 />
+            </Grid>
+            <Grid item xs={2}>
+                <IconButton disabled={!deletable} aria-label="delete" size="medium" onClick={() => deleteHillshadeDef(id)}>
+                    <DeleteIcon fontSize="inherit" />
+                </IconButton>
             </Grid>
         </>
     );

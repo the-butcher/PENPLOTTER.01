@@ -104,6 +104,18 @@ export class Raster {
             }
         }
 
+        // fix vertical edges
+        for (let y = 1; y < rasterData.height - 1; y++) {
+            hillshadeData[y * rasterData.width + rasterData.width - 1] = hillshadeData[y * rasterData.width + rasterData.width - 2];
+            hillshadeData[y * rasterData.width] = hillshadeData[y * rasterData.width + 1];
+        }
+
+        // fix horizontal edges
+        for (let x = 0; x < rasterData.width; x++) {
+            hillshadeData[x] = hillshadeData[rasterData.width + x];
+            hillshadeData[(rasterData.height - 1) * rasterData.width + x] = hillshadeData[(rasterData.height - 2) * rasterData.width + x];
+        }
+
         // console.log('hillshade range', Raster.getSampleRange(hillshade));
         const valueRange = Raster.getSampleRange({
             data: hillshadeData,
@@ -150,10 +162,10 @@ export class Raster {
         }
         // valMin = 10832;
         // valMax = 30646;
-        console.log('sampleRange', {
-            min: valMin,
-            max: valMax
-        }, positionMin, positionMax);
+        // console.log('sampleRange', {
+        //     min: valMin,
+        //     max: valMax
+        // }, positionMin, positionMax);
         return {
             min: valMin,
             max: valMax

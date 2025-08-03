@@ -8,7 +8,7 @@ import { Contour } from '../content/Contour';
 import { IContour } from '../content/IContour';
 import { IHachure } from '../content/IHachure';
 import { ISurface } from '../content/ISurface';
-import { Raster } from '../raster/Raster';
+import { Raster, TRasterType } from '../raster/Raster';
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from '../util/ObjectUtil';
 import ContentComponent from './ContentComponent';
@@ -55,7 +55,7 @@ function ImageLoaderComponent() {
 
         if (svgElement && !svgRef.current) {
 
-            console.log('svgElement', svgElement);
+            // console.log('svgElement', svgElement);
             svgRef.current = svgElement;
 
             document.addEventListener('keydown', e => {
@@ -82,7 +82,7 @@ function ImageLoaderComponent() {
 
     const [active, setActive] = useState<boolean>(false);
     // const [showRaster, setShowRaster] = useState<boolean>(true);
-    const [rasterType, setRasterType] = useState('none');
+    const [rasterType, setRasterType] = useState<TRasterType>('none');
 
     const setContourToRef = useRef<number>(-1);
     const setExportPngRef = useRef<number>(-1);
@@ -137,7 +137,7 @@ function ImageLoaderComponent() {
 
     const handleHillshadeConfig = (hillshadeConfigUpdates: Omit<IHillshadeConfigProps, 'handleHillshadeConfig'>) => {
 
-        console.log(`📞 handling hillshade config (hillshadeConfigUpdates)`, hillshadeConfigUpdates);
+        console.debug(`📞 handling hillshade config (hillshadeConfigUpdates)`, hillshadeConfigUpdates);
         hillshadeConfigRef.current = {
             ...hillshadeConfigUpdates,
             handleHillshadeConfig
@@ -197,7 +197,7 @@ function ImageLoaderComponent() {
     };
 
     const handleCommonConfig = (commonConfigUpdates: Omit<ICommonConfigProps, 'handleCommonConfig' | 'handleAlertProps' | 'showHelperTexts'>) => {
-        console.log(`📞 handling common config (commonConfigUpdates)`, commonConfigUpdates, commonConfigRef.current);
+        console.debug(`📞 handling common config (commonConfigUpdates)`, commonConfigUpdates, commonConfigRef.current);
         commonConfigRef.current = {
             ...commonConfigRef.current,
             ...commonConfigUpdates,
@@ -226,7 +226,7 @@ function ImageLoaderComponent() {
 
     const commonConfigRef = useRef<ICommonConfigProps>({
         activeStep: STEP_INDEX_RASTER____CONFIG,
-        showHelperTexts: true,
+        showHelperTexts: false,
         handleCommonConfig,
         handleAlertProps
     });
@@ -319,7 +319,7 @@ function ImageLoaderComponent() {
             }
 
         ],
-        handleHillshadeConfig
+        handleHillshadeConfig,
     });
     const [hillshadeConfig, setHillshadeConfig] = useState<IHillshadeConfigProps>(hillshadeConfigRef.current);
     const [hachureConfig, setHachureConfig] = useState<IHachureConfigProps>({
@@ -356,6 +356,9 @@ function ImageLoaderComponent() {
         const hachuresTemp: IHachure[] = [];
         hachuresProgressRef.current.forEach(h => {
             if (h.complete) {
+                while (h.getVertexCount() > 1 && h.getLastVertex().slope < hachureConfig.hachureDeg) {
+                    h.popLastVertex();
+                }
                 // h.popLastVertex();
                 hachuresCompleteRef.current.push(h);
             } else {
@@ -402,7 +405,17 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (commonConfig)', commonConfig);
+        console.debug('⚙ updating ImageLoaderComponent (commonConfig)', commonConfig);
+
+        if (commonConfig.activeStep === STEP_INDEX_RASTER______DATA) {
+            // setRasterType('height');
+        } else if (commonConfig.activeStep === STEP_INDEX_HILLSHADE_CONFIG) {
+            // setRasterType('hillshade');
+            // renderRasterData(hillshade, {
+            //     ...rasterConfig,
+            //     valueRange: hillshade.valueRange
+            // });
+        }
 
     }, [commonConfig]);
 
@@ -430,7 +443,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (hillshadeRaw)', hillshadeRaw);
+        console.debug('⚙ updating ImageLoaderComponent (hillshadeRaw)', hillshadeRaw);
 
         if (areRasterDataPropsValid(hillshadeRaw)) {
             setHillshade(Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor));
@@ -440,8 +453,9 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (hillshade)', hillshade);
+        console.debug('⚙ updating ImageLoaderComponent (hillshade)', hillshade);
 
+        setRasterType('hillshade');
         renderRasterData(hillshade, {
             ...rasterConfig,
             valueRange: hillshade.valueRange
@@ -466,7 +480,7 @@ function ImageLoaderComponent() {
 
     useEffect(() => {
 
-        console.log('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
+        console.debug('⚙ updating ImageLoaderComponent (rasterData)', rasterData);
 
         if (areRasterDataPropsValid(rasterData)) {
 
@@ -477,6 +491,7 @@ function ImageLoaderComponent() {
             svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
             svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
 
+            setRasterType('height');
             renderRasterData(rasterData, rasterConfig);
             // renderRasterData(hillshade, {
             //     ...rasterConfig,
@@ -715,7 +730,7 @@ function ImageLoaderComponent() {
 
     const renderRasterData = (_rasterData: IRasterDataProps, _rasterConfig: IRasterConfigProps) => {
 
-        console.log('_rasterConfig.valueRange', _rasterConfig.valueRange);
+        // console.log('_rasterConfig.valueRange', _rasterConfig.valueRange);
 
         const canvasElement = canvasRef.current;
         if (canvasElement) {
@@ -740,12 +755,13 @@ function ImageLoaderComponent() {
                         max: _rasterConfig.valueRange.max
                     }, {
                         min: 0,
-                        max: 255
+                        max: 1
                     });
+                    valV = valV ** 1.25;
 
-                    imageData.data[pixelIndex * 4 + 0] = valV;
-                    imageData.data[pixelIndex * 4 + 1] = valV;
-                    imageData.data[pixelIndex * 4 + 2] = valV;
+                    imageData.data[pixelIndex * 4 + 0] = valV * 255;
+                    imageData.data[pixelIndex * 4 + 1] = valV * 255;
+                    imageData.data[pixelIndex * 4 + 2] = valV * 255;
 
                 }
             }

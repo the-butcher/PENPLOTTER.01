@@ -3,5 +3,7 @@ export interface IHillshadeDefProps {
     aziDeg: number;
     zenDeg: number;
     weight: number;
-    handleHillshadeDef: (hillshadeDefUpdates: Omit<IHillshadeDefProps, 'handleHillshadeDef'>) => void;
+    deletable: boolean;
+    handleHillshadeDef: (hillshadeDefUpdates: Omit<IHillshadeDefProps, 'handleHillshadeDef' | 'deleteHillshadeDef' | 'deletable'>) => void;
+    deleteHillshadeDef: (id: string) => void;
 }

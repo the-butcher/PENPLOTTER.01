@@ -175,12 +175,13 @@ export class Contour implements IContour {
             const heightS = heightFunction(positionPixlS);
             slope = Math.atan2((heightI - heightS), lenS) * Raster.RAD2DEG;
 
-            const incrmt = ObjectUtil.mapValues(shadeFunction(positionPixlI), {
+            const hillshade = shadeFunction(positionPixlI) ** 1.25;
+            const incrmt = ObjectUtil.mapValues(hillshade, {
                 min: 0,
                 max: 1
             }, {
                 min: this.hachureConfig.contourDiv * 2.00, // larger means tighter spacing
-                max: this.hachureConfig.contourDiv * 0.30
+                max: this.hachureConfig.contourDiv * 0.25
             });
 
             scaledLength += incrmt;
@@ -377,22 +378,21 @@ export class Contour implements IContour {
         // const cellsizeM = this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit;
         // console.log('baselineM', baselineM, 'cellsizeM', cellsizeM);
 
-        const hachureRay = (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD)) / (this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit);
+        const maxRayLength = (this.hachureConfig.contourOff / Math.tan(this.hachureConfig.hachureDeg * Raster.DEG2RAD)) / (this.rasterConfig.cellsize * this.rasterConfig.converter.metersPerUnit);
         // console.log('hachureRay', hachureRay);
+        let mayRayFactor: number;
 
         for (let i = 0; i < hachures.length; i++) {
 
-            // const hachure = hachures[i];
-
             const hachure = hachures[i];
-            // if (!hachure.isComplete()) {
 
             const lastHachureVertex = hachure.getLastVertex();
+            mayRayFactor = hachure.getVertexCount() > 1 ? 1.25 : 1; // give some tolerance slopewise while building lines
 
             const pixelCoordinateA = lastHachureVertex.positionPixl;
             const pixelCoordinateB: Position = [
-                pixelCoordinateA[0] + Math.cos(lastHachureVertex.aspect * Raster.DEG2RAD) * hachureRay,
-                pixelCoordinateA[1] + Math.sin(lastHachureVertex.aspect * Raster.DEG2RAD) * hachureRay
+                pixelCoordinateA[0] + Math.cos(lastHachureVertex.aspect * Raster.DEG2RAD) * maxRayLength * mayRayFactor,
+                pixelCoordinateA[1] + Math.sin(lastHachureVertex.aspect * Raster.DEG2RAD) * maxRayLength * mayRayFactor
             ];
             const coordinate4326A = GeometryUtil.pixelToPosition4326(pixelCoordinateA, this.rasterConfig);
             const coordinate4326B = GeometryUtil.pixelToPosition4326(pixelCoordinateB, this.rasterConfig);
@@ -410,6 +410,7 @@ export class Contour implements IContour {
                     const aspect = this.lengthToAspect(length);
                     const slope = this.lengthToSlope(length);
 
+                    // adding a vertex set the complete flag to false
                     hachure.addVertex({
                         position4326,
                         positionPixl,

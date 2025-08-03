@@ -119,10 +119,6 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
 
     }, [avgSpacingInt, blurFactorInt, contourOffInt, contourDivInt, hachureDegInt, hachureDimInt, hachureArrInt, contourDspInt, propsCheckInt]);
 
-    const limitToRange = (value: number, range: IRange): number => {
-        return Math.max(range.min, Math.min(range.max, value));
-    };
-
     const handleHachureArrChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setHachureArrInt((event.target as HTMLInputElement).value === 'arrow');
     };
@@ -164,12 +160,12 @@ function HachureConfigComponent(props: IHachureConfigProps & IRasterConfigProps 
 
     const createHachureConfigFromInt = (): Omit<IHachureConfigProps, 'handleHachureConfig' | 'propsCheck'> => {
         return {
-            avgSpacing: limitToRange(avgSpacingInt, avgSpacingRange),
-            blurFactor: limitToRange(blurFactorInt, blurFactorRange),
+            avgSpacing: ObjectUtil.limitToRange(avgSpacingInt, avgSpacingRange),
+            blurFactor: ObjectUtil.limitToRange(blurFactorInt, blurFactorRange),
             contourOff: contourOffInt,
-            contourDiv: limitToRange(contourDivInt, contourDivRange),
-            hachureDeg: limitToRange(hachureDegInt, hachureDegRange),
-            hachureDim: limitToRange(hachureDimInt, hachureDimRange),
+            contourDiv: ObjectUtil.limitToRange(contourDivInt, contourDivRange),
+            hachureDeg: ObjectUtil.limitToRange(hachureDegInt, hachureDegRange),
+            hachureDim: ObjectUtil.limitToRange(hachureDimInt, hachureDimRange),
             hachureArr: hachureArrInt,
             contourDsp: contourDspInt,
             hachureUid: ObjectUtil.createId()

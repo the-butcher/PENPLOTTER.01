@@ -38,4 +38,8 @@ export class ObjectUtil {
         }
     }
 
+    static limitToRange = (value: number, range: IRange): number => {
+        return Math.max(range.min, Math.min(range.max, value));
+    };
+
 }
