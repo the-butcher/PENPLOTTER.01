@@ -176,13 +176,33 @@ function ImageLoaderComponent() {
     };
 
     const handleSurfaceExport = () => {
-        const a = document.createElement("a");
-        const e = new MouseEvent("click");
-        a.download = `surface_${ObjectUtil.createId()}.json`;
-        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(surfaceRef.current, (_key, val) => {
-            return val.toFixed ? Number(val.toFixed(2)) : val;
-        }));
-        a.dispatchEvent(e);
+
+        // console.log('rasterConfigRef.current', rasterConfigRef.current)
+        const contourFeatures = Raster.getContourFeatures(rasterDataRawRef.current, [0], rasterConfigRef.current).filter(f => turf.length(f, {
+            units: rasterConfig.converter.projUnitName
+        }) > 0); // skip very short contour lines
+
+        // const extentGeometry: LineString = {
+        //     type: 'LineString',
+        //     coordinates: [
+        //         GeometryUtil.pixelToPosition4326([0, 0], rasterConfigRef.current),
+        //         GeometryUtil.pixelToPosition4326([rasterDataRawRef.current.width - 1, 0], rasterConfigRef.current)
+        //     ]
+        // };
+        // // console.log('extentGeometry', extentGeometry, GeometryUtil.pixelToPosition4326([0, 0], rasterConfigRef.current));
+        // handleGeoJsonExport([
+        //     turf.feature(extentGeometry, {})
+        // ], 'extent');
+        handleGeoJsonExport(contourFeatures, 'extent');
+
+
+        // const a = document.createElement("a");
+        // const e = new MouseEvent("click");
+        // a.download = `surface_${ObjectUtil.createId()}.json`;
+        // a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(surfaceRef.current, (_key, val) => {
+        //     return val.toFixed ? Number(val.toFixed(2)) : val;
+        // }));
+        // a.dispatchEvent(e);
     };
 
     const handleGeoJsonExport = (features: Feature<LineString, GeoJsonProperties>[], prefix: string) => {

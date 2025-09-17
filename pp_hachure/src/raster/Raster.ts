@@ -246,7 +246,10 @@ export class Raster {
                                 });
                                 contourFeatures.push(contourFeature!);
                             }
-                            contourFeature!.geometry.coordinates.push(GeometryUtil.pixelToPosition4326(contourCoordinate, rasterConfig));
+                            contourFeature!.geometry.coordinates.push(GeometryUtil.pixelToPosition4326([
+                                contourCoordinate[0] - 0.5,
+                                contourCoordinate[1] - 0.5,
+                            ], rasterConfig));
                         }
                     });
                     contourFeature = undefined;

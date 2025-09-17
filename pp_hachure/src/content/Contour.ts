@@ -181,7 +181,7 @@ export class Contour implements IContour {
                 max: 1
             }, {
                 min: this.hachureConfig.contourDiv * 2.00, // larger means tighter spacing
-                max: this.hachureConfig.contourDiv * 0.25
+                max: this.hachureConfig.contourDiv * 0.20
             });
 
             scaledLength += incrmt;
