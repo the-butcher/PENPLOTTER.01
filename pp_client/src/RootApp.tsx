@@ -418,11 +418,11 @@ function RootApp() {
       let linepathConnecteds: ILinePath[] = [];
       if (connectRequired) {
 
-        console.log('linepathNoShorts', linepathNoShorts.length);
+        console.log('linepathNoShorts', linepathNoShorts.length, cnfBSvgProperties.penId);
         linepathConnecteds = GeometryUtil.connectLinepaths({
           x: overallExtent.xMin,
           y: overallExtent.yMin
-        }, linepathNoShorts, cnfASvgProperties.connectSort);
+        }, linepathNoShorts, cnfASvgProperties.connectSort, cnfBSvgProperties.penId === 'h018');
 
         console.log('linepathConnecteds', linepathConnecteds.length);
         // TODO :: REMOVE (start at position)

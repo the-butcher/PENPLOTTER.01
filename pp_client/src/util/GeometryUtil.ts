@@ -677,9 +677,10 @@ export class GeometryUtil {
 
     }
 
-    static connectLinepaths(coordR: ICoordinate2D, linePaths: ILinePath[], connectSort: boolean): ILinePath[] {
+    static connectLinepaths(coordR: ICoordinate2D, linePaths: ILinePath[], connectSort: boolean, mustBeForward: boolean): ILinePath[] {
 
         const connectedLinePaths: ILinePath[] = [];
+        const directions: ELineDirection[] = mustBeForward ? ['df'] : ['df', 'dr'];
 
         // const coordsA = linePaths.map(l => GeometryUtil.getEdgeCoord('df', l));
         // const coordsAX = coordsA.map(c => c.x);
@@ -697,29 +698,30 @@ export class GeometryUtil {
             let pathMin: ILinePath | undefined;
             let drctMin: ELineDirection;
             let indxMin: number;
-            const direction: ELineDirection = 'df';
+            let direction: ELineDirection = 'df';
 
             for (let pathIndex = 0; pathIndex < linePaths.length; pathIndex++) {
+
                 if (connectSort) {
 
-                    // LINE_DIRECTIONS.forEach(direction => {
-                    coordE = GeometryUtil.getEdgeCoord(direction, linePaths[pathIndex]);
+                    directions.forEach(direction => {
 
-                    if (Math.abs(coordE.x - coordR.x) >= distMin || Math.abs(coordE.y - coordR.y) >= distMin) {
-                        continue;
-                    }
+                        coordE = GeometryUtil.getEdgeCoord(direction, linePaths[pathIndex]);
+                        if (Math.abs(coordE.x - coordR.x) < distMin && Math.abs(coordE.y - coordR.y) < distMin) {
 
-                    distE = GeometryUtil.getDistance2D(coordR, coordE);
-                    if (distE < distMin && pathMin?.id !== linePaths[pathIndex].id) { //
-                        // if (pathMin?.id === linePaths[pathIndex].id) {
-                        //     console.log('self connect!')
-                        // }
-                        distMin = distE;
-                        pathMin = linePaths[pathIndex];
-                        drctMin = direction;
-                        indxMin = pathIndex;
-                    }
-                    // });
+                            distE = GeometryUtil.getDistance2D(coordR, coordE);
+                            if (distE < distMin && pathMin?.id !== linePaths[pathIndex].id) { //
+                                // if (pathMin?.id === linePaths[pathIndex].id) {
+                                //     console.log('self connect!')
+                                // }
+                                distMin = distE;
+                                pathMin = linePaths[pathIndex];
+                                drctMin = direction;
+                                indxMin = pathIndex;
+                            }
+                        }
+
+                    });
 
                 } else {
                     coordE = GeometryUtil.getEdgeCoord('df', linePaths[pathIndex]);
@@ -729,6 +731,7 @@ export class GeometryUtil {
                     indxMin = pathIndex;
                     break;
                 }
+
             }
 
             // remove element from searchable list
