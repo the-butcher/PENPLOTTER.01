@@ -1,13 +1,13 @@
 import * as turf from "@turf/turf";
-import * as d3Contour from 'd3-contour';
 import * as d3Array from 'd3-array';
-import { Feature, LineString, Position } from "geojson";
+import * as d3Contour from 'd3-contour';
+import { Feature, LineString } from "geojson";
+import { IHillshadeConfigProps } from "../components/IHillshadeConfigProps";
+import { IRasterConfigProps } from "../components/IRasterConfigProps";
 import { IRasterDataProps } from '../components/IRasterDataProps';
 import { IContourProperties } from "../content/IContourProperties";
 import { GeometryUtil } from '../util/GeometryUtil';
 import { IRange } from "../util/IRange";
-import { IRasterConfigProps } from "../components/IRasterConfigProps";
-import { IHillshadeConfigProps } from "../components/IHillshadeConfigProps";
 
 export type TRasterType = 'none' | 'height' | 'hillshade';
 
@@ -28,6 +28,7 @@ export class Raster {
     static RAD2DEG = 180 / Math.PI;
     static DEG2RAD = Math.PI / 180;
     static NO_DATA = 0;
+    static GAMMA = 1.00;
 
     /**
      * https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm#:~:text=The%20Hillshade%20tool%20obtains%20the,in%20relation%20to%20neighboring%20cells.
@@ -140,8 +141,8 @@ export class Raster {
         let valCur: number;
         let valMin = Number.MAX_VALUE;
         let valMax = Number.MIN_VALUE;
-        let positionMin: Position = [-1, -1];
-        let positionMax: Position = [-1, -1];
+        // let positionMin: Position = [-1, -1];
+        // let positionMax: Position = [-1, -1];
         for (let y = 0; y < rasterData.height; y++) {
             for (let x = 0; x < rasterData.width; x++) {
                 pixelIndex = (y * rasterData.width + x);
@@ -149,11 +150,11 @@ export class Raster {
                 if (valCur != Raster.NO_DATA) {
                     if (valCur < valMin) {
                         valMin = valCur;
-                        positionMin = [x, y];
+                        // positionMin = [x, y];
                     }
                     if (valCur > valMax) {
                         valMax = valCur;
-                        positionMax = [x, y];
+                        // positionMax = [x, y];
                     }
                     // valMin = Math.min(valMin, valCur);
                     // valMax = Math.max(valMax, valCur);

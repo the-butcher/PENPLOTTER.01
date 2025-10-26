@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { IContentProps, TContentBackground } from "./IContentProps";
 
 const COLORS_INCOMPLETE: { [K in TContentBackground]: string } = {
-    dark: 'rgb(255, 217, 0)',
+    dark: 'rgba(110, 19, 19, 1)',
     light: 'rgba(221, 8, 8, 0.9)'
 };
 const COLORS_COMPLETE: { [K in TContentBackground]: string } = {
-    dark: 'rgba(255, 255, 255, 0.9)',
+    dark: 'rgba(0, 0, 0, 0.9)',
     light: 'rgba(83, 83, 83, 0.9)'
 };
+
+
 
 /**
  * this component renders a single svg path for either an IContour or an IHachure
@@ -40,7 +42,7 @@ function ContentComponent(props: IContentProps) {
         <path
             style={{
                 stroke: closed ? 'blue' : complete ? COLORS_COMPLETE[background] : COLORS_INCOMPLETE[background],
-                strokeWidth: complete ? strokeWidth : strokeWidth,
+                strokeWidth: complete ? strokeWidth : strokeWidth * 3,
                 fill: 'none',
                 strokeLinecap: 'round',
                 strokeLinejoin: 'round'

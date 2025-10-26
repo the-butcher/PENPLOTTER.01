@@ -175,7 +175,7 @@ export class Contour implements IContour {
             const heightS = heightFunction(positionPixlS);
             slope = Math.atan2((heightI - heightS), lenS) * Raster.RAD2DEG;
 
-            const hillshade = shadeFunction(positionPixlI) ** 1.25;
+            const hillshade = shadeFunction(positionPixlI) ** Raster.GAMMA;
             const incrmt = ObjectUtil.mapValues(hillshade, {
                 min: 0,
                 max: 1
@@ -394,6 +394,8 @@ export class Contour implements IContour {
                 pixelCoordinateA[0] + Math.cos(lastHachureVertex.aspect * Raster.DEG2RAD) * maxRayLength * mayRayFactor,
                 pixelCoordinateA[1] + Math.sin(lastHachureVertex.aspect * Raster.DEG2RAD) * maxRayLength * mayRayFactor
             ];
+
+
             const coordinate4326A = GeometryUtil.pixelToPosition4326(pixelCoordinateA, this.rasterConfig);
             const coordinate4326B = GeometryUtil.pixelToPosition4326(pixelCoordinateB, this.rasterConfig);
 
@@ -410,14 +412,21 @@ export class Contour implements IContour {
                     const aspect = this.lengthToAspect(length);
                     const slope = this.lengthToSlope(length);
 
-                    // adding a vertex set the complete flag to false
-                    hachure.addVertex({
-                        position4326,
-                        positionPixl,
-                        aspect,
-                        height: this.height,
-                        slope
-                    });
+                    // prevent overshoot and turnaround at ridges
+                    let deltaAspect = lastHachureVertex.aspect - aspect;
+                    deltaAspect = (deltaAspect + 180) % 360 - 180;
+                    if (Math.abs(deltaAspect) < 90) {
+
+                        // adding a vertex set the complete flag to false
+                        hachure.addVertex({
+                            position4326,
+                            positionPixl,
+                            aspect,
+                            height: this.height,
+                            slope
+                        });
+
+                    }
 
                 } else {
                     console.warn("did not find nearest but had intersection", nearestPoint?.properties?.dist);

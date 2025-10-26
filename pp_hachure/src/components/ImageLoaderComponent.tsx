@@ -2,7 +2,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import XIcon from '@mui/icons-material/X';
 import { Alert, AlertTitle, Box, Checkbox, Divider, FormControlLabel, FormGroup, FormHelperText, IconButton, Radio, RadioGroup, Snackbar, SnackbarCloseReason, Stack, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
 import * as turf from "@turf/turf";
-import { Feature, GeoJsonProperties, LineString } from "geojson";
+import { Feature, GeoJsonProperties, LineString, Position } from "geojson";
 import { createRef, useEffect, useRef, useState } from "react";
 import { Contour } from '../content/Contour';
 import { IContour } from '../content/IContour';
@@ -32,6 +32,10 @@ export const STEP_INDEX_RASTER______DATA = 2;
 export const STEP_INDEX_HILLSHADE_CONFIG = 3;
 export const STEP_INDEX_HACHURE___CONFIG = 4;
 export const STEP_INDEX_HACHURE__PROCESS = 5;
+
+export const IMAGE_MULT = 1;
+const IMAGE_MARG = 55;
+
 
 /**
  * central component of the app. all dependencies and flow is taken care of here
@@ -309,7 +313,7 @@ function ImageLoaderComponent() {
         blurFactor: 0,
         handleRasterData: handleHillshade
     });
-    const [hillshade, setHillshade] = useState<IRasterDataProps>({
+    const hillshadeRef = useRef<IRasterDataProps>({
         name: '',
         width: -1,
         height: -1,
@@ -321,6 +325,7 @@ function ImageLoaderComponent() {
         blurFactor: 0,
         handleRasterData: handleHillshade
     });
+    const [hillshade, setHillshade] = useState<IRasterDataProps>(hillshadeRef.current);
     const hillshadeConfigRef = useRef<IHillshadeConfigProps>({
         zFactor: 4,
         blurFactor: 0,
@@ -363,7 +368,6 @@ function ImageLoaderComponent() {
         open: false
     });
 
-    const imageMargin = 55;
 
     useEffect(() => {
         console.debug('✨ building ImageLoaderComponent');
@@ -466,7 +470,8 @@ function ImageLoaderComponent() {
         console.debug('⚙ updating ImageLoaderComponent (hillshadeRaw)', hillshadeRaw);
 
         if (areRasterDataPropsValid(hillshadeRaw)) {
-            setHillshade(Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor));
+            hillshadeRef.current = Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor);
+            setHillshade(hillshadeRef.current);
         }
 
     }, [hillshadeRaw]);
@@ -507,9 +512,9 @@ function ImageLoaderComponent() {
             const svgElement = svgRef.current!;
 
             // TODO :: as attributes on the element itself
-            svgElement.setAttribute('viewBox', `${-imageMargin}, ${-imageMargin}, ${rasterData.width + imageMargin * 2}, ${rasterData.height + imageMargin * 2}`);
-            svgElement.style.width = `${(rasterData.width + imageMargin * 2) * 2}`;
-            svgElement.style.height = `${(rasterData.height + imageMargin * 2) * 2}`;
+            svgElement.setAttribute('viewBox', `${-IMAGE_MARG}, ${-IMAGE_MARG}, ${rasterData.width + IMAGE_MARG * 2}, ${rasterData.height + IMAGE_MARG * 2}`);
+            svgElement.style.width = `${(rasterData.width + IMAGE_MARG * 2) * IMAGE_MULT}`;
+            svgElement.style.height = `${(rasterData.height + IMAGE_MARG * 2) * IMAGE_MULT}`;
 
             setRasterType('height');
             renderRasterData(rasterData, rasterConfig);
@@ -568,7 +573,8 @@ function ImageLoaderComponent() {
         if (hachureConfig.blurFactor !== rasterData.blurFactor) {
             if (areRasterDataPropsValid(rasterDataRaw)) {
                 setRasterData(Raster.blurRasterData(rasterDataRaw, hachureConfig.blurFactor));
-                setHillshade(Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor));
+                hillshadeRef.current = Raster.blurRasterData(hillshadeRaw, hillshadeConfig.blurFactor);
+                setHillshade(hillshadeRef.current);
             }
         }
 
@@ -655,6 +661,10 @@ function ImageLoaderComponent() {
             const curContours = contours.filter(c => c.getHeight() === curHeight && !c.complete);
             // console.log('curHeight', curHeight, curContours.length);
 
+            // if (curHeight % 100 === 0) {
+            //     exportToPng(svgRef.current!);
+            // }
+
             if (curContours.length > 0) {
 
                 _contours.forEach(contour => contour.complete = contour.getHeight() !== curHeight);
@@ -681,6 +691,8 @@ function ImageLoaderComponent() {
                     for (let j = 0; j < nxtContours.length; j++) {
                         hachuresProgressRef.current = nxtContours[j].intersectHachures(hachuresProgressRef.current);
                     }
+
+                    // console.log('hachuresProgressRef.current.length', curHeight, hachuresProgressRef.current.length);
 
                     hachuresProgressRef.current = hachuresProgressRef.current.filter(h => h.getVertexCount() > 1);
 
@@ -748,6 +760,36 @@ function ImageLoaderComponent() {
 
     }, [contours]);
 
+    const renderToContext = (ctx: CanvasRenderingContext2D, _rasterData: IRasterDataProps, _rasterConfig: IRasterConfigProps, offset: Position) => {
+
+
+
+        const imageData = ctx.getImageData(offset[0], offset[1], _rasterData.width, _rasterData.height);
+        let pixelIndex: number;
+        let valV: number;
+        for (let y = 0; y < _rasterData.height; y++) {
+            for (let x = 0; x < _rasterData.width; x++) {
+
+                pixelIndex = (y * _rasterData.width + x);
+                valV = ObjectUtil.mapValues(_rasterData.data[pixelIndex], {
+                    min: _rasterConfig.valueRange.min,
+                    max: _rasterConfig.valueRange.max
+                }, {
+                    min: 0,
+                    max: 1
+                });
+                valV = valV ** Raster.GAMMA;
+
+                imageData.data[pixelIndex * 4 + 0] = valV * 255;
+                imageData.data[pixelIndex * 4 + 1] = valV * 255;
+                imageData.data[pixelIndex * 4 + 2] = valV * 255;
+
+            }
+        }
+        ctx.putImageData(imageData, offset[0], offset[1]);
+
+    };
+
     const renderRasterData = (_rasterData: IRasterDataProps, _rasterConfig: IRasterConfigProps) => {
 
         // console.log('_rasterConfig.valueRange', _rasterConfig.valueRange);
@@ -755,7 +797,7 @@ function ImageLoaderComponent() {
         const canvasElement = canvasRef.current;
         if (canvasElement) {
 
-            canvasElement.style.width = `${_rasterData.width * 2}px`;
+            canvasElement.style.width = `${_rasterData.width * IMAGE_MULT}px`;
             canvasElement.width = _rasterData.width;
             canvasElement.height = _rasterData.height;
 
@@ -763,29 +805,31 @@ function ImageLoaderComponent() {
             ctx.fillStyle = '#eeeeee';
             ctx.fillRect(0, 0, _rasterData.width, _rasterData.height);
 
-            const imageData = ctx.getImageData(0, 0, _rasterData.width, _rasterData.height);
-            let pixelIndex: number;
-            let valV: number;
-            for (let y = 0; y < _rasterData.height; y++) {
-                for (let x = 0; x < _rasterData.width; x++) {
 
-                    pixelIndex = (y * _rasterData.width + x);
-                    valV = ObjectUtil.mapValues(_rasterData.data[pixelIndex], {
-                        min: _rasterConfig.valueRange.min,
-                        max: _rasterConfig.valueRange.max
-                    }, {
-                        min: 0,
-                        max: 1
-                    });
-                    valV = valV ** 1.25;
+            renderToContext(ctx, _rasterData, _rasterConfig, [0, 0]);
+            // const imageData = ctx.getImageData(0, 0, _rasterData.width, _rasterData.height);
+            // let pixelIndex: number;
+            // let valV: number;
+            // for (let y = 0; y < _rasterData.height; y++) {
+            //     for (let x = 0; x < _rasterData.width; x++) {
 
-                    imageData.data[pixelIndex * 4 + 0] = valV * 255;
-                    imageData.data[pixelIndex * 4 + 1] = valV * 255;
-                    imageData.data[pixelIndex * 4 + 2] = valV * 255;
+            //         pixelIndex = (y * _rasterData.width + x);
+            //         valV = ObjectUtil.mapValues(_rasterData.data[pixelIndex], {
+            //             min: _rasterConfig.valueRange.min,
+            //             max: _rasterConfig.valueRange.max
+            //         }, {
+            //             min: 0,
+            //             max: 1
+            //         });
+            //         valV = valV ** Raster.GAMMA;
 
-                }
-            }
-            ctx.putImageData(imageData, 0, 0);
+            //         imageData.data[pixelIndex * 4 + 0] = valV * 255;
+            //         imageData.data[pixelIndex * 4 + 1] = valV * 255;
+            //         imageData.data[pixelIndex * 4 + 2] = valV * 255;
+
+            //     }
+            // }
+            // ctx.putImageData(imageData, 0, 0);
 
         }
 
@@ -853,8 +897,16 @@ function ImageLoaderComponent() {
             canvas.height = height + pngPadding * 2;
 
             const context = canvas.getContext('2d')!;
-            context.fillStyle = 'white';
+            context.fillStyle = '#ffffff';
             context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // if (rasterType === 'hillshade') {
+            // renderToContext(context, hillshadeRef.current, {
+            //     ...rasterConfig,
+            //     valueRange: hillshadeRef.current.valueRange
+            // }, [IMAGE_MARG + pngPadding, IMAGE_MARG + pngPadding]);
+            // }
+
             context.drawImage(image, pngPadding, pngPadding, width, height);
 
             const pngDataUrl = canvas.toDataURL();
@@ -938,7 +990,7 @@ function ImageLoaderComponent() {
                                         aria-labelledby="demo-radio-buttons-group-label"
                                         value={rasterType}
                                         name="radio-buttons-group"
-                                        onChange={(e) => setRasterType(e.target.value)}
+                                        onChange={(e) => setRasterType(e.target.value as TRasterType)}
 
 
                                     >
@@ -1120,7 +1172,7 @@ function ImageLoaderComponent() {
                         ref={canvasRef}
                         style={{
                             opacity: rasterType !== 'none' ? 1.0 : 0.0,
-                            margin: `${(imageMargin - 0.5) * 2}px`,
+                            margin: `${(IMAGE_MARG - 0.5) * IMAGE_MULT}px`,
                             gridColumn: 1,
                             gridRow: 1
                         }}
