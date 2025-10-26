@@ -677,17 +677,109 @@ export class GeometryUtil {
 
     }
 
-    static connectLinepaths(coordR: ICoordinate2D, linePaths: ILinePath[], connectSort: boolean, mustBeForward: boolean): ILinePath[] {
+    static connectLinepathsFw(coordR: ICoordinate2D, linePaths: ILinePath[]): ILinePath[] {
 
         const connectedLinePaths: ILinePath[] = [];
-        const directions: ELineDirection[] = mustBeForward ? ['df'] : ['df', 'dr'];
+        let coordE: ICoordinate2D; // edge coordinate
 
-        // const coordsA = linePaths.map(l => GeometryUtil.getEdgeCoord('df', l));
-        // const coordsAX = coordsA.map(c => c.x);
-        // const minX = Math.min(...coordsAX);
+        const extent = GeometryUtil.getLinepathsExtent(linePaths);
+        const extentX = extent.xMax - extent.xMin;
+        const extentY = extent.yMax - extent.yMin;
+        const minDryD = 1.2;
 
-        // what if :: presort linepaths by either x or y, then after having connected one path start searching at an index nearby
-        // assumption would be that this would shorten the time to get into the fast exit criteria
+        const cellCountX = Math.round(extentX / minDryD);
+        const cellCountY = Math.round(extentY / minDryD);
+        // console.log('cellCountX', cellCountX, 'cellCountY', cellCountY);
+
+        const cellDimX = extentX / cellCountX;
+        const cellDimY = extentY / cellCountY;
+
+        const toBucketIndex = ((x: number, y: number) => {
+            if (y % 2 == 0) { // even numbered rows
+                return y * cellCountX + x;
+            } else { // odd numbered rows
+                return (y + 1) * cellCountX - x - 1;
+            }
+        });
+        const toBucketIndexX = ((x: number) => Math.min(cellCountX - 1, Math.floor((x - extent.xMin) / cellDimX)));
+        const toBucketIndexY = ((y: number) => Math.min(cellCountY - 1, Math.floor((y - extent.yMin) / cellDimY)));
+        const getBucketSizeTotal = (() => buckets.map(b => b.length).reduce((prev, curr) => prev + curr, 0));
+
+        // console.log(cellCountX - 1, 0, toBucketIndex(cellCountX - 1, 0));
+        // console.log(cellCountX - 1, 1, toBucketIndex(cellCountX - 1, 1));
+        // console.log(0, 1, toBucketIndex(0, 1));
+        // console.log(0, 2, toBucketIndex(0, 2));
+
+        // create one empty bucket per cell
+        const buckets: number[][] = [];
+        const bucketCount = cellCountX * cellCountY;
+        for (let bucketIndex = 0; bucketIndex < bucketCount; bucketIndex++) {
+            buckets.push([]);
+        }
+
+        for (let pathIndex = 0; pathIndex < linePaths.length; pathIndex++) {
+            coordE = GeometryUtil.getEdgeCoord('df', linePaths[pathIndex]);
+            const bucketIndex = toBucketIndex(toBucketIndexX(coordE.x), toBucketIndexY(coordE.y));
+            buckets[bucketIndex].push(pathIndex);
+        }
+        // console.log('buckets', buckets);
+
+        let bucketSizeTotal: number;
+        while ((bucketSizeTotal = getBucketSizeTotal()) > 0) {
+
+            console.log('bst', bucketSizeTotal);
+
+            for (let bucketIndex = 0; bucketIndex < bucketCount; bucketIndex++) {
+                // if (buckets[bucketIndex].length > 0) {
+
+                const pathIndex = buckets[bucketIndex].pop();
+                if (pathIndex) {
+
+                    const pathMin = linePaths[pathIndex];
+                    const coordB = GeometryUtil.getEdgeCoord('df', pathMin);
+                    if (coordR.x !== coordB.x || coordR.y !== coordB.y) {
+
+                        // add connecting element
+                        connectedLinePaths.push({
+                            id: `${ObjectUtil.createId()}_${this.CONN___PREFIX}`,
+                            penId: pathMin.penId,
+                            strokeWidth: GeometryUtil.PEN_WIDTH_CON,
+                            stroke: 'black',
+                            segments: [
+                                {
+                                    id: ObjectUtil.createId(),
+                                    coordA: coordR,
+                                    coordB: GeometryUtil.getEdgeCoord('df', pathMin)
+                                }
+                            ]
+                        });
+
+                    }
+
+                    connectedLinePaths.push(GeometryUtil.dirLinegroup('df', pathMin));
+
+                    // get new reference coord
+                    coordR = GeometryUtil.getEdgeCoord('dr', pathMin);
+
+                }
+            }
+
+        }
+        // console.log('buckets', buckets);
+
+
+        return connectedLinePaths;
+
+    }
+
+    static connectLinepaths(coordR: ICoordinate2D, linePaths: ILinePath[], connectSort: boolean, mustBeForward: boolean): ILinePath[] {
+
+        if (mustBeForward) {
+            return this.connectLinepathsFw(coordR, linePaths);
+        }
+
+        const connectedLinePaths: ILinePath[] = [];
+        const directions: ELineDirection[] = ['df', 'dr'];
 
         while (linePaths.length > 0) {
 
@@ -698,7 +790,7 @@ export class GeometryUtil {
             let pathMin: ILinePath | undefined;
             let drctMin: ELineDirection;
             let indxMin: number;
-            let direction: ELineDirection = 'df';
+            // let direction: ELineDirection = 'df';
 
             for (let pathIndex = 0; pathIndex < linePaths.length; pathIndex++) {
 

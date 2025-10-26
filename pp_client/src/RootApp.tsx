@@ -422,7 +422,7 @@ function RootApp() {
         linepathConnecteds = GeometryUtil.connectLinepaths({
           x: overallExtent.xMin,
           y: overallExtent.yMin
-        }, linepathNoShorts, cnfASvgProperties.connectSort, cnfBSvgProperties.penId === 'h018');
+        }, linepathNoShorts, cnfASvgProperties.connectSort, !ObjectUtil.isPenIdSet(cnfBSvgProperties.penId) || cnfBSvgProperties.penId === 'h013' || cnfBSvgProperties.penId === 'w013'); // cnfBSvgProperties.penId === 'h013' || !ObjectUtil.isPenIdSet(cnfBSvgProperties.penId)
 
         console.log('linepathConnecteds', linepathConnecteds.length);
         // TODO :: REMOVE (start at position)

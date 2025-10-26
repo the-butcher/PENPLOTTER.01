@@ -1,26 +1,20 @@
-- ## possible updated pen change workflow
-
-  4. pen list
-     - click on pen in list
-     - a preview of the pen-path appears (speed diagram only by activating with i.e. a checkbox)
-     - arrows for pen adjustments appear
-     - continue button (=reste here)
-  5. plot position
-     - a slider (+input) for the start position appears (to continue i.e. aborted plots)
-     - plot button appers (= reset here + execute plot)
-
-PROCESS:
-
-- ## in pp_oldmap svg
-  - rename water and river_tx pens to w018
-  - 1. draw p013 with 0.25 brown pen -> keep for later usage
-  - 2. draw w018 with 0.18 pen (blue ink) -> clean 0.18 pen for black use afterwards
-  - 3. draw p025 with 0.25 pen -> clean
-  - 4. draw p018 with 0.18 pen -> clean
-  - 5. draw p035 with 0.35 pen -> clean
-  - 6. draw p050 with 0.50 pen -> clean
-
 TBD:
+
+OK improve hachure to not have artifacts at ridges
+OK dont allow very sharp angles
+-- shorten by n vertices at the top
+
+- some type of spatial index in GeometryUtil to accelerate connecting lines
+  NO have crop marks on the light hachure layer
+  NO have land labels on the same pen as hachure (maybe draw multiple times to achieve proper darkness with the light color)
+  NO decide if contours are needed along the narrow hachures
+- think about possibilities to further improve alignment after a pen change
+  - maybe on the fly adjustment
+  - maybe off screen or extra sheet pattern
+- think about ways to maintain direction visibility
+  - when connecting ignore lines that are too close (will likely make drawing even slower)
+  - how can a cropped map for testing be created?
+- forward only is not working with the hardcoded pen check "cnfBSvgProperties.penId === 'h018'"
 
 OK merge paths that are close enough (aka pen diameter) to eliminate pen-up -> no-move -> pen-down movements
 OK output scale / simplify tolerance
