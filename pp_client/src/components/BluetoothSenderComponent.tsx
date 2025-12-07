@@ -426,11 +426,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             if (gattOperationPendingRef.current === 'none') {
 
                 gattOperationPendingRef.current = 'blockbytes';
-                buffValsCharacteristic!.writeValue(blockBytesRef.current!).then(() => {
+                buffValsCharacteristic!.writeValue(blockBytesRef.current!).then(() => { // Buffer.from(blockBytesRef.current!) >> test
                     gattOperationPendingRef.current = 'none';
-
                     blockBytesRef.current = undefined;
-
                 }).catch((e: unknown) => {
                     window.clearTimeout(readBuffSizeTo.current);
                     handleConnBleProperties({

@@ -292,6 +292,7 @@ function RootApp() {
       penIds.sort();
 
       console.log('penIds from file', penIds);
+      // eslint-disable-next-line prefer-const
       let penId = ObjectUtil.createId();
       // if (penIds.indexOf('c050') !== -1) {
       //   penId = 'c050';
