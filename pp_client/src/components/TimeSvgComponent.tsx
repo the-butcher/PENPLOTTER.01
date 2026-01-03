@@ -116,7 +116,7 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
             }}
         >
             <Typography>{totalTime}</Typography>
-            {/* <svg
+            <svg
                 style={{
                     height,
                     width
@@ -129,7 +129,7 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
                 {
                     brdrs.map(b => <LineSvgComponent key={b.id} {...b} strokeWidth={0.2} stroke={'red'} selId={selId} handleLineClick={handleLineClick} />)
                 }
-            </svg > */}
+            </svg >
         </Stack>
     )
 }

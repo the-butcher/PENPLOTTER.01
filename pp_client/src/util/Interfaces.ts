@@ -39,6 +39,7 @@ export interface IConnBleProperties {
 export interface ISendBleProperties {
     lines: ILine3D[];
     handlePenDone: () => void;
+    handlePositionExternal: (position: IBlockPlanar) => void;
     penId: string;
     // device?: BluetoothDevice;
     // handleConnectionState: (state: IConnBleProperties) => void;
@@ -79,6 +80,7 @@ export interface IFileSvgProperties {
 
 export interface IRootSvgProperties {
     lines: ILinePath[]; // each linegroup is a 'path', aka connected lines
+    position: ICoordinate2D;
     extent: IExtent;
     selId: string;
     handleLineClick: (id: string) => void;

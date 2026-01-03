@@ -8,7 +8,7 @@ export class GeometryUtil {
     static BT___BUFF_BLK = 24; // bluetooth buffer size
     static BT___BUFF_MAX = 512; // device buffer size
 
-    static PEN___MIN_MMS = 0.5;
+    static PEN___MIN_MMS = 1;
 
     static PEN_WIDTH_SEG = 0.1; // mm
     static PEN_WIDTH_CON = 0.05; // mm
@@ -22,7 +22,7 @@ export class GeometryUtil {
 
     static linepathsToPlotpaths(linepaths: ILinePath[], maxMMS: number): ILine3D[] {
 
-        const maxACC = maxMMS * 3;
+        const maxACC = Math.min(maxMMS * 3, 50);
 
         // initial conversion
         const plotPaths1: ILine3D[] = [];

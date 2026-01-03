@@ -23,12 +23,8 @@ export type GATT_OPERATION_TYPE = 'buffsize' | 'position' | 'blockbytes' | 'none
 
 function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties) {
 
-    const { lines, penId, device, handleConnBleProperties, handlePenDone } = props;
+    const { lines, penId, device, handleConnBleProperties, handlePenDone, handlePositionExternal } = props;
 
-    // const [connectionState, setConnectionState] = useState<IConnBleProperties>({
-    //     success: true,
-    //     message: 'initial'
-    // });
     const [gatt, setGatt] = useState<BluetoothRemoteGATTServer>();
 
     const [buffSizeCharacteristic, setBuffSizeCharacteristic] = useState<BluetoothRemoteGATTCharacteristic>();
@@ -47,9 +43,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     const blockBytesRef = useRef<Uint8Array<ArrayBufferLike>>();
 
-    const positionCallbackRef = useRef<(position: IBlockPlanar) => void>();
+    const handlePositionInternalRef = useRef<(position: IBlockPlanar) => void>();
 
-    const timeoutMillis = 500;
+    const timeoutMillis = 50;
 
     const penDistances: number[] = [
         0.1,
@@ -124,7 +120,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen home`);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             if (_position) {
                 movePenTo({
                     ..._position,
@@ -144,7 +140,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen y up by`, penDistance);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             if (_position) {
                 movePenTo({
                     ..._position,
@@ -162,7 +158,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen y down by`, penDistance);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             if (_position) {
                 movePenTo({
                     ..._position,
@@ -180,7 +176,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen x left by`, penDistance);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             if (_position) {
                 movePenTo({
                     ..._position,
@@ -198,7 +194,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.log(`📞 moving pen x right by`, penDistance);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             if (_position) {
                 movePenTo({
                     ..._position,
@@ -216,7 +212,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen z up by`, penDistance);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             if (_position) {
                 movePenTo({
                     ..._position,
@@ -234,7 +230,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.debug(`📞 moving pen z down (1) by`, penDistance, 'from', position);
 
-        positionCallbackRef.current = (_position: IBlockPlanar) => {
+        handlePositionInternalRef.current = (_position: IBlockPlanar) => {
             console.debug(`📞 moving pen z down (2) by`, penDistance, 'from', _position);
             if (_position) {
                 console.debug(`📞 moving pen z down (3) by`, penDistance, 'from', _position);
@@ -251,7 +247,9 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
     }
 
     useEffect(() => {
-        console.debug('✨ building BluetoothSenderComponent');
+        console.log('✨ building BluetoothSenderComponent');
+
+
     }, []);
 
     useEffect(() => {
@@ -276,6 +274,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 vi = vo;
             }
 
+            console.log('_buffCords', _buffCords);
+
             setBuffCoordCache(_buffCords);
             setBuffCoordTotal(_buffCords.length);
         }
@@ -285,7 +285,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     useEffect(() => {
 
-        console.debug('⚙ updating BluetoothSenderComponent (device)', device);
+        console.log('⚙ updating BluetoothSenderComponent (device)', device);
         device?.gatt?.connect().then(gatt => {
             setGatt(gatt);
             device.ongattserverdisconnected = () => {
@@ -293,6 +293,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 setBuffValsCharacteristic(undefined);
                 setPositionCharacteristic(undefined);
                 window.clearTimeout(readBuffSizeTo.current);
+                window.clearTimeout(readPositionTo.current);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'disconnected'
@@ -300,6 +301,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             }
         }).catch((e: unknown) => {
             window.clearTimeout(readBuffSizeTo.current);
+            window.clearTimeout(readPositionTo.current);
             handleConnBleProperties({
                 // device implicitly undefined
                 message: 'failed to connect to gatt server',
@@ -312,13 +314,17 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
     useEffect(() => {
 
-        console.debug('⚙ updating BluetoothSenderComponent (gatt)', gatt);
+        console.log('⚙ updating BluetoothSenderComponent (gatt)', gatt);
         gatt?.getPrimaryService(UNO_R4_SERVICE_UUID).then(service => {
 
-            console.debug('got service, fetching capabilities now ...', service);
+            // service.oncharacteristicvaluechanged = () => {
+            //     console.log('ch changed');
+            // }
+
+            console.log('got service, fetching capabilities now ...', service);
             service.getCharacteristics().then(charateristics => {
 
-                console.debug('got charateristics', charateristics);
+                console.log('got charateristics', charateristics);
 
                 const cmdSizeCharacteristic = charateristics.filter(charateristic => charateristic.uuid === CHARACTERISTIC_BUFF_SIZE)[0];
                 setBuffSizeCharacteristic(cmdSizeCharacteristic);
@@ -337,6 +343,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
             }).catch((e: unknown) => {
                 window.clearTimeout(readBuffSizeTo.current);
+                window.clearTimeout(readPositionTo.current);
                 handleConnBleProperties({
                     // device implicitly undefined
                     message: 'failed to retrieve charateristics',
@@ -346,6 +353,7 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         }).catch((e: unknown) => {
             window.clearTimeout(readBuffSizeTo.current);
+            window.clearTimeout(readPositionTo.current);
             handleConnBleProperties({
                 // device implicitly undefined
                 message: 'failed to retrieve primary service',
@@ -367,20 +375,37 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                     const position = BlockUtil.parseBlockBytes(data);
                     console.log('got new position', position);
                     setPosition(position);
-                })
+                }).catch((e: unknown) => {
+                    window.clearTimeout(readPositionTo.current);
+                    handleConnBleProperties({
+                        // device implicitly undefined
+                        message: 'failed to retrieve position',
+                    });
+                    console.error(e);
+                });
 
-            } else {
-
-                window.clearTimeout(readPositionTo.current);
-                readPositionTo.current = window.setTimeout(() => {
-                    readPosition();
-                }, timeoutMillis);
 
             }
 
-        } else {
-            throw (new Error("failed to read position due to undefined positionCharacteristic"));
+            // skip and read the buffer size again after a while
+            window.clearTimeout(readPositionTo.current);
+            readPositionTo.current = window.setTimeout(() => {
+                readPosition();
+            }, 250);
+
+            // else {
+
+            //     window.clearTimeout(readPositionTo.current);
+            //     readPositionTo.current = window.setTimeout(() => {
+            //         readPosition();
+            //     }, 500);
+
+            // }
+
         }
+        //  else {
+        //     throw (new Error("failed to read position due to undefined positionCharacteristic"));
+        // }
 
     }
 
@@ -409,11 +434,11 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
             }
 
-            // skip and read the buffer size again as soon as possible
+            // skip and read the buffer size again after a while
             window.clearTimeout(readBuffSizeTo.current);
             readBuffSizeTo.current = window.setTimeout(() => {
                 readBuffSize();
-            }, timeoutMillis * 2);
+            }, 200);
 
         }
 
@@ -424,6 +449,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
         if (buffValsCharacteristic) {
 
             if (gattOperationPendingRef.current === 'none') {
+
+                console.log('writing block bytes');
 
                 gattOperationPendingRef.current = 'blockbytes';
                 buffValsCharacteristic!.writeValue(blockBytesRef.current!).then(() => { // Buffer.from(blockBytesRef.current!) >> test
@@ -439,6 +466,8 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
                 });
 
             } else {
+
+                console.log('delay writing block bytes', gattOperationPendingRef.current);
 
                 window.clearTimeout(writeBlockBytesTo.current);
                 writeBlockBytesTo.current = window.setTimeout(() => {
@@ -457,9 +486,12 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
 
         console.log('⚙ updating BluetoothSenderComponent (position)', position);
 
-        if (position && positionCallbackRef.current) {
-            positionCallbackRef.current(position);
-            positionCallbackRef.current = undefined;
+        if (position) {
+            if (handlePositionInternalRef.current) {
+                handlePositionInternalRef.current(position);
+                handlePositionInternalRef.current = undefined;
+            }
+            handlePositionExternal(position);
             setPosition(undefined);
         }
 
@@ -507,6 +539,10 @@ function BluetoothSenderComponent(props: IConnBleProperties & ISendBleProperties
             readBuffSizeTo.current = window.setTimeout(() => {
                 readBuffSize();
             }, 10);
+            window.clearTimeout(readPositionTo.current);
+            readPositionTo.current = window.setTimeout(() => {
+                readPosition();
+            }, 100);
 
         }
 

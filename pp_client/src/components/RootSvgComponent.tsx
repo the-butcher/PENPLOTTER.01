@@ -8,7 +8,7 @@ import { ILinePath, IRootSvgProperties } from "../util/Interfaces";
 
 function RootSvgComponent(props: IRootSvgProperties) {
 
-    const { lines: _lines, extent: _extent, selId, handleLineClick } = { ...props };
+    const { lines: _lines, extent: _extent, position: _position, selId, handleLineClick } = { ...props };
 
     const [viewbox, setViewbox] = useState<string>('0, 0, 1, 1');
     const [width, setWidth] = useState<number>(1);
@@ -16,10 +16,11 @@ function RootSvgComponent(props: IRootSvgProperties) {
 
     const [lines, setLines] = useState<JSX.Element[]>([]);
     const [bounds, setBounds] = useState<JSX.Element>();
+    const [position, setPosition] = useState<JSX.Element>();
 
     useEffect(() => {
 
-        console.debug('⚙ updating root svg component (_linegroupProperties, _extent)', _lines, _extent);
+        console.log('⚙ updating root svg component (_lines, _extent, _position)', _lines.length, _extent, _position);
 
         const _width = _extent.xMax - _extent.xMin + GeometryUtil.IMAGE_PADDING * 2;
         const _height = _extent.yMax - _extent.yMin + GeometryUtil.IMAGE_PADDING * 2;
@@ -103,10 +104,14 @@ function RootSvgComponent(props: IRootSvgProperties) {
         setLines([
             <path key={'lines_con'} d={dataCon} strokeWidth={GeometryUtil.PEN_WIDTH_CON} fill={'none'} strokeLinecap={'round'} strokeLinejoin={'round'} stroke={'black'}></path>,
             <path key={'lines_seg'} d={dataSeg} strokeWidth={GeometryUtil.PEN_WIDTH_SEG} fill={'none'} strokeLinecap={'round'} strokeLinejoin={'round'} stroke={'black'}></path>
-        ])
+        ]);
+
+        setPosition(
+            <circle cx={_position.x} cy={_position.y} r="2" fill={'none'} stroke={'red'} strokeWidth={GeometryUtil.PEN_WIDTH_SEG * 2} />
+        );
 
 
-    }, [_lines, _extent, selId]);
+    }, [_lines, _extent, _position, selId]);
 
     return (
         <svg
@@ -121,6 +126,9 @@ function RootSvgComponent(props: IRootSvgProperties) {
             }
             {
                 bounds
+            }
+            {
+                position
             }
         </svg >
     )

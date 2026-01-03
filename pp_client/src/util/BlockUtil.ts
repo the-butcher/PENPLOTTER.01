@@ -9,8 +9,8 @@ export class BlockUtil {
             x: data.getFloat32(0, true),
             y: data.getFloat32(4, true),
             z: data.getFloat32(8, true),
-            vi: data.getFloat32(12, true),
-            vo: data.getFloat32(16, true)
+            // vi: data.getFloat32(12, true),
+            // vo: data.getFloat32(16, true)
         }
     }
 

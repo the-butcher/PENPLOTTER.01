@@ -10,7 +10,7 @@ import RootSvgComponent from './components/RootSvgComponent';
 import TimeSvgComponent from './components/TimeSvgComponent';
 import VRulSvgComponent from './components/VRulSvgComponent';
 import { GeometryUtil } from './util/GeometryUtil';
-import { ICnfASvgProperties, ICnfBSvgProperties, IConnBleProperties, IConnectSettings, IFileSvgProperties, ILinePath, IPickSvgProperties, IRootSvgProperties, ISendBleProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
+import { IBlockPlanar, ICnfASvgProperties, ICnfBSvgProperties, IConnBleProperties, IConnectSettings, IFileSvgProperties, ILinePath, IPickSvgProperties, IRootSvgProperties, ISendBleProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
 import { ObjectUtil } from './util/ObjectUtil';
 import { ThemeUtil } from './util/ThemeUtil';
 import CnfBSvgComponent from './components/CnfBSvgComponent';
@@ -79,7 +79,91 @@ function RootApp() {
     });
     tryAcquireScreenLock(); // initial lock
 
+    // interface CoordCore {
+    //   a: number;
+    //   b: number;
+    //   z: number;
+    // }
+    // interface CoordPlan {
+    //   x: number;
+    //   y: number;
+    //   z: number;
+    // }
+    // const MOTOR___STEPS_UM = 40000;
+    // const MOTOR_Z_STEPS_UM = 60000;
+    // const corexyToPlanxy = (coordCorexy: CoordCore): CoordPlan => {
+    //   return {
+    //     x: Math.floor((coordCorexy.a + coordCorexy.b) * 500000 / MOTOR___STEPS_UM),
+    //     y: Math.floor((coordCorexy.b - coordCorexy.a) * 500000 / MOTOR___STEPS_UM),
+    //     z: Math.floor(coordCorexy.z * 1000000 / MOTOR_Z_STEPS_UM)
+    //   }
+    // };
+    // const planxyToCorexy = (coordPlanxy: CoordPlan): CoordCore => {
+    //   return {
+    //     a: Math.floor((coordPlanxy.x - coordPlanxy.y) * MOTOR___STEPS_UM / 1000000),
+    //     b: Math.floor((coordPlanxy.x + coordPlanxy.y) * MOTOR___STEPS_UM / 1000000),
+    //     z: Math.floor(coordPlanxy.z * MOTOR_Z_STEPS_UM / 1000000)
+    //   }
+    // };
+    // const planxyToLength = (coordPlanxy: CoordPlan): number => {
+    //   const lengthSq = coordPlanxy.x * coordPlanxy.x + coordPlanxy.y * coordPlanxy.y + coordPlanxy.z * coordPlanxy.z;
+    //   console.log('lengthSq', coordPlanxy.x, coordPlanxy.y, coordPlanxy.z, lengthSq);
+    //   return Math.sqrt(lengthSq);
+    // };
+    // const cp0: CoordPlan = {
+    //   x: 297,
+    //   y: 420,
+    //   z: -8
+    // };
+    // const cp1: CoordPlan = {
+    //   x: Math.floor(cp0.x * 1000),
+    //   y: Math.floor(cp0.y * 1000),
+    //   z: Math.floor(cp0.z * 1000)
+    // };
+    // const cc1 = planxyToCorexy(cp1); // {a: -4936, b: 28664, z: -480}
+    // const cp2 = corexyToPlanxy(cc1);
+    // console.log(cp0, cp1, cc1, cp2, planxyToLength(cp2));
+
+    // let xCur = 0;
+    // let command = 'M';
+    // let data = '';
+    // let yy = 0;
+    // for (; yy <= 1000; yy += 1000) {
+    //   const yCur = Math.sqrt(yy);
+    //   console.log(yCur);
+    //   data += `${command}${xCur.toFixed(2)} ${yCur.toFixed(2)}`;
+    //   xCur += 100;
+    //   if (xCur > 100) {
+    //     xCur = 0;
+    //   }
+    //   command = 'L';
+    // }
+    // for (; yy >= 0; yy -= 1000) {
+    //   const yCur = Math.sqrt(yy);
+    //   console.log(yCur);
+    //   data += `${command}${xCur.toFixed(2)} ${yCur.toFixed(2)}`;
+    //   xCur += 100;
+    //   if (xCur > 100) {
+    //     xCur = 0;
+    //   }
+    //   command = 'L';
+    // }
+    // console.log(data);
+
   }, []);
+
+  const handlePosition = (position: IBlockPlanar) => {
+
+    console.log(`📞 handling position`, position);
+
+    rootSvgPropertiesRef.current = {
+      ...rootSvgPropertiesRef.current,
+      position
+    }
+    setRootSvgProperties(rootSvgPropertiesRef.current);
+
+
+  }
 
   const handleLineClick = (id: string) => {
 
@@ -110,7 +194,7 @@ function RootApp() {
    */
   const handleConnBleProperties = (_connBleProperties: Pick<IConnBleProperties, 'device' | 'message'>) => {
 
-    console.debug(`📞 handling conn ble properties (state)`, _connBleProperties);
+    console.log(`📞 handling conn ble properties (state)`, _connBleProperties);
 
     const success = !!_connBleProperties.device;
     connBlePropertiesRef.current = {
@@ -236,6 +320,10 @@ function RootApp() {
 
   const rootSvgPropertiesRef = useRef<IRootSvgProperties>({
     lines: [],
+    position: {
+      x: 20,
+      y: 20
+    },
     extent: {
       xMin: 0,
       yMin: 0,
@@ -268,6 +356,7 @@ function RootApp() {
   const sendBlePropertiesRef = useRef<ISendBleProperties>({
     lines: [],
     handlePenDone,
+    handlePositionExternal: handlePosition,
     penId: ObjectUtil.createId()
   });
   const [sendBleProperties, setSendBleProperties] = useState<ISendBleProperties>(sendBlePropertiesRef.current);
@@ -425,7 +514,7 @@ function RootApp() {
           y: overallExtent.yMin
         }, linepathNoShorts, cnfASvgProperties.connectSort, !ObjectUtil.isPenIdSet(cnfBSvgProperties.penId) || cnfBSvgProperties.penId === 'h013' || cnfBSvgProperties.penId === 'w013'); // cnfBSvgProperties.penId === 'h013' || !ObjectUtil.isPenIdSet(cnfBSvgProperties.penId)
 
-        console.log('linepathConnecteds', linepathConnecteds.length);
+        // console.log('linepathConnecteds', linepathConnecteds.length);
         // TODO :: REMOVE (start at position)
         // const skipCountA = 13;
         // // linepathConnecteds.splice(skipCountA, linepathConnecteds.length - skipCountA);
@@ -441,6 +530,7 @@ function RootApp() {
         // }
 
         rootSvgPropertiesRef.current = {
+          ...rootSvgPropertiesRef.current,
           lines: linepathConnecteds,
           extent: overallExtent,
           selId: ObjectUtil.createId(),
@@ -454,11 +544,9 @@ function RootApp() {
 
       }
 
-
-
       // now lets build a list of 3D lines (aka pen plotter lines)
       const plottableLines = GeometryUtil.linepathsToPlotpaths(linepathConnecteds, cnfBSvgProperties.penMaxSpeed);
-      // console.log('plottableLines', plottableLines.length);
+      // console.log('plottableLines', plottableLines);
 
       // TODO :: REMOVE (start at position)
       // if (plottableLines.length > 0) {
@@ -495,7 +583,7 @@ function RootApp() {
 
   useEffect(() => {
 
-    console.debug('⚙ updating root app component (connBleProperties)', connBleProperties);
+    console.log('⚙ updating root app component (connBleProperties)', connBleProperties);
 
     determineActiveStep();
 
@@ -617,7 +705,7 @@ function RootApp() {
 
               </StepContent>
             </Step>
-            <Step key={'cnfb'}>
+            <Step key={'cnfb'} active={true}>
               <StepLabel>
                 configure
               </StepLabel>
