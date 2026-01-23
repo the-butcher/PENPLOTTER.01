@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import { ILine2D, ITimeSvgProperties } from "../util/Interfaces";
 import LineSvgComponent from "./LineSvgComponent";
 import { Stack, Typography } from "@mui/material";
 import { GeometryUtil } from "../util/GeometryUtil";
+import { ITimeSvgProps } from "../util/ITimeSvgProps";
+import { ILineXY } from "../util/ILineXY";
 
-function TimeSvgComponent(props: ITimeSvgProperties) {
+function TimeSvgComponent(props: ITimeSvgProps) {
 
     const { lines: _lines3D, selId, handleLineClick } = { ...props };
 
-    const [times, setTimes] = useState<ILine2D[]>([]);
-    const [brdrs, setBrdrs] = useState<ILine2D[]>([]);
+    const [times, setTimes] = useState<ILineXY[]>([]);
+    const [brdrs, setBrdrs] = useState<ILineXY[]>([]);
 
     const [totalTime, setTotalTime] = useState<string>('');
 
@@ -25,8 +26,8 @@ function TimeSvgComponent(props: ITimeSvgProperties) {
 
         console.debug('⚙ updating time svg component (_lines3D)', _lines3D);
 
-        const _times: ILine2D[] = [];
-        const _brdrs: ILine2D[] = [];
+        const _times: ILineXY[] = [];
+        const _brdrs: ILineXY[] = [];
 
         let xA = 0;
         let yA = 0;

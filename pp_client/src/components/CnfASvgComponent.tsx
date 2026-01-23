@@ -1,8 +1,8 @@
 import { Checkbox, Grid, Slider, TextField, Typography } from "@mui/material";
 import { useEffect } from "react";
-import { ICnfASvgProperties } from '../util/Interfaces';
+import { ICnfASvgProps } from "../util/ICnfASvgProps";
 
-function CnfASvgComponent(props: ICnfASvgProperties) {
+function CnfASvgComponent(props: ICnfASvgProps) {
 
     const { paperExtent, connectSort, keepTopLeft, handleCnfASvgProperties } = { ...props };
 

@@ -1,8 +1,10 @@
+import BluetoothDisabledIcon from '@mui/icons-material/BluetoothDisabled';
 import { Button, CssBaseline, Divider, Stack, Step, StepContent, StepLabel, Stepper, Typography } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import BluetoothSenderComponent from './components/BluetoothSenderComponent';
 import CnfASvgComponent from './components/CnfASvgComponent';
+import CnfBSvgComponent from './components/CnfBSvgComponent';
 import HRulSvgComponent from './components/HRulSvgComponent';
 import PickDeviceComponent from './components/PickDeviceComponent';
 import PickSvgComponent from './components/PickSvgComponent';
@@ -10,11 +12,19 @@ import RootSvgComponent from './components/RootSvgComponent';
 import TimeSvgComponent from './components/TimeSvgComponent';
 import VRulSvgComponent from './components/VRulSvgComponent';
 import { GeometryUtil } from './util/GeometryUtil';
-import { IBlockPlanar, ICnfASvgProperties, ICnfBSvgProperties, IConnBleProperties, IConnectSettings, IFileSvgProperties, ILinePath, IPickSvgProperties, IRootSvgProperties, ISendBleProperties, IStepDefProperties, ITimeSvgProperties } from './util/Interfaces';
+import { ICnfASvgProps } from './util/ICnfASvgProps';
+import { ICnfBSvgProps } from './util/ICnfBSvgProps';
+import { IConnBleProps } from './util/IConnBleProps';
+import { ICoordinateXYZR } from './util/ICoordinateXYZR';
+import { IFileSvgProps } from './util/IFileSvgProps';
+import { ILinePath } from './util/ILinePath';
+import { IConnectSettings, IStepDefProperties } from './util/Interfaces';
+import { IPickSvgProps } from './util/IPickSvgProps';
+import { IRootSvgProps } from './util/IRootSvgProps';
+import { ISendBleProps } from './util/ISendBleProps';
+import { ITimeSvgProps } from './util/ITimeSvgProps';
 import { ObjectUtil } from './util/ObjectUtil';
 import { ThemeUtil } from './util/ThemeUtil';
-import CnfBSvgComponent from './components/CnfBSvgComponent';
-import BluetoothDisabledIcon from '@mui/icons-material/BluetoothDisabled';
 
 const STEP_DEF_PROPERTIES: IStepDefProperties[] = [
   {
@@ -25,7 +35,7 @@ const STEP_DEF_PROPERTIES: IStepDefProperties[] = [
   },
   {
     label: 'cnfa',
-    valid: (fileSvgProperties: IFileSvgProperties) => {
+    valid: (fileSvgProperties: IFileSvgProps) => {
       return fileSvgProperties.fileLabel !== '';
     }
   },
@@ -37,7 +47,7 @@ const STEP_DEF_PROPERTIES: IStepDefProperties[] = [
   },
   {
     label: 'cnfb',
-    valid: (fileSvgProperties: IFileSvgProperties, _confSvgProperties: ICnfASvgProperties, connBleProperties: IConnBleProperties) => {
+    valid: (fileSvgProperties: IFileSvgProps, _confSvgProperties: ICnfASvgProps, connBleProperties: IConnBleProps) => {
       return fileSvgProperties.fileLabel !== '' && connBleProperties.success;
     }
   }
@@ -78,6 +88,21 @@ function RootApp() {
       }
     });
     tryAcquireScreenLock(); // initial lock
+
+    // const toRad = (grad: number): number => {
+    //   return grad * Math.PI / 180;
+    // }
+
+    // let command = 'M';
+    // let data = '';
+    // const radius = 10;
+    // let rad: number;
+    // for (let grad = 0; grad < 360; grad += 5) {
+    //   rad = toRad(grad);
+    //   data += `${command}${(Math.cos(rad) * radius).toFixed(2)} ${(Math.sin(rad) * radius).toFixed(2)}`;
+    //   command = 'L';
+    // }
+    // console.log(data);
 
     // interface CoordCore {
     //   a: number;
@@ -152,9 +177,9 @@ function RootApp() {
 
   }, []);
 
-  const handlePosition = (position: IBlockPlanar) => {
+  const handlePosition = (position: ICoordinateXYZR) => {
 
-    console.log(`📞 handling position`, position);
+    console.debug(`📞 handling position`, position);
 
     rootSvgPropertiesRef.current = {
       ...rootSvgPropertiesRef.current,
@@ -173,7 +198,7 @@ function RootApp() {
     const selId = id.substring(0, end != -1 ? end : undefined);
 
     const timelines = timeSvgPropertiesRef.current.lines.filter(l => l.id.startsWith(selId));
-    console.log('matches: ', timelines);
+    console.debug('matches: ', timelines);
 
     rootSvgPropertiesRef.current = {
       ...rootSvgPropertiesRef.current,
@@ -192,9 +217,9 @@ function RootApp() {
    * handles either a connect or a disconnect
    * @param connBleProperties
    */
-  const handleConnBleProperties = (_connBleProperties: Pick<IConnBleProperties, 'device' | 'message'>) => {
+  const handleConnBleProperties = (_connBleProperties: Pick<IConnBleProps, 'device' | 'message'>) => {
 
-    console.log(`📞 handling conn ble properties (state)`, _connBleProperties);
+    console.debug(`📞 handling conn ble properties (_connBleProperties)`, _connBleProperties);
 
     const success = !!_connBleProperties.device;
     connBlePropertiesRef.current = {
@@ -203,7 +228,7 @@ function RootApp() {
       device: _connBleProperties.device,
       success
     };
-    console.log('connBlePropertiesRef.current', connBlePropertiesRef.current);
+    console.debug('connBlePropertiesRef.current', connBlePropertiesRef.current);
     setConnBleProperties(connBlePropertiesRef.current);
 
   }
@@ -213,7 +238,7 @@ function RootApp() {
    * TODO :: store raw svg data here so it can be re-processed once some UI (simplification tolerance, size) has been added
    * @param fileSvgProperties
    */
-  const handleFileSvgProperties = (fileSvgProperties: IFileSvgProperties) => {
+  const handleFileSvgProperties = (fileSvgProperties: IFileSvgProps) => {
 
     console.debug(`📞 handling file svg properties (pathProperties)`, fileSvgProperties);
 
@@ -226,7 +251,7 @@ function RootApp() {
 
   const handlePenDone = () => {
 
-    console.log(`📞 handling pen done`);
+    console.debug(`📞 handling pen done`);
 
     sendBlePropertiesRef.current = {
       ...sendBlePropertiesRef.current,
@@ -244,9 +269,9 @@ function RootApp() {
 
   }
 
-  const handleCnfASvgProperties = (_cnfASvgProperties: Pick<ICnfASvgProperties, 'paperExtent' | 'connectSort' | 'keepTopLeft'>) => {
+  const handleCnfASvgProperties = (_cnfASvgProperties: Pick<ICnfASvgProps, 'paperExtent' | 'connectSort' | 'keepTopLeft'>) => {
 
-    console.log(`📞 handling cnfa a properties (_cnfASvgProperties)`, _cnfASvgProperties);
+    console.debug(`📞 handling cnfa a properties (_cnfASvgProperties)`, _cnfASvgProperties);
 
     cnfASvgPropertiesRef.current = {
       ...cnfASvgPropertiesRef.current,
@@ -256,9 +281,9 @@ function RootApp() {
 
   }
 
-  const handleCnfBSvgProperties = (_cnfBSvgProperties: Pick<ICnfBSvgProperties, 'penMaxSpeed' | 'penId'>) => {
+  const handleCnfBSvgProperties = (_cnfBSvgProperties: Pick<ICnfBSvgProps, 'penMaxSpeed' | 'penId'>) => {
 
-    console.log(`📞 handling cnfn b properties (_cnfBSvgProperties)`, _cnfBSvgProperties);
+    console.debug(`📞 handling cnfn b properties (_cnfBSvgProperties)`, _cnfBSvgProperties);
 
     cnfBSvgPropertiesRef.current = {
       ...cnfBSvgPropertiesRef.current,
@@ -284,7 +309,7 @@ function RootApp() {
   const [activeStep, setActiveStep] = useState<number>(0);
   // const linesRef = useRef<ILine3D[]>([]);
 
-  const fileSvgPropertiesRef = useRef<IFileSvgProperties>({
+  const fileSvgPropertiesRef = useRef<IFileSvgProps>({
     fileLabel: '',
     linePaths: [],
     cubcPaths: [],
@@ -295,9 +320,9 @@ function RootApp() {
       yMax: 0
     }
   });
-  const [fileSvgProperties, setFileSvgProperties] = useState<IFileSvgProperties>(fileSvgPropertiesRef.current);
+  const [fileSvgProperties, setFileSvgProperties] = useState<IFileSvgProps>(fileSvgPropertiesRef.current);
 
-  const cnfASvgPropertiesRef = useRef<ICnfASvgProperties>({
+  const cnfASvgPropertiesRef = useRef<ICnfASvgProps>({
     paperExtent: {
       xMin: 0,
       yMin: 0,
@@ -308,21 +333,23 @@ function RootApp() {
     keepTopLeft: false,
     handleCnfASvgProperties
   });
-  const [cnfASvgProperties, setCnfASvgProperties] = useState<ICnfASvgProperties>(cnfASvgPropertiesRef.current);
+  const [cnfASvgProperties, setCnfASvgProperties] = useState<ICnfASvgProps>(cnfASvgPropertiesRef.current);
 
-  const cnfBSvgPropertiesRef = useRef<ICnfBSvgProperties>({
+  const cnfBSvgPropertiesRef = useRef<ICnfBSvgProps>({
     penMaxSpeed: 20,
     penIds: [],
     penId: ObjectUtil.createId(),
     handleCnfBSvgProperties
   });
-  const [cnfBSvgProperties, setCnfBSvgProperties] = useState<ICnfBSvgProperties>(cnfBSvgPropertiesRef.current);
+  const [cnfBSvgProperties, setCnfBSvgProperties] = useState<ICnfBSvgProps>(cnfBSvgPropertiesRef.current);
 
-  const rootSvgPropertiesRef = useRef<IRootSvgProperties>({
+  const rootSvgPropertiesRef = useRef<IRootSvgProps>({
     lines: [],
     position: {
-      x: 20,
-      y: 20
+      x: 0,
+      y: 0,
+      z: 0,
+      r: 0
     },
     extent: {
       xMin: 0,
@@ -333,37 +360,37 @@ function RootApp() {
     selId: ObjectUtil.createId(),
     handleLineClick
   });
-  const [rootSvgProperties, setRootSvgProperties] = useState<IRootSvgProperties>(rootSvgPropertiesRef.current);
+  const [rootSvgProperties, setRootSvgProperties] = useState<IRootSvgProps>(rootSvgPropertiesRef.current);
 
-  const [pickSvgProperties] = useState<IPickSvgProperties>({
+  const [pickSvgProperties] = useState<IPickSvgProps>({
     handleFileSvgProperties
   });
 
-  const timeSvgPropertiesRef = useRef<ITimeSvgProperties>({
+  const timeSvgPropertiesRef = useRef<ITimeSvgProps>({
     lines: [],
     selId: ObjectUtil.createId(),
     handleLineClick
   });
-  const [timeSvgProperties, setTimeSvgProperties] = useState<ITimeSvgProperties>(timeSvgPropertiesRef.current);
+  const [timeSvgProperties, setTimeSvgProperties] = useState<ITimeSvgProps>(timeSvgPropertiesRef.current);
 
-  const connBlePropertiesRef = useRef<IConnBleProperties>({
+  const connBlePropertiesRef = useRef<IConnBleProps>({
     success: false,
     message: '',
     handleConnBleProperties
   });
-  const [connBleProperties, setConnBleProperties] = useState<IConnBleProperties>(connBlePropertiesRef.current);
+  const [connBleProperties, setConnBleProperties] = useState<IConnBleProps>(connBlePropertiesRef.current);
 
-  const sendBlePropertiesRef = useRef<ISendBleProperties>({
+  const sendBlePropertiesRef = useRef<ISendBleProps>({
     lines: [],
     handlePenDone,
     handlePositionExternal: handlePosition,
     penId: ObjectUtil.createId()
   });
-  const [sendBleProperties, setSendBleProperties] = useState<ISendBleProperties>(sendBlePropertiesRef.current);
+  const [sendBleProperties, setSendBleProperties] = useState<ISendBleProps>(sendBlePropertiesRef.current);
 
   useEffect(() => {
 
-    console.log('⚙ updating root app component (fileSvgProperties)', fileSvgProperties);
+    console.debug('⚙ updating root app component (fileSvgProperties)', fileSvgProperties);
 
     if (fileSvgProperties.fileLabel !== '' && (fileSvgProperties.linePaths.length > 0 || fileSvgProperties.cubcPaths.length > 0)) {
 
@@ -380,7 +407,7 @@ function RootApp() {
       });
       penIds.sort();
 
-      console.log('penIds from file', penIds);
+      console.debug('penIds from file', penIds);
       // eslint-disable-next-line prefer-const
       let penId = ObjectUtil.createId();
       // if (penIds.indexOf('c050') !== -1) {
@@ -414,7 +441,7 @@ function RootApp() {
       let connectRequired = false;
       if (fileSvgProperties.linePaths.length !== lastConnectSettings.current.linePathCount || fileSvgProperties.cubcPaths.length !== lastConnectSettings.current.cubcPathCount) {
         connectRequired = true;
-        console.log('connectRequired due to changed linecounts');
+        console.debug('connectRequired due to changed linecounts');
       }
       lastConnectSettings.current.linePathCount = fileSvgProperties.linePaths.length;
       lastConnectSettings.current.cubcPathCount = fileSvgProperties.cubcPaths.length;
@@ -425,6 +452,8 @@ function RootApp() {
         ...fileSvgProperties.linePaths,
         ...cubcpathsAsLinepaths
       ];
+
+      // TODO :: here or optionally below extent calculation there needs to be another object in component state, where an alternative file format could come in
 
       // get extent of all paths (may have negative origin) and translate to origin
       let overallExtent = GeometryUtil.getLinepathsExtent(linepathsMerged);
@@ -462,7 +491,7 @@ function RootApp() {
 
       if (paperDimX !== lastConnectSettings.current.paperDimX) {
         connectRequired = true;
-        console.log('connectRequired due to changed paperDimX');
+        console.debug('connectRequired due to changed paperDimX');
       }
       lastConnectSettings.current.paperDimX = paperDimX;
 
@@ -474,7 +503,7 @@ function RootApp() {
 
       if (cnfBSvgProperties.penId !== lastConnectSettings.current.penId) {
         connectRequired = true;
-        console.log('connectRequired due to changed penId');
+        console.debug('connectRequired due to changed penId');
       }
       lastConnectSettings.current.penId = cnfBSvgProperties.penId;
 
@@ -503,12 +532,12 @@ function RootApp() {
             // console.log('short segment found', lengthAB, 'at position', i, 'in a path containing', p.segments.length, 'segments');
           }
         };
-      })
+      });
 
       let linepathConnecteds: ILinePath[] = [];
       if (connectRequired) {
 
-        console.log('linepathNoShorts', linepathNoShorts.length, cnfBSvgProperties.penId);
+        console.debug('linepathNoShorts', linepathNoShorts.length, cnfBSvgProperties.penId);
         linepathConnecteds = GeometryUtil.connectLinepaths({
           x: overallExtent.xMin,
           y: overallExtent.yMin
@@ -583,7 +612,7 @@ function RootApp() {
 
   useEffect(() => {
 
-    console.log('⚙ updating root app component (connBleProperties)', connBleProperties);
+    console.debug('⚙ updating root app component (connBleProperties)', connBleProperties);
 
     determineActiveStep();
 
@@ -686,6 +715,7 @@ function RootApp() {
                         variant={'contained'}
                         onClick={() => {
                           connBleProperties.device?.gatt?.disconnect();
+                          // connBleProperties.device?.forget();
                           handleConnBleProperties({
                             // device implicitly undefined
                             message: 'manual disconnect'

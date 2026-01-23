@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ILinePath } from "../util/Interfaces";
 import LineSvgComponent from "./LineSvgComponent";
+import { ILinePath } from "../util/ILinePath";
 
 export interface ILinepathstyleProperties {
     selId: string;

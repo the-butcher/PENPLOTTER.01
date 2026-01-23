@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ILine2D } from "../util/Interfaces";
+import { ILineXY } from "../util/ILineXY";
 
 export interface ILinestyleProperties {
     strokeWidth: number;
@@ -8,7 +8,7 @@ export interface ILinestyleProperties {
     handleLineClick: (id: string) => void;
 }
 
-function LineSvgComponent(props: ILine2D & ILinestyleProperties) {
+function LineSvgComponent(props: ILineXY & ILinestyleProperties) {
 
     const { coordA, coordB, strokeWidth: _strokeWidth, stroke: _stroke } = { ...props };
 

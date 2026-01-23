@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
 import LinepathSvgComponent from "./LinepathSvgComponent";
-import { ILinePath, IRootSvgProperties } from "../util/Interfaces";
+import { IRootSvgProps } from "../util/IRootSvgProps";
+import { ILinePath } from "../util/ILinePath";
 
 
 
-function RootSvgComponent(props: IRootSvgProperties) {
+function RootSvgComponent(props: IRootSvgProps) {
 
-    const { lines: _lines, extent: _extent, position: _position, selId, handleLineClick } = { ...props };
+    const { lines: _lines, extent: _extent, position: _position, selId } = { ...props }; // , handleLineClick
 
     const [viewbox, setViewbox] = useState<string>('0, 0, 1, 1');
     const [width, setWidth] = useState<number>(1);
@@ -20,7 +21,7 @@ function RootSvgComponent(props: IRootSvgProperties) {
 
     useEffect(() => {
 
-        console.log('⚙ updating root svg component (_lines, _extent, _position)', _lines.length, _extent, _position);
+        console.debug('⚙ updating root svg component (_lines, _extent, _position)', _lines.length, _extent, _position);
 
         const _width = _extent.xMax - _extent.xMin + GeometryUtil.IMAGE_PADDING * 2;
         const _height = _extent.yMax - _extent.yMin + GeometryUtil.IMAGE_PADDING * 2;
@@ -107,7 +108,10 @@ function RootSvgComponent(props: IRootSvgProperties) {
         ]);
 
         setPosition(
-            <circle cx={_position.x} cy={_position.y} r="2" fill={'none'} stroke={'red'} strokeWidth={GeometryUtil.PEN_WIDTH_SEG * 2} />
+            <g>
+                <circle cx={_position.x} cy={_position.y} r="2" fill={'none'} stroke={'red'} strokeWidth={GeometryUtil.PEN_WIDTH_SEG * 2} />
+                <line x1={_position.x} y1={_position.y} x2={_position.x + Math.cos(_position.r * Math.PI / 180) * 10} y2={_position.y + Math.sin(_position.r * Math.PI / 180) * 10} fill={'none'} stroke={'red'} strokeWidth={GeometryUtil.PEN_WIDTH_SEG * 2} />
+            </g>
         );
 
 

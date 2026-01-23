@@ -1,13 +1,17 @@
 import { GeometryUtil } from "./GeometryUtil";
-import { ICoordinate2D, ICubc2D, ICubcPath, ILine2D, ILinePath, IFileSvgProperties, IExtent } from "./Interfaces";
+import { ICoordinateXY } from "./ICoordinateXY";
+import { ICubc2D } from "./ICubc2D";
+import { ICubcPath } from "./ICubcPath";
+import { ILineXY } from "./ILineXY";
+import { ILinePath } from "./ILinePath";
 import { ObjectUtil } from "./ObjectUtil";
+import { IFileSvgProps } from "./IFileSvgProps";
+import { IExtentXY } from "./IExtentXY";
 
 
 export class SvgUtil {
 
-
-
-    static async parseSvgPaths(svgNode: SVGSVGElement): Promise<Pick<IFileSvgProperties, 'linePaths' | 'cubcPaths' | 'extent'>> {
+    static async parseSvgPaths(svgNode: SVGSVGElement): Promise<Pick<IFileSvgProps, 'linePaths' | 'cubcPaths' | 'extent'>> {
 
         const moveToCommand = 'M';
         const lineToCommand = 'L';
@@ -23,7 +27,7 @@ export class SvgUtil {
         const linePaths: ILinePath[] = [];
         const cubcPaths: ICubcPath[] = [];
 
-        const closeLineSegments = (lineSegments: ILine2D[], penId: string): ILine2D[] => {
+        const closeLineSegments = (lineSegments: ILineXY[], penId: string): ILineXY[] => {
             if (lineSegments.length > 0) {
                 linePaths.push({
                     id: ObjectUtil.createId(),
@@ -49,13 +53,13 @@ export class SvgUtil {
         const viewboxRaw = svgNode.getAttribute('viewBox');
         const viewboxTkn = viewboxRaw!.split(/[, ]/g);
         const viewboxVal = viewboxTkn.map(t => parseFloat(t));
-        const extent: IExtent = {
+        const extent: IExtentXY = {
             xMin: viewboxVal[0],
             yMin: viewboxVal[1],
             xMax: viewboxVal[0] + viewboxVal[2],
             yMax: viewboxVal[1] + viewboxVal[3]
         }
-        console.log('extent', viewboxRaw, viewboxVal, extent);
+        console.debug('extent', viewboxRaw, viewboxVal, extent);
 
         const paths = svgNode.getElementsByTagName('path');
         for (let i = 0; i < paths.length; i++) {
@@ -75,11 +79,11 @@ export class SvgUtil {
                 let cubcSegments = closeCubcSegments([], penId);
 
                 // path reference coordinate
-                let coordR: ICoordinate2D = {
+                let coordR: ICoordinateXY = {
                     x: 0,
                     y: 0
                 };
-                let coordC2: ICoordinate2D;
+                let coordC2: ICoordinateXY;
 
                 // each token represents a subpath in terms of https://www.w3.org/TR/SVG11/paths.html#PathElement
                 for (let j = 0; j < tokens!.length; j++) {
@@ -288,7 +292,7 @@ export class SvgUtil {
             const valuesRaw = points.match(/[+-]?(\d*\.\d+|\d+\.?)([eE][+-]?\d+)*/g)!;
             const valuesNum = valuesRaw.map(v => parseFloat(v));
 
-            const lineSegments: ILine2D[] = [];
+            const lineSegments: ILineXY[] = [];
             for (let k = 2; k < valuesRaw.length; k += 2) {
                 const coordA = {
                     x: valuesNum[k - 2],

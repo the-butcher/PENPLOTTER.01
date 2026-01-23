@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { GeometryUtil } from "../util/GeometryUtil";
 import { ObjectUtil } from "../util/ObjectUtil";
-import { ICoordinate2D, IRootSvgProperties } from "../util/Interfaces";
+import { ICoordinateXY } from "../util/ICoordinateXY";
+import { IRootSvgProps } from "../util/IRootSvgProps";
 
-function VRulSvgComponent(props: IRootSvgProperties) {
+function VRulSvgComponent(props: IRootSvgProps) {
 
     const { extent: _extent } = { ...props };
 
@@ -11,7 +12,7 @@ function VRulSvgComponent(props: IRootSvgProperties) {
     const [width, setWidth] = useState<number>(1);
     const [height, setHeight] = useState<number>(1);
     const [d, setD] = useState<string>('1');
-    const [textPos, setTextPos] = useState<ICoordinate2D>({
+    const [textPos, setTextPos] = useState<ICoordinateXY>({
         x: 0,
         y: 0
     });

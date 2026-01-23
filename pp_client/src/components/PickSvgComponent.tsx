@@ -19,6 +19,7 @@ function PickSvgComponent(props: IPickSvgProperties) {
     const handleFileUpload = (fileList: FileList) => {
         if (fileList.length > 0) {
             const file = fileList.item(0);
+            // console.log('file', file);
             file!.text().then(text => {
                 svgContainerRef.current!.innerHTML = text;
                 const svgNode = svgContainerRef.current!.getElementsByTagName('svg').item(0)!;

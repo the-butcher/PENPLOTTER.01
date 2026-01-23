@@ -2,9 +2,9 @@ import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Divider, Grid, IconButton, Slider, TextField, Typography } from "@mui/material";
 import { useEffect } from "react";
-import { ICnfBSvgProperties } from '../util/Interfaces';
+import { ICnfBSvgProps } from '../util/ICnfBSvgProps';
 
-function CnfBSvgComponent(props: ICnfBSvgProperties) {
+function CnfBSvgComponent(props: ICnfBSvgProps) {
 
     const { penMaxSpeed, penIds, penId, handleCnfBSvgProperties } = { ...props };
 
@@ -85,34 +85,52 @@ function CnfBSvgComponent(props: ICnfBSvgProperties) {
                     }}
                 />
             </Grid>
-            {penIds.map((_penId) => (
-                <>
+            {penIds.map((_penId) => <div
+                key={`d${_penId}`}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center'
+                }}
+            >
 
-                    <Grid item xs={3} key={`b${_penId}`}>
-                        <IconButton
-                            aria-label="comment"
-                            onClick={() => handlePenIdButtonClick(_penId)}
-                        >
-                            {
-                                penId === _penId ? <RadioButtonCheckedIcon color='primary' /> : <RadioButtonUncheckedIcon />
-                            }
-                            {/* <DrawIcon /> */}
-                        </IconButton>
-                    </Grid>
-                    <Grid item xs={9} key={`t${_penId}`}>
-                        <Typography
-                            style={{
-                                marginTop: '10px'
-                            }}
-                        >{`pen ${_penId}`}</Typography>
-                    </Grid>
+                <Grid
+                    item
+                    xs={3}
+                    key={`b${_penId}`}
+                    sx={{
+                        height: '24px'
+                    }}
+                >
+                    <IconButton
+                        aria-label="comment"
+                        onClick={() => handlePenIdButtonClick(_penId)}
+                    >
+                        {
+                            penId === _penId ? <RadioButtonCheckedIcon color='primary' /> : <RadioButtonUncheckedIcon />
+                        }
+                    </IconButton>
+                </Grid>
+                <Grid
+                    item
+                    xs={9}
+                    key={`t${_penId}$`}
+                    sx={{
+                        height: '24px',
+                        paddingLeft: '6px'
+                    }}
+                >
+                    <Typography
+                        style={{
+                            marginTop: '8px'
+                        }}
+                    >{`pen ${_penId}`}</Typography>
+                </Grid>
 
 
-                </>
-            ))}
+            </div>)}
 
 
-        </Grid>
+        </Grid >
 
 
     )

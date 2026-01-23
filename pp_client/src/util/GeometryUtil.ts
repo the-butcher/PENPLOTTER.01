@@ -1,11 +1,18 @@
-import { ELineDirection, ICoordinate2D, ICoordinate3D, ICubcPath, IExtent, ILine2D, ILine3D, ILinePath, IMatrix2D } from "./Interfaces";
+import { ICoordinateXY } from "./ICoordinateXY";
+import { ICoordinateXYZ } from "./ICoordinateXYZ";
+import { ICubcPath } from "./ICubcPath";
+import { ILineXY } from "./ILineXY";
+import { ILineXYZ } from "./ILineXYZ";
+import { ILinePath } from "./ILinePath";
+import { ELineDirection, IMatrix2D } from "./Interfaces";
 import { ObjectUtil } from "./ObjectUtil";
 // import Loess from 'loess';
 import simplify from "simplify-js";
+import { IExtentXY } from "./IExtentXY";
 
 export class GeometryUtil {
 
-    static BT___BUFF_BLK = 24; // bluetooth buffer size
+    static BT___BUFF_BLK = 20; // bluetooth buffer size
     static BT___BUFF_MAX = 512; // device buffer size
 
     static PEN___MIN_MMS = 1;
@@ -20,15 +27,15 @@ export class GeometryUtil {
     static Z_VALUE_RESET = 9999; // z-value indicating reset
 
 
-    static linepathsToPlotpaths(linepaths: ILinePath[], maxMMS: number): ILine3D[] {
+    static linepathsToPlotpaths(linepaths: ILinePath[], maxMMS: number): ILineXYZ[] {
 
         const maxACC = Math.min(maxMMS * 3, 50);
 
         // initial conversion
-        const plotPaths1: ILine3D[] = [];
-        let coordR3D: ICoordinate3D | undefined;
-        let coordA3D: ICoordinate3D | undefined;
-        let coordB3D: ICoordinate3D | undefined;
+        const plotPaths1: ILineXYZ[] = [];
+        let coordR3D: ICoordinateXYZ | undefined;
+        let coordA3D: ICoordinateXYZ | undefined;
+        let coordB3D: ICoordinateXYZ | undefined;
         const basicLift = (GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D) * 0.66;
         const maxExtraLift = GeometryUtil.Z_VALUE_PEN_U - GeometryUtil.Z_VALUE_PEN_D - basicLift;
 
@@ -59,7 +66,7 @@ export class GeometryUtil {
                     ...coordB2D,
                     z: GeometryUtil.Z_VALUE_PEN_D + basicLift + extraLift
                 };
-                const fullMoveSegment: ILine3D = {
+                const fullMoveSegment: ILineXYZ = {
                     id: `${segmentId}_tr_full`,
                     penId,
                     coordA: coordA3D,
@@ -297,7 +304,7 @@ export class GeometryUtil {
 
         }
 
-        const plotPaths2: ILine3D[] = [];
+        const plotPaths2: ILineXYZ[] = [];
 
         // entry and exit speeds should be sorted here, now do acceleration / deceleration within the blocks
         let speedI = 0;
@@ -313,9 +320,9 @@ export class GeometryUtil {
             const lVmToVo = (speedO * speedO - mmm * mmm) / (2 * -acc); // distance travelled while decelarating from full to exit
             const lViToVmToVo = lViToVm + lVmToVo;
 
-            let blockAcel: ILine3D | undefined;
-            let blockFull: ILine3D | undefined;
-            let blockDcel: ILine3D | undefined;
+            let blockAcel: ILineXYZ | undefined;
+            let blockFull: ILineXYZ | undefined;
+            let blockDcel: ILineXYZ | undefined;
 
             if (lViToVmToVo < plotPaths1[index].length) { // needs an extra full speed segment
 
@@ -368,8 +375,8 @@ export class GeometryUtil {
 
     }
 
-    static trimLine3D(idPostfix: string, line: ILine3D, mult0: number, mult1: number, speedB: number): ILine3D {
-        const unitCoord: ICoordinate3D = GeometryUtil.getUnitVector3D(line);
+    static trimLine3D(idPostfix: string, line: ILineXYZ, mult0: number, mult1: number, speedB: number): ILineXYZ {
+        const unitCoord: ICoordinateXYZ = GeometryUtil.getUnitVector3D(line);
         const coordA = {
             x: line.coordA.x + unitCoord.x * mult0,
             y: line.coordA.y + unitCoord.y * mult0,
@@ -390,7 +397,7 @@ export class GeometryUtil {
         };
     }
 
-    static getLinepathExtent(linepath: ILinePath): IExtent {
+    static getLinepathExtent(linepath: ILinePath): IExtentXY {
 
         let xMin: number = Number.MAX_VALUE;
         let yMin: number = Number.MAX_VALUE;
@@ -415,7 +422,7 @@ export class GeometryUtil {
 
     static cubicgroupToLinegroup(cubicgroup: ICubcPath): ILinePath {
 
-        const lines: ILine2D[] = [];
+        const lines: ILineXY[] = [];
 
         cubicgroup.segments.forEach(c => {
 
@@ -428,11 +435,11 @@ export class GeometryUtil {
             const segmtLength = pathLength / pathSegmts;
 
             let pointAtLength: DOMPoint = svgPathElement.getPointAtLength(0);
-            let coordA: ICoordinate2D = {
+            let coordA: ICoordinateXY = {
                 x: pointAtLength.x,
                 y: pointAtLength.y
             };
-            let coordB: ICoordinate2D;
+            let coordB: ICoordinateXY;
             for (let i = 1; i <= pathSegmts; i++) {
                 pointAtLength = svgPathElement.getPointAtLength(i * segmtLength);
                 coordB = {
@@ -459,7 +466,7 @@ export class GeometryUtil {
 
     }
 
-    static scaleExtent(scale: number, extent: IExtent): IExtent {
+    static scaleExtent(scale: number, extent: IExtentXY): IExtentXY {
         return {
             xMin: extent.xMin * scale,
             yMin: extent.yMin * scale,
@@ -474,7 +481,7 @@ export class GeometryUtil {
      * @param linepaths
      * @returns
      */
-    static translateLinepaths(translation: ICoordinate2D, linepaths: ILinePath[]): ILinePath[] {
+    static translateLinepaths(translation: ICoordinateXY, linepaths: ILinePath[]): ILinePath[] {
         return linepaths.map(g => GeometryUtil.translateLinepath(translation, g));
     }
 
@@ -484,7 +491,7 @@ export class GeometryUtil {
      * @param linepath
      * @returns
      */
-    static translateLinepath(translation: ICoordinate2D, linepath: ILinePath): ILinePath {
+    static translateLinepath(translation: ICoordinateXY, linepath: ILinePath): ILinePath {
         return {
             id: linepath.id,
             penId: linepath.penId,
@@ -500,7 +507,7 @@ export class GeometryUtil {
      * @param line
      * @returns
      */
-    static translateLine2D(translation: ICoordinate2D, line: ILine2D): ILine2D {
+    static translateLine2D(translation: ICoordinateXY, line: ILineXY): ILineXY {
         return {
             id: line.id,
             coordA: GeometryUtil.translateCoordinate2D(translation, line.coordA),
@@ -514,7 +521,7 @@ export class GeometryUtil {
      * @param coordinate
      * @returns
      */
-    static translateCoordinate2D(translation: ICoordinate2D, coordinate: ICoordinate2D): ICoordinate2D {
+    static translateCoordinate2D(translation: ICoordinateXY, coordinate: ICoordinateXY): ICoordinateXY {
         return {
             x: coordinate.x + translation.x,
             y: coordinate.y + translation.y
@@ -553,7 +560,7 @@ export class GeometryUtil {
      * @param line
      * @returns
      */
-    static scaleLine(scale: number, line: ILine2D): ILine2D {
+    static scaleLine(scale: number, line: ILineXY): ILineXY {
         return {
             id: line.id,
             coordA: GeometryUtil.scaleCoordinate(scale, line.coordA),
@@ -567,7 +574,7 @@ export class GeometryUtil {
      * @param coordinate
      * @returns
      */
-    static scaleCoordinate(scale: number, coordinate: ICoordinate2D): ICoordinate2D {
+    static scaleCoordinate(scale: number, coordinate: ICoordinateXY): ICoordinateXY {
         return {
             x: coordinate.x * scale,
             y: coordinate.y * scale
@@ -581,9 +588,9 @@ export class GeometryUtil {
             segments: [...linePath.segments]
         }
 
-        let segmentA: ILine2D;
-        let segmentB: ILine2D;
-        let segmentC: ILine2D;
+        let segmentA: ILineXY;
+        let segmentB: ILineXY;
+        let segmentC: ILineXY;
         // let intersection: ICoordinate2D | undefined;
         let lengthB: number;
 
@@ -596,7 +603,7 @@ export class GeometryUtil {
                 // if a connecting segment is short, remove it and connect neighbouring segmets by intersection
                 if (lengthB < minLength) {
 
-                    const midpoint: ICoordinate2D = {
+                    const midpoint: ICoordinateXY = {
                         x: (segmentB.coordA.x + segmentB.coordB.x) / 2,
                         y: (segmentB.coordA.y + segmentB.coordB.y) / 2,
                     };
@@ -634,7 +641,7 @@ export class GeometryUtil {
 
     }
 
-    static intersectLines(lineA: ILine2D, lineB: ILine2D): ICoordinate2D | undefined {
+    static intersectLines(lineA: ILineXY, lineB: ILineXY): ICoordinateXY | undefined {
 
         const x1 = lineA.coordA.x;
         const y1 = lineA.coordA.y;
@@ -677,10 +684,10 @@ export class GeometryUtil {
 
     }
 
-    static connectLinepathsFw(coordR: ICoordinate2D, linePaths: ILinePath[]): ILinePath[] {
+    static connectLinepathsFw(coordR: ICoordinateXY, linePaths: ILinePath[]): ILinePath[] {
 
         const connectedLinePaths: ILinePath[] = [];
-        let coordE: ICoordinate2D; // edge coordinate
+        let coordE: ICoordinateXY; // edge coordinate
 
         const extent = GeometryUtil.getLinepathsExtent(linePaths);
         const extentX = extent.xMax - extent.xMin;
@@ -727,7 +734,7 @@ export class GeometryUtil {
         let bucketSizeTotal: number;
         while ((bucketSizeTotal = getBucketSizeTotal()) > 0) {
 
-            console.log('bst', bucketSizeTotal);
+            console.debug('bst', bucketSizeTotal);
 
             for (let bucketIndex = 0; bucketIndex < bucketCount; bucketIndex++) {
                 // if (buckets[bucketIndex].length > 0) {
@@ -772,7 +779,7 @@ export class GeometryUtil {
 
     }
 
-    static connectLinepaths(coordR: ICoordinate2D, linePaths: ILinePath[], connectSort: boolean, mustBeForward: boolean): ILinePath[] {
+    static connectLinepaths(coordR: ICoordinateXY, linePaths: ILinePath[], connectSort: boolean, mustBeForward: boolean): ILinePath[] {
 
         if (mustBeForward) {
             return this.connectLinepathsFw(coordR, linePaths);
@@ -784,7 +791,7 @@ export class GeometryUtil {
         while (linePaths.length > 0) {
 
             // find closest path
-            let coordE: ICoordinate2D; // edge coordinate
+            let coordE: ICoordinateXY; // edge coordinate
             let distE: number; // edge distance
             let distMin: number = Number.MAX_VALUE;
             let pathMin: ILinePath | undefined;
@@ -860,11 +867,11 @@ export class GeometryUtil {
 
     }
 
-    static getLinepathsExtent(linepaths: ILinePath[]): IExtent {
+    static getLinepathsExtent(linepaths: ILinePath[]): IExtentXY {
         return GeometryUtil.mergeExtents(linepaths.map(g => GeometryUtil.getLinepathExtent(g)));
     }
 
-    static mergeExtents(extents: IExtent[]): IExtent {
+    static mergeExtents(extents: IExtentXY[]): IExtentXY {
 
         let xMin: number = Number.MAX_VALUE;
         let yMin: number = Number.MAX_VALUE;
@@ -891,27 +898,27 @@ export class GeometryUtil {
      * create a unique 6-digit id
      * @returns
      */
-    static transformCoordinate2D(coordinate: ICoordinate2D, transform: IMatrix2D): ICoordinate2D {
+    static transformCoordinate2D(coordinate: ICoordinateXY, transform: IMatrix2D): ICoordinateXY {
         return {
             x: coordinate.x * transform.a + coordinate.y * transform.c + transform.e,
             y: coordinate.x * transform.b + coordinate.y * transform.d + transform.f
         };
     }
 
-    static getDistance2D(coordinateA: ICoordinate2D, coordinateB: ICoordinate2D) {
+    static getDistance2D(coordinateA: ICoordinateXY, coordinateB: ICoordinateXY) {
         const xD = coordinateB.x - coordinateA.x;
         const yD = coordinateB.y - coordinateA.y;
         return Math.sqrt(xD * xD + yD * yD);
     }
 
-    static getDistance3D(coordinateA: ICoordinate3D, coordinateB: ICoordinate3D) {
+    static getDistance3D(coordinateA: ICoordinateXYZ, coordinateB: ICoordinateXYZ) {
         const xD = coordinateB.x - coordinateA.x;
         const yD = coordinateB.y - coordinateA.y;
         const zD = coordinateB.z - coordinateA.z;
         return Math.sqrt(xD * xD + yD * yD + zD * zD);
     }
 
-    static getUnitVector3D(line: ILine3D): ICoordinate3D {
+    static getUnitVector3D(line: ILineXYZ): ICoordinateXYZ {
         const xD = line.coordB.x - line.coordA.x;
         const yD = line.coordB.y - line.coordA.y;
         const zD = line.coordB.z - line.coordA.z;
@@ -923,11 +930,11 @@ export class GeometryUtil {
         }
     }
 
-    static getDotProduct3D(vectorA: ICoordinate3D, vectorB: ICoordinate3D): number {
+    static getDotProduct3D(vectorA: ICoordinateXYZ, vectorB: ICoordinateXYZ): number {
         return vectorA.x * vectorB.x + vectorA.y * vectorB.y + vectorA.z * vectorB.z;
     }
 
-    static getEdgeCoord(direction: ELineDirection, linegroup: ILinePath): ICoordinate2D {
+    static getEdgeCoord(direction: ELineDirection, linegroup: ILinePath): ICoordinateXY {
         if (direction === 'df') {
             return linegroup.segments[0].coordA;
         } else {
@@ -961,14 +968,14 @@ export class GeometryUtil {
      */
     static simplifyLinepath(tolerance: number, linegroupRaw: ILinePath): ILinePath {
 
-        const coordsRaw: ICoordinate2D[] = [GeometryUtil.getEdgeCoord('df', linegroupRaw)];
+        const coordsRaw: ICoordinateXY[] = [GeometryUtil.getEdgeCoord('df', linegroupRaw)];
         linegroupRaw.segments.forEach(line => {
             coordsRaw.push(line.coordB);
         });
         // const coordsSmp = GeometryUtil.simplifyCoordinates(coordsRaw, tolerance);
 
         const coordsSmp = simplify(coordsRaw, tolerance, true);
-        const segments: ILine2D[] = [];
+        const segments: ILineXY[] = [];
         for (let i = 1; i < coordsSmp.length; i++) {
             segments.push({
                 id: ObjectUtil.createId(),
